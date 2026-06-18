@@ -374,21 +374,17 @@ void CObject_Render_hook(CObjectGta* thiz)
         if(pObject && pObject->m_pEntity)
         {
             RwObject* rwObject = (RwObject*)pObject->m_pEntity->m_pRwObject;
-            if(rwObject)
+            if(rwObject && rwObject->parent)
             {
                 // SetObjectMaterial
                 if(pObject->m_bHasMaterial || pObject->m_bHasMaterialText)
                 {
                     RwFrameForAllObjects((RwFrame*)rwObject->parent, (RwObject *(*)(RwObject *, void *))ObjectMaterialCallBack, pObject);
-                    //RpAtomic* atomic = (RpAtomic*)object->m_pRwAtomic;
-                    //RpGeometryForAllMaterials(atomic->geometry, ObjectMaterialCallBack, (void*)pObject);
                 }
                 // SetObjectMaterialText
                 if(pObject->m_bHasMaterialText)
                 {
                     RwFrameForAllObjects((RwFrame*)rwObject->parent, (RwObject *(*)(RwObject *, void *))ObjectMaterialTextCallBack, pObject);
-                    //RpAtomic* atomic = (RpAtomic*)object->m_pRwAtomic;
-                    //RpGeometryForAllMaterials(atomic->geometry, ObjectMaterialTextCallBack, (void*)pObject);
                 }
             }
 
@@ -929,9 +925,9 @@ void CPedDamageResponseCalculator__ComputeDamageResponse_hook(CPedDamageResponse
 
 void (*CRenderer__RenderEverythingBarRoads)();
 void CRenderer__RenderEverythingBarRoads_hook() {
-    if(pNetGame) {
+    /*if(pNetGame) {
         Skybox::Process();
-    }
+    }*/
 
     CRenderer__RenderEverythingBarRoads();
 }
@@ -2018,7 +2014,7 @@ void InstallHooks()
         }
     }
 
-    CHook::InlineHook("_Z17emu_glEndInternalv", (uintptr_t)emu_glEndInternal_hook, (uintptr_t*)&emu_glEndInternal); // WaterShader
+    // CHook::InlineHook("_Z17emu_glEndInternalv", (uintptr_t)emu_glEndInternal_hook, (uintptr_t*)&emu_glEndInternal); // WaterShader
 
     CHook::Redirect("_ZN4CHID12GetInputTypeEv", &GetInputType);
 

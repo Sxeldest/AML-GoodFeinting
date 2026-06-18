@@ -32,6 +32,10 @@ CSettings::CSettings()
 	m_Settings.szPassword[length] = '\0';
 	m_Settings.iServerID = reader.GetInteger("client", "servernumber", 1);
 
+	length = reader.Get("client", "host", "127.0.0.1").copy(m_Settings.szHost, MAX_SETTINGS_STRING);
+	m_Settings.szHost[length] = '\0';
+	m_Settings.iPort = reader.GetInteger("client", "port", 7777);
+
 	// debug
 	m_Settings.bDebug = reader.GetBoolean("debug", "debug", false);
 	m_Settings.bOnline = reader.GetBoolean("debug", "online", true);

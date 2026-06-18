@@ -273,31 +273,40 @@ void DoInitStuff() {
 
     if (!bNetworkInited && !bDebug  && !serverConnect) {
 
-        int serverid = pSettings->GetReadOnly().iServerID;
+        const auto& settings = pSettings->GetReadOnly();
 
-        if (serverid == 0)
+        if (strlen(settings.szHost) > 0 && strcmp(settings.szHost, "127.0.0.1") != 0)
         {
-            pNetGame = new CNetGame(SERVER_HOST_TEST, SERVER_PORT_TEST, pSettings->Get().szNickName, pSettings->Get().szPassword);
+            pNetGame = new CNetGame(settings.szHost, settings.iPort, settings.szNickName, settings.szPassword);
         }
-        else if (serverid == 1)
+        else
         {
-            pNetGame = new CNetGame(SERVER_HOST_1, SERVER_PORT_1, pSettings->Get().szNickName, pSettings->Get().szPassword);
-        }
-        else if (serverid == 2)
-        {
-            pNetGame = new CNetGame(SERVER_HOST_2, SERVER_PORT_2, pSettings->Get().szNickName, pSettings->Get().szPassword);
-        }
-        else if (serverid == 3)
-        {
-            pNetGame = new CNetGame(SERVER_HOST_3, SERVER_PORT_3, pSettings->Get().szNickName, pSettings->Get().szPassword);
-        }
-        else if (serverid == 4)
-        {
-            pNetGame = new CNetGame(SERVER_HOST_4, SERVER_PORT_4, pSettings->Get().szNickName, pSettings->Get().szPassword);
+            int serverid = settings.iServerID;
+
+            if (serverid == 0)
+            {
+                pNetGame = new CNetGame(SERVER_HOST_TEST, SERVER_PORT_TEST, settings.szNickName, settings.szPassword);
+            }
+            else if (serverid == 1)
+            {
+                pNetGame = new CNetGame(SERVER_HOST_1, SERVER_PORT_1, settings.szNickName, settings.szPassword);
+            }
+            else if (serverid == 2)
+            {
+                pNetGame = new CNetGame(SERVER_HOST_2, SERVER_PORT_2, settings.szNickName, settings.szPassword);
+            }
+            else if (serverid == 3)
+            {
+                pNetGame = new CNetGame(SERVER_HOST_3, SERVER_PORT_3, settings.szNickName, settings.szPassword);
+            }
+            else if (serverid == 4)
+            {
+                pNetGame = new CNetGame(SERVER_HOST_4, SERVER_PORT_4, settings.szNickName, settings.szPassword);
+            }
         }
 
         bNetworkInited = true;
-        pUI->chat()->addDebugMessage("Connected to server... {622cf5}ID: %d", serverid);
+        pUI->chat()->addDebugMessage("Connected to server...");
 
 
         FLog("DoInitStuff end");

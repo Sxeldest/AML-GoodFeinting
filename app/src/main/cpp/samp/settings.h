@@ -8,6 +8,8 @@ struct stSettings
 	char szNickName[24+1];
     int iServerID;
 	char szPassword[MAX_SETTINGS_STRING+1];
+	char szHost[MAX_SETTINGS_STRING+1];
+	int iPort;
 
 	// debug
 	bool bDebug;
