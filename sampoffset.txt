@@ -1,4 +1,0 @@
-SA-MP Mobile Chat Window Offsets:
---------------------------------
-Chat::Render_Scrollbar_Drawing_Call: 0x12D8B6 (2 words)
---------------------------------
