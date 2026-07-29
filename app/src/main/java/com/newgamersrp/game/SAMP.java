@@ -45,13 +45,13 @@ public class SAMP extends GTASA {
             return;
         }
 
-        if (!SignatureChecker.isSignatureValid(this, getPackageName())) {
+        /*if (!SignatureChecker.isSignatureValid(this, getPackageName())) {
             Log.e("SplashActivity", "No remake idiot!");
             finish();
             return;
         } else {
             Log.i("SplashActivity", "Using original client!");
-        }
+        }*/
 
         super.onCreate(savedInstanceState);
         Toast.makeText(this, "SA-MP Mobile Started", Toast.LENGTH_LONG).show();

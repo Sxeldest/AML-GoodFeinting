@@ -8,7 +8,7 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="ro.alyn_sampmobile.game" />
+                  <option name="appId" value="com.newgamersrp.game" />
                   <option name="mobileSdkAppId" value="1:85891769571:android:527e952464ed12685611d6" />
                   <option name="projectId" value="sa-mp-mobile" />
                   <option name="projectNumber" value="85891769571" />
