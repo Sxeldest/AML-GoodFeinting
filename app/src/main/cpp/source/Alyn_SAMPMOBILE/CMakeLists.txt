@@ -43,3 +43,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
         RAKSAMP_CLIENT)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY ENABLE_EXPORTS ON)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/../../../../libs/${ANDROID_ABI}"
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "${CMAKE_SOURCE_DIR}/../../../../libs/${ANDROID_ABI}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+        COMMAND ${CMAKE_STRIP} --strip-unneeded "${CMAKE_SOURCE_DIR}/../../../../libs/${ANDROID_ABI}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+        COMMENT "Copying and stripping libAlyn_SAMPMOBILE.so to output folder")
