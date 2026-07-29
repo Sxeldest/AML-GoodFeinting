@@ -2,7 +2,6 @@
 
 void initializeSAPatches()
 {
-	LOGI("initializeSAPatches()");
 
 	// fix lock on
 	Memory::memWrite(SA_Addr(0x2AC214), "\x05\x48\x78\x44", 4); // MobileSettings::IsLockOnMode
@@ -20,4 +19,7 @@ void initializeSAPatches()
 
 	// delete sign in to social club in menu
 	Memory::nop(SA_Addr(0x2A49F2), 2);
+
+	// crosshair spread fix
+	Memory::memWrite(SA_Addr(0x4373BE), "\x8F\xF0\xDA\xFA", 4);
 }

@@ -16,6 +16,8 @@
 #include "samp_widgets/voicebutton.h"
 #include "samp_widgets/deathwindow.h"
 
+struct RwTexture;
+
 class UI : public Widget, public ImGuiWrapper {
 public:
 	UI(const ImVec2& display_size, const std::string& font_path);
@@ -53,4 +55,5 @@ protected:
 private:
 	VoiceButton* m_voicebutton;
 	DeathWindow* m_deathwindow;
+	RwTexture* m_pCrosshairTex;
 };
