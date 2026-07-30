@@ -22,6 +22,7 @@ bool UI::initialize()
 
 	m_voicebutton = new VoiceButton();
 	m_deathwindow = new DeathWindow();
+	m_playertags = new PlayerTags();
 
 	return true;
 }
@@ -40,6 +41,10 @@ void UI::drawList()
 {
 	if (!visible()) {
 		return;
+	}
+
+	if (m_playertags) {
+		m_playertags->render(renderer());
 	}
 
 	if (m_deathwindow) {

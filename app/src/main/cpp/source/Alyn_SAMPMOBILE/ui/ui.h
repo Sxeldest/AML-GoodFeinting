@@ -15,6 +15,7 @@
 
 #include "samp_widgets/voicebutton.h"
 #include "samp_widgets/deathwindow.h"
+#include "samp_widgets/playertags.h"
 
 struct RwTexture;
 
@@ -28,6 +29,7 @@ public:
 
 	VoiceButton* voicebutton() const { return m_voicebutton; }
 	DeathWindow* deathwindow() const { return m_deathwindow; }
+	PlayerTags* playertags() const { return m_playertags; }
 
 	static ImColor fixcolor(uint32_t color)
 	{
@@ -55,5 +57,6 @@ protected:
 private:
 	VoiceButton* m_voicebutton;
 	DeathWindow* m_deathwindow;
+	PlayerTags* m_playertags;
 	RwTexture* m_pCrosshairTex;
 };

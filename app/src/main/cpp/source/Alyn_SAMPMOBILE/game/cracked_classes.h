@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../main.h"
 #include "utils.h"
 #include "scripting.h"
 
