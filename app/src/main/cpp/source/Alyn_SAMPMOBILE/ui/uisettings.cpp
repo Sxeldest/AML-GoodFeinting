@@ -7,12 +7,12 @@
 #include "../settings.h"
 
 /* scaling */
-ImVec2 UISettings::m_baseSize = ImVec2(640.0f, 480.0f);
+ImVec2 UISettings::m_baseSize = ImVec2(1366.0f, 768.0f);
 ImVec2 UISettings::m_scaleFactor = ImVec2(1.0f, 1.0f);
 
 /* font */
 float UISettings::m_fontSize = 24.0f;
-float UISettings::m_outlineSize = 2.0f;
+float UISettings::m_outlineSize = 1.0f;
 
 /* widgets */
 float UISettings::m_padding = 15.0f;

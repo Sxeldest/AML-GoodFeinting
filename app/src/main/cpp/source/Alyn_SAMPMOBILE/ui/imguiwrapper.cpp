@@ -50,11 +50,11 @@ bool ImGuiWrapper::initialize()
 	builder.BuildRanges(ranges);
 
 	ImFontConfig fontCfg;
-	fontCfg.OversampleV = 1; // High Quality Pixel Positioning
-	fontCfg.OversampleH = 1; // High Quality Pixel Positioning
-	fontCfg.RasterizerMultiply = 1.5f;
-	fontCfg.PixelSnapH = true; // Glyphs are aligned to pixel boundaries
-	fontCfg.GlyphExtraSpacing.x = UISettings::outlineSize();
+	fontCfg.OversampleV = 3;
+	fontCfg.OversampleH = 3;
+	fontCfg.RasterizerMultiply = 1.0f;
+	fontCfg.PixelSnapH = true; // WAJIB AKTIF untuk simetri (anti tebal sebelah)
+	fontCfg.GlyphExtraSpacing.x = 0.0f;
 
 	ImFont* font = io.Fonts->AddFontFromFileTTF(m_fontPath.c_str(), UISettings::fontSize(), &fontCfg, ranges->Data);
 
