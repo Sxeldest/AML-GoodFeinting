@@ -30,7 +30,7 @@ void PlayerTags::render(ImGuiRenderer* renderer)
         VECTOR vecPos;
         pPlayerPed->getBonePosition(8, &vecPos);
 
-        vecPos.Z += 0.25f + (fDist * 0.02f);
+        vecPos.Z += 0.25f + (fDist * 0.025f);
 
         drawTag(renderer, i, pRemotePlayer, &vecPos, fDist);
     }
@@ -58,7 +58,7 @@ void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlay
     Out.X = (float)((int)Out.X);
     Out.Y = (float)((int)Out.Y);
 
-    float fontSize = UISettings::fontSize() - 2.0f;
+    float fontSize = UISettings::fontSize() * 0.875f;
 
     char szTag[64];
     sprintf(szTag, "%s (%d)", SAMP::netgame()->m_pools->playerPool->getPlayerName(playerId), playerId);
@@ -72,7 +72,7 @@ void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlay
     renderer->drawText(textPos, UI::fixcolor(pPlayer->getPlayerColor()), szTag, true, fontSize);
 
     uint32_t colorHealthBar    = 0xFF2822C3;
-    uint32_t colorHealthBarBG  = 0xFF1E157D;
+    uint32_t colorHealthBarBG  = 0xFF181164;
     uint32_t colorArmourBar    = 0xFFD1D1D1;
     uint32_t colorArmourBarBG  = 0xFF282828;
     uint32_t colorBorder       = 0xFF000000;

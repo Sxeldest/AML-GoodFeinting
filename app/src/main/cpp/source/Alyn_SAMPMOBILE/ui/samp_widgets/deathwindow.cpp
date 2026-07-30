@@ -34,7 +34,7 @@ void DeathWindow::render(ImGuiRenderer* renderer)
 	if (!m_visible || !renderer || !pUI->weapFont()) return;
 
 	if (!m_pDeathWindow.empty()) {
-		float nameFontSize = UISettings::fontSize() - 2.0f;
+		float nameFontSize = UISettings::fontSize() * 0.875f;
 		float weaponFontSize = nameFontSize * 1.5f;
 		float backgroundFontSize = nameFontSize * 1.8f;
 		float m_iLongestNickLength = renderer->calculateTextSize("LONGESTNICKNICK_NICKNICK", nameFontSize).x;
