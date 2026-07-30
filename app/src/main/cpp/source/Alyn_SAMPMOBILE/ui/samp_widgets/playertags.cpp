@@ -25,12 +25,12 @@ void PlayerTags::render(ImGuiRenderer* renderer)
         if (!pPlayerPed || !pPlayerPed->isAdded()) continue;
 
         float fDist = pPlayerPed->getDistanceFromCamera();
-        if (fDist > 70.0f) continue;
+        if (fDist > 50.0f) continue;
 
         VECTOR vecPos;
         pPlayerPed->getBonePosition(8, &vecPos);
 
-        vecPos.Z += 0.25f + (fDist * 0.0475f);
+        vecPos.Z += 0.25f + (fDist * 0.02f);
 
         drawTag(renderer, i, pRemotePlayer, &vecPos, fDist);
     }
@@ -38,15 +38,27 @@ void PlayerTags::render(ImGuiRenderer* renderer)
 
 void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlayer* pPlayer, VECTOR* pos, float fDist)
 {
+    // Line of Sight check to prevent showing through walls
+    VECTOR camPos;
+    camPos.X = *(float*)(SA_Addr(0x9528D4));
+    camPos.Y = *(float*)(SA_Addr(0x9528D8));
+    camPos.Z = *(float*)(SA_Addr(0x9528DC));
+
+    // CWorld::GetIsLineOfSightClear
+    bool bClear = ((bool (*)(VECTOR*, VECTOR*, bool, bool, bool, bool, bool, bool, bool)) (SA_Addr(0x423418 + 1)))(&camPos, pos, true, true, false, true, true, false, false);
+
+    if (!bClear) return;
+
     VECTOR Out;
-    ((void (*)(VECTOR*, VECTOR*, float*, float*, bool, bool)) (SA_Addr(0x5C5798 + 1)))(pos, &Out, nullptr, nullptr, false, false);
+    // Use CSprite::CalcScreenCoors
+    bool bVisible = ((bool (*)(VECTOR*, VECTOR*, float*, float*, bool, bool)) (SA_Addr(0x5C5798 + 1)))(pos, &Out, nullptr, nullptr, false, false);
 
-    if (Out.Z < 1.0f) return;
+    if (!bVisible || Out.Z < 1.0f) return;
 
-    float fScale = 1.0f - (fDist / 100.0f);
-    if (fScale < 0.4f) fScale = 0.4f;
+    Out.X = (float)((int)Out.X);
+    Out.Y = (float)((int)Out.Y);
 
-    float fontSize = (UISettings::fontSize() * 0.55f) * fScale;
+    float fontSize = UISettings::fontSize() - 2.0f;
 
     char szTag[64];
     sprintf(szTag, "%s (%d)", SAMP::netgame()->m_pools->playerPool->getPlayerName(playerId), playerId);
@@ -59,31 +71,56 @@ void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlay
 
     renderer->drawText(textPos, UI::fixcolor(pPlayer->getPlayerColor()), szTag, true, fontSize);
 
-    float barWidth = 40.0f * fScale * (pUI->displaySize().x / 640.0f);
-    float barHeight = 4.5f * fScale * (pUI->displaySize().y / 480.0f);
+    uint32_t colorHealthBar    = 0xFF2822C3;
+    uint32_t colorHealthBarBG  = 0xFF1E157D;
+    uint32_t colorArmourBar    = 0xFFD1D1D1;
+    uint32_t colorArmourBarBG  = 0xFF282828;
+    uint32_t colorBorder       = 0xFF000000;
 
-    ImVec2 barPos = ImVec2(Out.X - (barWidth * 0.5f), Out.Y + (5.0f * fScale));
+    float halfWidth    = (float)((int)RS(19.0f));
+    float barWidth     = halfWidth * 2.0f;
+    float barHeight    = (float)((int)RS(4.0f));
+    float borderOffset = (float)((int)RS(1.0f));
+    if (borderOffset < 1.0f) borderOffset = 1.0f;
 
-    float health = pPlayer->m_playerPed->m_ped->fHealth;
-    float armour = pPlayer->m_playerPed->m_ped->fArmour;
+    ImVec2 barPos = ImVec2(Out.X - halfWidth, (float)((int)(Out.Y + RS(4.0f))));
 
-    renderer->drawRect(ImVec2(barPos.x - 1, barPos.y - 1), ImVec2(barPos.x + barWidth + 1, barPos.y + barHeight + 1), 0xFF000000, true);
-
-    renderer->drawRect(barPos, ImVec2(barPos.x + barWidth, barPos.y + barHeight), 0xFF1E157D, true);
-
-    if (health > 0.0f) {
-        if (health > 100.0f) health = 100.0f;
-        float hProgress = (health / 100.0f) * barWidth;
-        renderer->drawRect(barPos, ImVec2(barPos.x + hProgress, barPos.y + barHeight), 0xFF2822C3, true);
-    }
+    float health = pPlayer->getHealth();
+    float armour = pPlayer->getArmour();
 
     if (armour > 1.0f) {
-        barPos.y += barHeight + (2.0f * fScale);
         if (armour > 100.0f) armour = 100.0f;
         float aProgress = (armour / 100.0f) * barWidth;
 
-        renderer->drawRect(ImVec2(barPos.x - 1, barPos.y - 1), ImVec2(barPos.x + barWidth + 1, barPos.y + barHeight + 1), 0xFF000000, true);
-        renderer->drawRect(barPos, ImVec2(barPos.x + barWidth, barPos.y + barHeight), 0xFF606060, true);
-        renderer->drawRect(barPos, ImVec2(barPos.x + aProgress, barPos.y + barHeight), 0xFFD1D1D1, true);
+        // Armour Border
+        renderer->drawRect(
+            ImVec2(barPos.x - borderOffset, barPos.y - borderOffset),
+            ImVec2(barPos.x + barWidth + borderOffset, barPos.y + barHeight + borderOffset),
+            colorBorder, true);
+
+        // Armour Background
+        renderer->drawRect(barPos, ImVec2(barPos.x + barWidth, barPos.y + barHeight), colorArmourBarBG, true);
+
+        // Armour Progress
+        renderer->drawRect(barPos, ImVec2(barPos.x + aProgress, barPos.y + barHeight), colorArmourBar, true);
+
+        // Offset for the next bar (Health)
+        barPos.y += RS(6.5f);
+    }
+
+    // Health Border
+    renderer->drawRect(
+        ImVec2(barPos.x - borderOffset, barPos.y - borderOffset),
+        ImVec2(barPos.x + barWidth + borderOffset, barPos.y + barHeight + borderOffset),
+        colorBorder, true);
+
+    // Health Background
+    renderer->drawRect(barPos, ImVec2(barPos.x + barWidth, barPos.y + barHeight), colorHealthBarBG, true);
+
+    // Health Progress
+    if (health > 0.0f) {
+        if (health > 100.0f) health = 100.0f;
+        float hProgress = (health / 100.0f) * barWidth;
+        renderer->drawRect(barPos, ImVec2(barPos.x + hProgress, barPos.y + barHeight), colorHealthBar, true);
     }
 }

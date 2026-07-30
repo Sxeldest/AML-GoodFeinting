@@ -9,9 +9,10 @@
 /* scaling */
 ImVec2 UISettings::m_baseSize = ImVec2(1366.0f, 768.0f);
 ImVec2 UISettings::m_scaleFactor = ImVec2(1.0f, 1.0f);
+float UISettings::m_fScale = 1.0f;
 
 /* font */
-float UISettings::m_fontSize = 24.0f;
+float UISettings::m_fontSize = 16.0f;
 float UISettings::m_outlineSize = 1.0f;
 
 /* widgets */
@@ -38,10 +39,11 @@ ImColor UISettings::m_buttonFocusedColor = ImColor(0.1f, 0.1f, 0.7f, 1.0f);
 void UISettings::Initialize(const ImVec2& display_size)
 {
 	m_scaleFactor = display_size / m_baseSize;
+	m_fScale = display_size.y / 768.0f;
 
 	/* font */
 	m_fontSize = Settings::fontsize();
-	m_fontSize *= m_scaleFactor.y;
+	m_fontSize *= m_fScale;
 
 	/* splashscreen */
 	m_splashscreenLogoSize = m_splashscreenLogoSize * m_scaleFactor;
@@ -56,4 +58,11 @@ void UISettings::Initialize(const ImVec2& display_size)
 	/* button voice */
 	m_voiceButtonPos = m_voiceButtonPos * m_scaleFactor;
 	m_voiceButtonSize = m_voiceButtonSize * m_scaleFactor;
+}
+
+void UISettings::ApplyStyle()
+{
+	/* imgui style scaling */
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.ScaleAllSizes(m_fScale);
 }

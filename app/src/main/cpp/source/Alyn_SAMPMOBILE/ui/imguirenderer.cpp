@@ -52,7 +52,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
 
     if (outline) {
         float outerSize = 2.0f;
-        ImColor softBlack(0.0f, 0.0f, 0.0f, color.Value.w * 0.55f);
+        ImColor softBlack(0.0f, 0.0f, 0.0f, color.Value.w * 0.35f);
 
         m_drawList->AddText(font, sz_font, ImVec2(p.x - outerSize, p.y), softBlack, begin, end);
         m_drawList->AddText(font, sz_font, ImVec2(p.x + outerSize, p.y), softBlack, begin, end);
@@ -60,7 +60,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
         m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + outerSize), softBlack, begin, end);
 
         float innerSize = 1.0f;
-        ImColor solidBlack(0.0f, 0.0f, 0.0f, color.Value.w);
+        ImColor solidBlack(0.0f, 0.0f, 0.0f, color.Value.w * 0.65f);
 
         m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y), solidBlack, begin, end);
         m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y), solidBlack, begin, end);

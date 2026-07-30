@@ -33,6 +33,8 @@ bool ImGuiWrapper::initialize()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 
+	UISettings::ApplyStyle();
+
 	ImGuiIO& io = ImGui::GetIO();
 	io.DisplaySize = m_displaySize;
 	io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
@@ -53,7 +55,7 @@ bool ImGuiWrapper::initialize()
 	fontCfg.OversampleV = 3;
 	fontCfg.OversampleH = 3;
 	fontCfg.RasterizerMultiply = 1.0f;
-	fontCfg.PixelSnapH = true; // WAJIB AKTIF untuk simetri (anti tebal sebelah)
+	fontCfg.PixelSnapH = true;
 	fontCfg.GlyphExtraSpacing.x = 0.0f;
 
 	ImFont* font = io.Fonts->AddFontFromFileTTF(m_fontPath.c_str(), UISettings::fontSize(), &fontCfg, ranges->Data);

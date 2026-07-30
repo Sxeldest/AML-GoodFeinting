@@ -97,7 +97,7 @@ public class Utils {
             jSONObject.getJSONObject("client").getJSONObject("settings").put("modify_files", settings_prefs.getBoolean("modify_files", false));
             jSONObject.getJSONObject("client").getJSONObject("settings").put("fps_limit", settings_prefs.getInt("fps_limit", 60));
             jSONObject.getJSONObject("client").getJSONObject("settings").put("chat_strings", settings_prefs.getInt("chat_strings", 5));
-            jSONObject.getJSONObject("client").getJSONObject("settings").put("font_size", settings_prefs.getFloat("font_size", 28.0f));
+            jSONObject.getJSONObject("client").getJSONObject("settings").put("font_size", settings_prefs.getFloat("font_size", 16.0f));
             jSONObject.getJSONObject("client").getJSONObject("settings").put("chat_posx", settings_prefs.getInt("chat_posx", 100));
             jSONObject.getJSONObject("client").getJSONObject("settings").put("chat_posy", settings_prefs.getInt("chat_posy", 10));
             jSONObject.getJSONObject("client").getJSONObject("settings").put("chat_sizex", settings_prefs.getInt("chat_sizex", 400));
@@ -131,7 +131,7 @@ public class Utils {
         edit.putBoolean("modify_files", false);
         edit.putInt("fps_limit", 60);
         edit.putInt("chat_strings", 5);
-        edit.putFloat("font_size", 28.0f);
+        edit.putFloat("font_size", 16.0f);
         edit.putInt("chat_posx", 100);
         edit.putInt("chat_posy", 10);
         edit.putInt("chat_sizex", 400);

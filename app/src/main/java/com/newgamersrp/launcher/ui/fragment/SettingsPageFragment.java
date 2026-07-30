@@ -387,7 +387,7 @@ public class SettingsPageFragment extends Fragment {
 
                 // save settings prefs
                 SharedPreferences.Editor edit = settings_prefs.edit();
-                edit.putFloat("font_size", textView.getText().toString().equals("") ? 28.0f : Float.parseFloat(textView.getText().toString()));
+                edit.putFloat("font_size", textView.getText().toString().equals("") ? 16.0f : Float.parseFloat(textView.getText().toString()));
                 edit.apply();
 
                 // save settings
@@ -409,7 +409,7 @@ public class SettingsPageFragment extends Fragment {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 // save settings prefs
                 SharedPreferences.Editor edit = settings_prefs.edit();
-                edit.putFloat("font_size", Objects.requireNonNull(fontsize.getText()).toString().equals("") ? 28.0f : Float.parseFloat(fontsize.getText().toString()));
+                edit.putFloat("font_size", Objects.requireNonNull(fontsize.getText()).toString().equals("") ? 16.0f : Float.parseFloat(fontsize.getText().toString()));
                 edit.apply();
 
                 // save settings
@@ -620,7 +620,7 @@ public class SettingsPageFragment extends Fragment {
         chat_strings.setText(String.valueOf(settings_prefs.getInt("chat_strings", 5)));
         chat_plus.setChecked(false);
 
-        fontsize.setText(String.valueOf(settings_prefs.getFloat("font_size", 28.0f)));
+        fontsize.setText(String.valueOf(settings_prefs.getFloat("font_size", 16.0f)));
 
         chatposx.setText(String.valueOf(settings_prefs.getInt("chat_posx", 100)));
         chatposy.setText(String.valueOf(settings_prefs.getInt("chat_posy", 10)));
