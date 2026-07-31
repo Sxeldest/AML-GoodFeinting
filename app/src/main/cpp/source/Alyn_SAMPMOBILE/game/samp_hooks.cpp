@@ -317,6 +317,11 @@ DECL_HOOK(void, ctrBtn_callback)
 	}
 }
 
+DECL_HOOK(void, ChatBubble_Render, uintptr_t a1, uintptr_t a2)
+{
+	return;
+}
+
 void initializeSAMPHooks()
 {
 	LOGI("initializeSAMPHooks()");
@@ -356,6 +361,9 @@ void initializeSAMPHooks()
 
 	// ctrBtn_callback
 	HOOK(SAMP_Addr(0x12C9E0), ctrBtn_callback);
+
+	// ChatBubble_Render
+	HOOK(SAMP_Addr(0xE3464), ChatBubble_Render);
 
 	initializeRPC_hooks();
 }

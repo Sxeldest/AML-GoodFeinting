@@ -38,7 +38,7 @@ void PlayerTags::render(ImGuiRenderer* renderer)
 
 void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlayer* pPlayer, VECTOR* pos, float fDist)
 {
-    // Line of Sight check to prevent showing through walls
+    // Line of Sight check
     VECTOR camPos;
     camPos.X = *(float*)(SA_Addr(0x9528D4));
     camPos.Y = *(float*)(SA_Addr(0x9528D8));
