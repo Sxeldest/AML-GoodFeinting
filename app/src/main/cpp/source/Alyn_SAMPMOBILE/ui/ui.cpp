@@ -24,6 +24,7 @@ bool UI::initialize()
 	m_deathwindow = new DeathWindow();
 	m_playertags = new PlayerTags();
 	m_chatbubble = new ChatBubble();
+	m_textlabel = new TextLabel();
 
 	return true;
 }
@@ -50,6 +51,10 @@ void UI::drawList()
 
 	if (m_chatbubble) {
 		m_chatbubble->render(renderer());
+	}
+
+	if (m_textlabel) {
+		m_textlabel->render(renderer());
 	}
 
 	if (m_deathwindow) {

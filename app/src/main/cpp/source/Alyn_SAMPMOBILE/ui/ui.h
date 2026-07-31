@@ -17,6 +17,7 @@
 #include "samp_widgets/deathwindow.h"
 #include "samp_widgets/playertags.h"
 #include "../net/chatbubble.h"
+#include "../net/textlabel.h"
 
 struct RwTexture;
 
@@ -32,6 +33,7 @@ public:
 	DeathWindow* deathwindow() const { return m_deathwindow; }
 	PlayerTags* playertags() const { return m_playertags; }
 	ChatBubble* chatbubble() const { return m_chatbubble; }
+	TextLabel* textlabel() const { return m_textlabel; }
 
 	static ImColor fixcolor(uint32_t color)
 	{
@@ -61,5 +63,6 @@ private:
 	DeathWindow* m_deathwindow;
 	PlayerTags* m_playertags;
 	ChatBubble* m_chatbubble;
+	TextLabel* m_textlabel;
 	RwTexture* m_pCrosshairTex;
 };

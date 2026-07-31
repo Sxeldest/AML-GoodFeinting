@@ -24,6 +24,7 @@ file(GLOB SOURCE_FILES
         voice/**/*.c*
         voice/**/**/*.c*)
 
+# Project library
 add_library(${PROJECT_NAME} SHARED
         ${INCLUDE_FILES}
         ${SOURCE_FILES})

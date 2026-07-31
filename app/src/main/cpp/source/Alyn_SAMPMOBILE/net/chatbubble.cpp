@@ -39,7 +39,6 @@ void ChatBubble::render(ImGuiRenderer* renderer) {
     CPlayerPool* pPlayerPool = SAMP::netgame()->m_pools->playerPool;
     if (!pPlayerPool) return;
 
-    // Ambil posisi kamera asli untuk menghitung jarak yang akurat (konsisten saat spectate)
     VECTOR camPos;
     camPos.X = *(float*)(SA_Addr(0x9528D4));
     camPos.Y = *(float*)(SA_Addr(0x9528D8));
@@ -95,8 +94,6 @@ void ChatBubble::render(ImGuiRenderer* renderer) {
             lines.push_back(text.substr(start));
             ImVec2 totalSize = renderer->calculateTextSize(text, fontSize);
 
-            // Kita render teks mengarah ke ATAS dari titik anchor (out.Y - totalSize.y)
-            // Ini menjamin gelembung chat tumbuh ke atas dan tidak menabrak nama
             float currentY = out.Y - totalSize.y;
 
             for (const auto& line : lines) {

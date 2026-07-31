@@ -322,6 +322,11 @@ DECL_HOOK(void, ChatBubble_Render, uintptr_t a1, uintptr_t a2)
 	return;
 }
 
+DECL_HOOK(void, TextLabel_Render, uintptr_t a1, uintptr_t a2)
+{
+	return;
+}
+
 void initializeSAMPHooks()
 {
 	LOGI("initializeSAMPHooks()");
@@ -364,6 +369,9 @@ void initializeSAMPHooks()
 
 	// ChatBubble_Render
 	HOOK(SAMP_Addr(0xE3464), ChatBubble_Render);
+
+	// TextLabel_Render
+	HOOK(SAMP_Addr(0x14F958), TextLabel_Render);
 
 	initializeRPC_hooks();
 }
