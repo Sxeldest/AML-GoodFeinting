@@ -51,42 +51,22 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
     ImVec2 p = ImVec2(floorf(pos.x + 0.5f), floorf(pos.y + 0.5f));
 
     if (outline) {
-        if (bold_outline) {
-            ImColor black(0.0f, 0.0f, 0.0f, color.Value.w);
-            float off2 = floorf(RS(2.0f) + 0.5f);
-            float off1 = floorf(RS(1.5f) + 0.5f);
-            if (off2 < 1.0f) off2 = 1.0f;
-            if (off1 < 1.0f) off1 = 1.0f;
+        float outerOpacity = bold_outline ? 1.0f : 0.25f;
+        float innerOpacity = bold_outline ? 1.0f : 0.55f;
 
-            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - off2), black, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + off2), black, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x - off2, p.y), black, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x + off2, p.y), black, begin, end);
+        ImColor outerColor(0.0f, 0.0f, 0.0f, color.Value.w * outerOpacity);
+        ImColor innerColor(0.0f, 0.0f, 0.0f, color.Value.w * innerOpacity);
 
-            m_drawList->AddText(font, sz_font, ImVec2(p.x - off1, p.y - off1), black, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x + off1, p.y - off1), black, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x - off1, p.y + off1), black, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x + off1, p.y + off1), black, begin, end);
-        } else {
-            float outerSize = 2.0f;
-            ImColor softBlack(0.0f, 0.0f, 0.0f, color.Value.w * 0.35f);
+        m_drawList->AddText(font, sz_font, ImVec2(p.x - 2.0f, p.y), outerColor, begin, end);
+        m_drawList->AddText(font, sz_font, ImVec2(p.x + 2.0f, p.y), outerColor, begin, end);
+        m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - 2.0f), outerColor, begin, end);
+        m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + 2.0f), outerColor, begin, end);
 
-            m_drawList->AddText(font, sz_font, ImVec2(p.x - outerSize, p.y), softBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x + outerSize, p.y), softBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - outerSize), softBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + outerSize), softBlack, begin, end);
-
-            float innerSize = 1.0f;
-            ImColor solidBlack(0.0f, 0.0f, 0.0f, color.Value.w * 0.65f);
-
-            m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y), solidBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y), solidBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - innerSize), solidBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + innerSize), solidBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y - innerSize), solidBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y - innerSize), solidBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y + innerSize), solidBlack, begin, end);
-            m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y + innerSize), solidBlack, begin, end);
+        for (float dx = -1.0f; dx <= 1.0f; dx += 1.0f) {
+            for (float dy = -1.0f; dy <= 1.0f; dy += 1.0f) {
+                if (dx == 0.0f && dy == 0.0f) continue;
+                m_drawList->AddText(font, sz_font, ImVec2(p.x + dx, p.y + dy), innerColor, begin, end);
+            }
         }
     }
 
