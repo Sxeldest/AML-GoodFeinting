@@ -1,6 +1,8 @@
 #include "../main.h"
 #include "../samp.h"
 #include "../settings.h"
+#include "../nerosettings.h"
+#include "../ui/uisettings.h"
 #include "../voice/Network.h"
 #include "../voice/Plugin.h"
 
@@ -15,6 +17,7 @@ DECL_HOOK(void, ReadSettingFile)
 	ReadSettingFile();
 
 	Settings::initialize();
+	NeroSettings::Initialize();
 
 	if (Settings::voice()) {
 		Plugin::OnPluginLoad();
@@ -25,9 +28,9 @@ DECL_HOOK(void, ReadSettingFile)
 	Memory::protectAddr(SAMP_Addr(0x23DC44));
 	*(bool*) SAMP_Addr(0x23DC44) = Settings::timestamp();
 
-	// chat strings
+	// chat strings (PageSize)
 	Memory::protectAddr(SAMP_Addr(0x237518));
-	*(int*) SAMP_Addr(0x237518) = Settings::chatstrings();
+	*(int*) SAMP_Addr(0x237518) = NeroSettings::GetPageSize();
 
 	// chat pos
 	Memory::protectAddr(SAMP_Addr(0x238F08));
@@ -40,6 +43,14 @@ DECL_HOOK(void, ReadSettingFile)
 	// chat item size
 	Memory::protectAddr(SAMP_Addr(0x238F18));
 	*(ImVec2*) (SAMP_Addr(0x238F18)) = ImVec2(Settings::chatsize().x, Settings::chatsize().y / 13.0f);
+
+	// Font size multiplier for internal SAMP
+	float fScale = NeroSettings::GetFontSize() / 16.0f;
+	Memory::protectAddr(SAMP_Addr(0x23751C));
+	*(float*)SAMP_Addr(0x23751C) = fScale;
+
+	// Apply Font Size to UISettings (Alyn's UI)
+	UISettings::setFontSize(NeroSettings::GetFontSize() * UISettings::getScale());
 }
 
 DECL_HOOK(void, InitGui)
@@ -140,9 +151,9 @@ DECL_HOOK(void, CVehiclePool_Process, CVehiclePool* a1)
 							pVehicle->add();
 							scriptCommand(&set_car_z_angle, pVehicle->m_gtaId, pVehicle->m_rotation);
 							LOGI("Vehicle fixed (Dist: %.1f | X: %.1f | Y: %.1f | Z: %.1f | Rot: %.1f)",
-									distance,
-									pVehiclePool->m_position[x].X, pVehiclePool->m_position[x].Y,
-									pVehiclePool->m_position[x].Z, pVehicle->m_rotation);
+								 distance,
+								 pVehiclePool->m_position[x].X, pVehiclePool->m_position[x].Y,
+								 pVehiclePool->m_position[x].Z, pVehicle->m_rotation);
 						}
 					}
 					else {
@@ -309,6 +320,53 @@ DECL_HOOK(void, azvoice_cmd)
 	}
 }
 
+DECL_HOOK(void, FontSize_cmd, char* szParams)
+{
+	if (!szParams || !strlen(szParams)) {
+		SAMP::addDebugMessage("Usage: /fontsize [size]");
+		return;
+	}
+
+	float newFontSize = atof(szParams);
+	if (newFontSize < 5.0f || newFontSize > 50.0f) {
+		SAMP::addDebugMessage("Usage: /fontsize [5.0 - 50.0]");
+		return;
+	}
+
+	NeroSettings::SetFontSize(newFontSize);
+	UISettings::setFontSize(newFontSize * UISettings::getScale());
+
+	float fScale = newFontSize / 16.0f;
+	Memory::protectAddr(SAMP_Addr(0x23751C));
+	*(float*)SAMP_Addr(0x23751C) = fScale;
+
+	NeroSettings::Save();
+
+	SAMP::addDebugMessage("FontSize set to %.2f", newFontSize);
+}
+
+DECL_HOOK(void, PageSize_cmd, char* szParams)
+{
+	if (!szParams || !strlen(szParams)) {
+		SAMP::addDebugMessage("Usage: /pagesize [1-20]");
+		return;
+	}
+
+	int newPageSize = atoi(szParams);
+	if (newPageSize < 1 || newPageSize > 20) {
+		SAMP::addDebugMessage("Usage: /pagesize [1-20]");
+		return;
+	}
+
+	NeroSettings::SetPageSize(newPageSize);
+	Memory::protectAddr(SAMP_Addr(0x237518));
+	*(int*) SAMP_Addr(0x237518) = newPageSize;
+
+	NeroSettings::Save();
+
+	SAMP::addDebugMessage("PageSize set to %d", newPageSize);
+}
+
 DECL_HOOK(void, ctrBtn_callback)
 {
 	if (SAMP::ui()) {
@@ -405,6 +463,12 @@ void initializeSAMPHooks()
 
 	// azvoice_cmd
 	HOOK(SAMP_Addr(0x12CE78), azvoice_cmd);
+
+	// FontSize_cmd
+	HOOK(SAMP_Addr(0x12D004), FontSize_cmd);
+
+	// PageSize_cmd
+	HOOK(SAMP_Addr(0x12CEBC), PageSize_cmd);
 
 	// ctrBtn_callback
 	HOOK(SAMP_Addr(0x12C9E0), ctrBtn_callback);

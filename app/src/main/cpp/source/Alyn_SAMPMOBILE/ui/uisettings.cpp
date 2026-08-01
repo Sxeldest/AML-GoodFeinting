@@ -5,9 +5,10 @@
 #include <string>
 #include "uisettings.h"
 #include "../settings.h"
+#include "../nerosettings.h"
 
 /* scaling */
-ImVec2 UISettings::m_baseSize = ImVec2(1366.0f, 768.0f);
+ImVec2 UISettings::m_baseSize = ImVec2(1920.0f, 1080.0f);
 ImVec2 UISettings::m_scaleFactor = ImVec2(1.0f, 1.0f);
 float UISettings::m_fScale = 1.0f;
 
@@ -39,10 +40,10 @@ ImColor UISettings::m_buttonFocusedColor = ImColor(0.1f, 0.1f, 0.7f, 1.0f);
 void UISettings::Initialize(const ImVec2& display_size)
 {
 	m_scaleFactor = display_size / m_baseSize;
-	m_fScale = display_size.y / 768.0f;
+	m_fScale = display_size.y / 1080.0f;
 
 	/* font */
-	m_fontSize = Settings::fontsize();
+	m_fontSize = NeroSettings::GetFontSize();
 	m_fontSize *= m_fScale;
 
 	/* splashscreen */

@@ -1,5 +1,6 @@
 #include "../../main.h"
 #include "../../samp.h"
+#include "../../nerosettings.h"
 #include "../ui.h"
 #include "chatwindow.h"
 
@@ -39,17 +40,12 @@ void ChatWindow::render(ImGuiRenderer* renderer)
 	float y = RS(10.0f);
 	float line_height = fontSize + RS(1.0f);
 
-	int max_messages = 10;
-	uintptr_t pagesize_addr = SAMP_Addr(0x237518);
-	if (pagesize_addr) {
-		max_messages = *(int*)pagesize_addr;
-	}
+	int max_messages = NeroSettings::GetPageSize();
 
 	int start = (m_messages.size() > (size_t)max_messages) ? (int)(m_messages.size() - max_messages) : 0;
 
 	for (size_t i = start; i < m_messages.size(); ++i) {
 		const auto& entry = m_messages[i];
-		// Aktifkan bold_outline (parameter ke-7)
 		renderer->drawText(ImVec2(x, y), entry.color, entry.message, true, fontSize, nullptr, true);
 		y += line_height;
 	}
