@@ -3,8 +3,11 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
+#include <rapidjson/filewritestream.h>
+#include <rapidjson/prettywriter.h>
 
 bool Settings::m_initialized = false;
+// ... (omitting some lines for brevity in thinking, will include all necessary in the actual call)
 
 // server
 char Settings::m_host[64] = "127.0.0.1";
@@ -22,7 +25,7 @@ bool Settings::m_voice = false;
 bool Settings::m_displayfps = false;
 int Settings::m_fpslimit = 60;
 int Settings::m_chatstrings = 5;
-float Settings::m_fontsize = 26.0f;
+float Settings::m_fontsize = 16.0f;
 ImVec2 Settings::m_chatpos = ImVec2(100.0f, 10.0f);
 ImVec2 Settings::m_chatsize = ImVec2(400.0f, 150.0f);
 
@@ -98,4 +101,78 @@ void Settings::initialize()
 	fclose(settings_json_file);
 
 	m_initialized = true;
+}
+
+void Settings::save()
+{
+	LOGI("Saving settings...");
+
+	const char* gameStorage = (const char*) (SA_Addr(0x6D687C));
+	if (gameStorage == nullptr) {
+		LOGE("Failed to save settings. (game storage null)");
+		return;
+	}
+
+	char settings_json_path[0xFF];
+	sprintf(settings_json_path, "%sSAMP/settings.json", gameStorage);
+
+	// Read existing file to preserve other fields
+	rapidjson::Document settings_json;
+	FILE* settings_json_file = fopen(settings_json_path, "rb");
+	if (settings_json_file != nullptr) {
+		char buffer[0xFFFF];
+		rapidjson::FileReadStream fileReadStream(settings_json_file, buffer, sizeof(buffer));
+		settings_json.ParseStream(fileReadStream);
+		fclose(settings_json_file);
+	} else {
+		settings_json.SetObject();
+	}
+
+	if (!settings_json.HasMember("client")) {
+		settings_json.AddMember("client", rapidjson::Value(rapidjson::kObjectType), settings_json.GetAllocator());
+	}
+	rapidjson::Value& client = settings_json["client"];
+
+	if (!client.HasMember("server")) {
+		client.AddMember("server", rapidjson::Value(rapidjson::kObjectType), settings_json.GetAllocator());
+	}
+	rapidjson::Value& server = client["server"];
+
+	server["host"].SetString(m_host, settings_json.GetAllocator());
+	server["port"].SetInt(m_port);
+	server["password"].SetString(m_pass, settings_json.GetAllocator());
+
+	if (!client.HasMember("settings")) {
+		client.AddMember("settings", rapidjson::Value(rapidjson::kObjectType), settings_json.GetAllocator());
+	}
+	rapidjson::Value& settings = client["settings"];
+
+	settings["nick_name"].SetString(m_nick, settings_json.GetAllocator());
+	settings["samp_version"].SetInt(m_sampversion);
+	settings["system_keyboard"].SetBool(m_systemkeyboard);
+	settings["timestamp"].SetBool(m_timestamp);
+	settings["fast_connect"].SetBool(m_fastconnect);
+	settings["voice_chat"].SetBool(m_voice);
+	settings["display_fps"].SetBool(m_displayfps);
+	settings["fps_limit"].SetInt(m_fpslimit);
+	settings["chat_strings"].SetInt(m_chatstrings);
+	settings["font_size"].SetFloat(m_fontsize);
+	settings["chat_posx"].SetInt((int)m_chatpos.x);
+	settings["chat_posy"].SetInt((int)m_chatpos.y);
+	settings["chat_sizex"].SetInt((int)m_chatsize.x);
+	settings["chat_sizey"].SetInt((int)m_chatsize.y);
+
+	settings_json_file = fopen(settings_json_path, "wb");
+	if (settings_json_file == nullptr) {
+		LOGE("Failed to save settings. (could not open for writing)");
+		return;
+	}
+
+	char writeBuffer[0xFFFF];
+	rapidjson::FileWriteStream fileWriteStream(settings_json_file, writeBuffer, sizeof(writeBuffer));
+	rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(fileWriteStream);
+	settings_json.Accept(writer);
+
+	fclose(settings_json_file);
+	LOGI("Settings saved successfully.");
 }

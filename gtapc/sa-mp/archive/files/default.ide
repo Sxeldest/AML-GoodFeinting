@@ -135,4 +135,25 @@ hier
 395, SHANDR, generic, null, 15.0
 396, FHANDL, generic, null, 15.0
 397, FHANDR, generic, null, 15.0
+# cutscene objects
+300, cutobj01, generic, null, 2000.0
+301, cutobj02, generic, null, 2000.0
+302, cutobj03, generic, null, 2000.0
+303, cutobj04, generic, null, 2000.0
+304, cutobj05, generic, null, 2000.0
+305, cutobj06, generic, null, 2000.0
+306, cutobj07, generic, null, 2000.0
+307, cutobj08, generic, null, 2000.0
+308, cutobj09, generic, null, 2000.0
+309, cutobj10, generic, null, 2000.0
+310, cutobj11, generic, null, 2000.0
+311, cutobj12, generic, null, 2000.0
+312, cutobj13, generic, null, 2000.0
+313, cutobj14, generic, null, 2000.0
+314, cutobj15, generic, null, 2000.0
+315, cutobj16, generic, null, 2000.0
+316, cutobj17, generic, null, 2000.0
+317, cutobj18, generic, null, 2000.0
+318, cutobj19, generic, null, 2000.0
+319, cutobj20, generic, null, 2000.0
 end

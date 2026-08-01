@@ -1,3 +1,13 @@
+/*
+
+	SA:MP Multiplayer Modification
+	Copyright 2004-2006 SA:MP Team
+
+	file:
+		filterscripts.h
+	desc:
+		FilterScript functions and management header file. 
+*/
 
 #ifndef SAMPSRV_FILTERSCRIPTS_H
 #define SAMPSRV_FILTERSCRIPTS_H
@@ -10,17 +20,23 @@ private:
 	AMX* m_pFilterScripts[MAX_FILTER_SCRIPTS];
 	char m_szFilterScriptName[MAX_FILTER_SCRIPTS][255];
 	int m_iFilterScriptCount;
-
+	//CScriptTimers* m_pScriptTimers;
 public:
 	CFilterScripts();
 	~CFilterScripts();
+
+	//CScriptTimers* GetTimers() { return m_pScriptTimers; };
 
 	bool LoadFilterScript(char* pFileName);
 	bool LoadFilterScriptFromMemory(char* pFileName, char* pFileData);
 	bool UnloadOneFilterScript(char* pFilterScript);
 	void RemoveFilterScript(int iIndex);
 	void UnloadFilterScripts();
+	char* GetFilterScriptName(AMX* amx);
+
 	void Frame(float fElapsedTime);
+	
+	AMX* GetFilterScript(DWORD dwIndex) { return m_pFilterScripts[dwIndex]; };
 
 	int CallPublic(char* szFuncName);
 
@@ -56,36 +72,24 @@ public:
 	int OnVehiclePaintjob(cell playerid, cell vehicleid, cell paintjobid);
 	int OnPlayerInteriorChange(cell playerid, cell newid, cell oldid);
 	int OnPlayerKeyStateChange(cell playerid, cell newkeys, cell oldkeys);
-	int OnScriptCash(cell playerid, cell amount, cell type);
-	int OnRconLoginAttempt(char *szIP, char *szPassword, cell success);
 	int OnPlayerUpdate(cell playerid);
-	int OnPlayerStreamIn(cell playerid, cell forplayerid);
-	int OnPlayerStreamOut(cell playerid, cell forplayerid);
-	int OnVehicleStreamIn(cell vehicleid, cell forplayerid);
-	int OnVehicleStreamOut(cell vehicleid, cell forplayerid);
-	int OnActorStreamIn(cell actorid, cell forplayerid);
-	int OnActorStreamOut(cell actorid, cell forplayerid);
-	int OnDialogResponse(cell playerid, cell dialogid, cell response, cell listitem, char *szInputText);
-	int OnPlayerClickPlayer(cell playerid, cell clickedplayerid, cell source);
-	int OnPlayerTakeDamage(cell playerid, cell issuerid, float amount, cell weaponid, cell bodypart);
-	int OnPlayerGiveDamage(cell playerid, cell damagedid, float amount, cell weaponid, cell bodypart);
-	int OnPlayerGiveDamageActor(cell playerid, cell damaged_actorid, float amount, cell weaponid, cell bodypart);
-	int OnVehicleDamageStatusUpdate(cell vehicleid, cell playerid);
-	int OnUnoccupiedVehicleUpdate(cell vehicleid, cell playerid, cell passenger_seat, int a5, PVECTOR vecPos, PVECTOR vecVelocity);
+	int OnIncomingConnection(cell playerid, const char* ip, cell port);
 	int OnPlayerClickMap(cell playerid, float fX, float fY, float fZ);
-	int OnPlayerEditAttachedObject(cell playerid, cell index, cell response, struc_64 *pInfo);
-	int OnPlayerEditObject(cell playerid, cell playerobject, cell objectid, cell response,
-		float fX, float fY, float fZ, float fRotX, float fRotY, float fRotZ);
-	int OnPlayerSelectObject(cell playerid, cell type, cell objectid, cell modelid, float fX, float fY, float fZ);
-	int OnPlayerClickTextDraw(cell playerid, cell clickedid);
-	int OnPlayerClickPlayerTextDraw(cell playerid, cell playertextid);
-	int OnClientCheckResponse(cell a2, cell a3, cell a4, cell a5);
-	int OnPlayerWeaponShot(cell playerid, cell weaponid, cell hittype, cell hitid, PVECTOR vecPos);
-	int OnIncomingConnection(cell playerid, char *ip_address, cell port);
 	int OnTrailerUpdate(cell playerid, cell vehicleid);
+	int OnRconLoginAttempt(char* szIP, char* szPassword, cell success);
+	void OnPlayerBeginTyping(cell playerid);
+	void OnPlayerEndTyping(cell playerid);
+	int OnPlayerStunt(cell playerid, cell vehicleid);
+	void OnClientCheckResponse(cell playerid, cell type, cell address, cell checksum);
 	int OnVehicleSirenStateChange(cell playerid, cell vehicleid, cell newstate);
+	void OnVehicleDamageStatusUpdate(cell vehicleid, cell playerid);
+	void OnActorStreamIn(cell actorid, cell forplayerid);
+	void OnActorStreamOut(cell actorid, cell forplayerid);
+	void OnPlayerGiveDamageActor(cell playerid, cell actorid, float fDamage, cell weaponid, cell bodypart);
+	void OnPlayerClickPlayer(cell playerid, cell clickedplayerid, cell source);
 };
 
 //----------------------------------------------------------------------------------
 
 #endif
+

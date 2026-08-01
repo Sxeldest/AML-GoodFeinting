@@ -1,244 +1,244 @@
+/*
+
+	SA:MP Multiplayer Modification
+	Copyright 2004-2005 SA:MP Team
+
+    Version: $Id: player.h,v 1.30 2006/05/07 15:35:32 kyeman Exp $
+
+*/
 
 #ifndef SAMPSRV_PLAYER_H
 #define SAMPSRV_PLAYER_H
 
-#define PLAYER_STATE_NONE						0
-#define PLAYER_STATE_ONFOOT						1
-#define PLAYER_STATE_DRIVER						2
-#define PLAYER_STATE_PASSENGER					3
-#define PLAYER_STATE_EXIT_VEHICLE				4
-#define PLAYER_STATE_ENTER_VEHICLE_DRIVER		5
-#define PLAYER_STATE_ENTER_VEHICLE_PASSENGER	6
-#define PLAYER_STATE_WASTED						7
-#define PLAYER_STATE_SPAWNED					8
-#define PLAYER_STATE_SPECTATING					9
-
-#pragma pack(1)
-typedef struct _PLAYER_SPAWN_INFO
-{
-	BYTE byteTeam;
-	int iSkin;
-	BYTE field_5;
-	VECTOR vecPos;
-	float fRotation;
-	int iSpawnWeapons[3];
-	int iSpawnWeaponsAmmo[3];
-} PLAYER_SPAWN_INFO;
-
-#pragma pack(1)
-typedef struct _ONFOOT_SYNC_DATA
-{
-	char _pad0[62];
-
-	WORD wSurfInfo;
-
-	char _pad40[4];
-
-	// TODO: _ONFOOT_SYNC_DATA
-} ONFOOT_SYNC_DATA;
-
-#pragma pack(1)
-typedef struct _AIM_SYNC_DATA
-{
-	char _pad0[31];
-	// TODO: _AIM_SYNC_DATA
-} AIM_SYNC_DATA;
-
-#pragma pack(1)
-typedef struct _UNOCCUPIED_SYNC_DATA
-{
-	char _pad0[67];
-	// TODO: _UNOCCUPIED_SYNC_DATA
-} UNOCCUPIED_SYNC_DATA;
-
-#pragma pack(1)
-typedef struct _INCAR_SYNC_DATA
-{
-	char _pad0[63];
-	// TODO: _INCAR_SYNC_DATA
-} INCAR_SYNC_DATA;
-
-#pragma pack(1)
-typedef struct _PASSENGER_SYNC_DATA
-{
-	char _pad0[24];
-	// TODO: _PASSENGER_SYNC_DATA
-} PASSENGER_SYNC_DATA;
-
-#pragma pack(1)
-typedef struct _SPECTATOR_SYNC_DATA
-{
-	char _pad0[18];
-	// TODO: _SPECTATOR_SYNC_DATA
-} SPECTATOR_SYNC_DATA;
-
-#pragma pack(1)
-typedef struct _TRAILER_SYNC_DATA
-{
-	char _pad0[54];
-	// TODO: _TRAILER_SYNC_DATA
-} TRAILER_SYNC_DATA;
-
-#pragma pack(1)
-typedef struct _WEAPON_SHOT_SYNC_DATA
-{
-	char _pad0[40];
-	// TODO: _WEAPON_SHOT_SYNC_DATA
-} WEAPON_SHOT_SYNC_DATA;
-
-typedef struct struc_92
-{
-	char _pad0[52];
-	// TODO: struc_92
-} struc_92;
-
 //----------------------------------------------------
 
-#pragma pack(1)
 class CPlayer
 {
-public:
+private:
+	BYTE					m_bytePlayerID;
+	char					m_szName[MAX_PLAYER_NAME];
+	unsigned char			m_ucNameLength;
 
-	AIM_SYNC_DATA			m_aimSync;
-	short field_1F;
-	short field_21;
-	short field_23;
-	short field_25;
+	BYTE					m_byteUpdateFromNetwork;
+
+	// Information that is synced.
+	ONFOOT_SYNC_DATA		m_ofSync;
 	INCAR_SYNC_DATA			m_icSync;
 	PASSENGER_SYNC_DATA		m_psSync;
-	ONFOOT_SYNC_DATA		m_ofSync;
-	UNOCCUPIED_SYNC_DATA	m_unocSync;
+	AIM_SYNC_DATA			m_aimSync;
 	SPECTATOR_SYNC_DATA		m_spSync;
 	TRAILER_SYNC_DATA		m_trSync;
-	int field_14D;
-	int field_151;
-	char field_155[1000];
-	char field_53D[2000];
-	char field_D0D[1000];
-	char field_10F5[1024];
-	char field_14F5[4096];
-	char field_24F5[1000];
-	int field_28DD;
-	int field_28E1;
-	int field_28E5;
-	int field_28E9;
-	int field_28ED;
-	int field_28F1;
-	int field_28F5;
-	int field_28F9;
 
-	char _pad28FD[12];
+	UINT					m_wLastKeys;
 
-	int field_2909;
-	int field_290D;
-	int field_2911;
-	int field_2915;
-	int field_2919;
-	int field_291D;
-	int field_2921;
-	int field_2925;
-	int field_2929;
-	int field_292D;
-	int field_2931;
-	int field_2935;
-	int	field_2939;
-	int field_293D;
-	int field_2941;
-	int field_2945;
-	short field_2949;
-	short field_294B;
-	int field_294D;
-	int field_2951;
-	int field_2955;
-	int field_2959;
-	short field_295D;
-	int field_295F;
-	int field_2963;
-	PLAYERID				m_PlayerID;
-	int field_2969;
-	struc_92 field_296D[10];
-	BOOL field_2B75[10];
-	int field_2B9D;
-	int field_2BA1;
-
-	char _pad2BA5[4];
-
+	bool					m_bHasAimUpdates;
+	bool					m_bHasTrailerUpdates;
+	//BYTE					m_byteSeatID;
 	BYTE					m_byteState;
 
 	VECTOR					m_vecCheckpoint;
 	float					m_fCheckpointSize;
-	BOOL					m_bInCheckpoint;
+	bool					m_bInCheckpoint;
 
 	VECTOR					m_vecRaceCheckpoint;
 	VECTOR					m_vecRaceNextCheckpoint;
 	BYTE					m_byteRaceCheckpointType;
 	float					m_fRaceCheckpointSize;
-	BOOL					m_bInRaceCheckpoint;
+	bool					m_bInRaceCheckpoint;
 
-	int field_2BDF;
-	short field_2BE3[11];
-	RakNetTime field_2BF9;
+	bool m_bStreamedInLabel[MAX_LABEL_GLOBAL];
+	WORD m_wStreamedLabelCount;
+
+	bool m_bStreamedInPickup[MAX_PICKUPS];
+	unsigned short m_usPickupLimitCount;
+
+	bool m_bIsActorStreamedIn[MAX_ACTORS];
+	int m_iStreamedActorCount;
+
+	RakNet::Time32			m_ConnectedTime;
+public:
+	CPlayerVars				*m_pPlayerVars;
+	CPlayerTextDrawPool		*m_pTextDraw;
+	CPlayerLabelPool		*m_pLabelPool;
 	PLAYER_SPAWN_INFO		m_SpawnInfo;
-	BOOL					m_bHasSpawnInfo;
-	char field_2C2F;
-	char field_2C30;
-	BYTE					m_byteSeatID;
+	bool					m_bHasSpawnInfo;
+	BYTE					m_byteWantedLevel;
+
 	VEHICLEID				m_VehicleID;
 	DWORD					m_dwColor;
-	BOOL					m_bCheckpointEnabled;
-	BOOL					m_bRaceCheckpointEnabled;
+	bool					m_bCheckpointEnabled;
+	bool					m_bRaceCheckpointEnabled;
 	int						m_iInteriorId;
+	int						m_iDrunkLevel;
+	bool					m_bIsAdmin;
+	int						m_iMoney;
+	int						m_iScore;
+	bool					m_bTyping;
+	RakNet::Time			m_nLastPingUpdate;
+	unsigned char			m_ucTeam;
+	unsigned char			m_ucFightingStyle;
+	unsigned char			m_ucFightingMove;
+	bool					m_bIsNPC;
+	char					m_szSerial[100];
+	WORD					m_wTargetedPlayer;
+	WORD					m_wTargetedActor;
 
 	// Weapon data
 	DWORD					m_dwSlotAmmo[13];
 	BYTE					m_byteSlotWeapon[13];
+	
+	BYTE					m_byteTime; // Uses
+	float					m_fGameTime; // Time in seconds (game minutes)
 
-	char field_2C85;
-	short field_2C86;
-	short field_2C88;
-	RakNetTime field_2C8A;
-	char field_2C8E;
-	char field_2C8F[40];
-	char field_2CB7;
-	float field_2CB8;
-	char field_2CBC;
-	int field_2CBD;
-	RakNetTime field_2CC1;
-	int field_2CC5;
-	int field_2CC9;
+	BYTE					m_byteSpectateType;
+	DWORD					m_SpectateID; // Vehicle or player id
 
-	char _pad2CCD[4];
+	RakNet::Time			m_tmLastStreamRateTick;
 
-	char field_2CD1;
+	char m_szClientVersion[MAX_VERSION_NAME];
+	unsigned int m_uiRconAttempt;
+	unsigned int m_uiMsgRecv;
 
-	char _pad2CD2[8];
+	int m_iVirtualWorld;
 
-	int field_2CDA;
+	void SetName(const char* szName, unsigned char ucLenght);
+	const char* GetName() const { return m_szName; }
+	unsigned char GetNameLength() const { return m_ucNameLength; }
 
 	ONFOOT_SYNC_DATA* GetOnFootSyncData() { return &m_ofSync; }
+	INCAR_SYNC_DATA* GetInCarSyncData() { return &m_icSync; }
+	PASSENGER_SYNC_DATA* GetPassengerSyncData() { return &m_psSync; }
+	AIM_SYNC_DATA* GetAimSyncData() { return &m_aimSync; }
+	SPECTATOR_SYNC_DATA* GetSpectatorSyncData() { return &m_spSync; }
 
+	CPlayerLabelPool* GetLabelPool() { return m_pLabelPool; };
+	CPlayerVars* GetPlayerVars() { return m_pPlayerVars; };
+
+	void SetState(BYTE byteState);
 	BYTE GetState() { return m_byteState; };
 
-	void Say(unsigned char * szText, BYTE byteTextLength);
+	CPlayer();
+	~CPlayer();
 
+	float	m_fHealth;
+	float	m_fArmour;
+	VECTOR  m_vecPos;
+	VECTOR	m_vecMoveSpeed;
+	float	m_fRotation;
+	bool	m_bCanTeleport;
+	float m_fWorldBounds[4];
+
+	bool IsActive() { 
+		if( m_byteState != PLAYER_STATE_NONE && m_byteState != PLAYER_STATE_SPECTATING ) { return true; }
+		return false;
+	};
+	
+	void Deactivate();
+
+	bool IsPickupStreamedIn(int iPickupID);
+	void StreamPickupIn(int iPickupID);
+	void StreamPickupOut(int iPickupID);
+
+	bool IsLabelStreamedIn(WORD wLabelID);
+	void StreamLabelIn(WORD wLabelID);
+	void StreamLabelOut(WORD wLabelID);
+
+	bool IsActorStreamedIn(int iActorID);
+	void StreamActorIn(int iActorID);
+	void StreamActorOut(int iActorID);
+
+	void UpdatePosition(float x, float y, float z);
+	void ProcessStreaming();
+
+	// Process this player during the server loop.
+	void Process(float fElapsedTime);
+	void BroadcastSyncData();
+	void Say(unsigned char * szText, size_t byteTextLength);
+	void SetID(BYTE bytePlayerID)
+	{
+		m_bytePlayerID = bytePlayerID;
+		if (m_pLabelPool)
+			m_pLabelPool->SetPlayerID(m_bytePlayerID);
+	};
+	
+	void StoreOnFootFullSyncData(ONFOOT_SYNC_DATA * pofSync);
+	void StoreInCarFullSyncData(INCAR_SYNC_DATA * picSync);
+	void StorePassengerFullSyncData(PASSENGER_SYNC_DATA *ppsSync);
+	void StoreSpectatorFullSyncData(SPECTATOR_SYNC_DATA *pspSync);
+	void StoreAimSyncData(AIM_SYNC_DATA *paimSync);
+	void StoreTrailerFullSyncData(TRAILER_SYNC_DATA* trSync);
 	void SetSpawnInfo(PLAYER_SPAWN_INFO *pSpawn);
+
+	PLAYER_SPAWN_INFO * GetSpawnInfo() { return &m_SpawnInfo; };
+
+	void HandleDeath(BYTE byteReason, BYTE byteWhoWasResponsible);
+	void Spawn();
+	void SpawnForWorld(BYTE byteTeam, int iSkin, VECTOR * vecPos, float fRotation);
+	void SpawnForPlayer(BYTE byteForPlayerID);
+
+	void EnterVehicle(VEHICLEID VehicleID,BYTE bytePassenger);
+	void ExitVehicle(VEHICLEID VehicleID);
+
+	float GetDistanceFromPoint(float fX, float fY, float fZ);
+	float GetSquaredDistanceFrom3DPoint(float fX, float fY, float fZ);
+	float GetSquaredDistanceFrom2DPoint(float fX, float fY);
 
 	void SetPlayerColor(DWORD dwColor);
 	DWORD GetPlayerColor() { return m_dwColor; };
 
 	void SetCheckpoint(float fX, float fY, float fZ, float fSize);
-	void ToggleCheckpoint(BOOL bEnabled);
+	void ToggleCheckpoint(bool bEnabled);
 	void SetRaceCheckpoint(int iType, float fX, float fY, float fZ, float fNX, float fNY, float fNZ, float fSize);
-	void ToggleRaceCheckpoint(BOOL bEnabled);
+	void ToggleRaceCheckpoint(bool bEnabled);
 
-	BOOL IsInCheckpoint() { return m_bInCheckpoint; };
-	BOOL IsInRaceCheckpoint() { return m_bInRaceCheckpoint; };
+	bool IsInCheckpoint() { return m_bInCheckpoint; };
+	bool IsInRaceCheckpoint() { return m_bInRaceCheckpoint; };
+	BYTE GetTeam() { return m_ucTeam; };
+	void SetTeam(unsigned char ucTeam);
+	unsigned char GetCurrentWeapon() {
+		if (m_byteState == PLAYER_STATE_PASSENGER)
+			return m_psSync.byteCurrentWeapon;
+		else if (m_byteState == PLAYER_STATE_DRIVER)
+			return m_icSync.byteCurrentWeapon;
+		// Return onfoot weapon in any other state
+		return m_ofSync.byteCurrentWeapon;
+	};
+	
+	int GetWeaponSlot(int iWeaponID);
+	//WEAPON_SLOT_TYPE* GetWeaponSlotsData();
+	void SetWeaponSlot(BYTE byteSlot, DWORD dwWeapon, DWORD dwAmmo);
+	
+	DWORD GetSlotWeapon(BYTE bSlot) { return m_byteSlotWeapon[bSlot]; };
+	DWORD GetSlotAmmo(BYTE bSlot) { return m_dwSlotAmmo[bSlot]; };
+	void SetCurrentWeaponAmmo(DWORD dwAmmo);
+	void SetWantedLevel(BYTE byteLevel) { m_byteWantedLevel = byteLevel; };
+	BYTE GetWantedLevel() { return m_byteWantedLevel; };
+	
+	void SetTime(BYTE byteHour, BYTE byteMinute);
+	void SetClock(BYTE byteClock);
 
+	BYTE CheckWeapon(BYTE weapon);
+	void CheckKeyUpdatesForScript(WORD wKeys);
+
+	BYTE GetSpecialAction() {
+		if(GetState() == PLAYER_STATE_ONFOOT) return m_ofSync.byteSpecialAction;
+		return SPECIAL_ACTION_NONE;
+	};
+
+	void SetVirtualWorld(int iVirtualWorld);
+	int GetVirtualWorld() const {
+		return m_iVirtualWorld;
+	}
+
+	unsigned long GetCurrentWeaponAmmo();
+
+	void UpdateTimer();
+
+	bool SendClientCheck(BYTE byteType, DWORD dwAddress, WORD wOffset, WORD wCount);
 };
-
-//----------------------------------------------------
 
 #endif
 
 //----------------------------------------------------
 // EOF
+

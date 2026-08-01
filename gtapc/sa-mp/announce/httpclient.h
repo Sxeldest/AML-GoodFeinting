@@ -1,3 +1,11 @@
+//----------------------------------------------------
+//
+//	HTTP/1.0 Client Procedures Header.
+//	(c) 2002-2005 Kye Bitossi
+//
+// Version: $Id: httpclient.h,v 1.3 2006/05/20 08:28:03 kyeman Exp $
+//
+//----------------------------------------------------
 
 #define HTTP_GET			1
 #define HTTP_POST			2
@@ -25,7 +33,7 @@
 
 //----------------------------------------------------
 
-#define USER_AGENT  "SAMP/0.30"
+#define USER_AGENT  "SAMP/0.221"
 #define GET_FORMAT  "GET %s HTTP/1.0\r\nAccept: */*\r\nUser-Agent: %s\r\nReferer: http://%s\r\nHost: %s\r\n\r\n"
 #define POST_FORMAT "POST %s HTTP/1.0\r\nAccept: */*\r\nUser-Agent: %s\r\nReferer: http://%s\r\nHost: %s\r\nContent-type: application/x-www-form-urlencoded\r\nContent-length: %u\r\n\r\n%s"
 #define HEAD_FORMAT "HEAD %s HTTP/1.0\r\nAccept: */*\r\nUser-Agent: %s\r\nReferer: http://%s\r\nHost: %s\r\n\r\n"
@@ -66,15 +74,13 @@ private:
 	HTTP_REQUEST	m_Request;
 	HTTP_RESPONSE	m_Response;
 	int				m_iError;
-	char			m_szBindAddress[256];
-	int				m_iHasBindAddress;
 
-	bool Connect(char *szHost, int iPort, char *szBindAddress=NULL);
+	bool Connect(char *szHost, int iPort);
 	void CloseConnection();
 	bool Send(char *szData);
-	int  Recv(char *szBuffer, int iBufferSize);
+	int  Recv(char *szBuffer, int iBufferSize);	
 
-	void InitRequest(int iType, char *szURL, char *szPostData, char *szReferer);
+    void InitRequest(int iType, char *szURL, char *szPostData, char *szReferer);
 	void HandleEntity();
 
 	void Process();
@@ -90,7 +96,7 @@ public:
 	char *GetDocument() { return m_Response.response; };
 	int GetDocumentLength() { return m_Response.response_len; };
 
-	CHttpClient(char *szBindAddress);
+	CHttpClient();
 	~CHttpClient();
 };
 

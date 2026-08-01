@@ -1,36 +1,43 @@
 # San Andreas Multiplayer
 
-This is an ongoing work-in-progress decompilation of the latest version of San Andreas Multiplayer (SA-MP), a free Massively Multiplayer Online game mod for the PC version of Rockstar Games Grand Theft Auto: San Andreas.
+This repository is a project of reverse engineering the latest San Andreas Multiplayer (SA-MP) 0.3.7 and 0.3DL version, fix the well known bugs and add new features later on. 
 
-The project aims to be a matching decompilation. Meaning, producing a source code base that, when it's recompiled with the same compiler the original developers used, outputs the exact same binary as the original one.
+### The progress
 
-Decompiling and extracting the containing binaries from the following version packages:
+This project is still far from finished and/or stable state. You can check out the project's spreadsheets to see the progress of the repository. Be aware that the spreadsheet is incomplete. There might be more tasks to complete than it's listed.
 
-| Name | MD5 |
-| --- | --- |
-| sa-mp-0.3.7-R5-1-install.exe | `f7874cc8637e5ddb98b07ed40a24de58` |
-| samp037_svr_R3_win32.zip | `1f35cc9fbfd4db61e0f8fe1efce362ec` |
-| samp037svr_R3.tar.gz | `901286f80f8a5ac9bd784f6091337f84` |
+https://docs.google.com/spreadsheets/d/1iMv8OprvI1SP4Gkxf4iM34ah-W3hNOl11qoFfuqxsoE/
 
-## Progress
+### How to compile it?
 
-<!-- DECOMPINFOSTART -->
-| Name | Status | MD5 |
-| --- | --- | --- |
-| samp.exe | 0% (0 / 6614) | `74B837FA2245116229D076D6863E41BC` |
-| samp_debug.exe | 0% (0 / 835) | `2C00C60A5511C3A41A70296FD1879067` |
-| samp.dll | 7.0% (558 / 8021) | `5BA5F0BE7AF99DFD03FB39E88A970A2B` |
-| rcon.exe | 100.0% (123 / 123) | `3F4821CDA1DE6D7D10654E5537B4DF6E` |
-| samp-server.exe | 0% (0 / 3860) | `4CB042A55B8837EA42A5C44D1BEA5AC8` |
-| samp03svr | 0% (0 / 4181) | `8EF11F89BFF946F0BBCDEC32F98CECEB` |
-| announce.exe | 100.0% (133 / 133) | `B4FCC1C57C10B87427FA1AE3E02B70C6` |
-| announce | 0% (0 / 74) | `F6E1475A7F69B648D7809A777271B73F` |
-| samp-npc.exe | 0% (0 / 1465) | `27F10BE9A4ED09E4B102952BC5652F3E` |
-| samp-npc | 0% (0 / 2618) | `DEDDC5AA62C0F6E144C5DF3B4FBAD50E` |
-<!-- DECOMPINFOEND -->
+1. Download and install Visual Studio from the Microsoft's website. [https://visualstudio.microsoft.com/] Visual Studio Community is recommended, it is free, but an account will be required to use. During the installation, it will prompt you to chose **Workloads**, and in the list, make sure **Desktop development with C++** is checked. Everything else not needed to be changed. If something is missing, you can always add new components later in the IDE clicking on **Tools** -> **Get Tools and Features**.
+2. [optional] To compile the client, you also need to download and install the DirectX SDK, which is also available at the Microsoft's website. [https://www.microsoft.com/en-us/download/details.aspx?id=6812]
+3. Download the source by click on **Code** button and select **Download ZIP** and extract it anywhere you feel like.
+4. Run Visual Studio and in the **Get Started** group, click on **Open a project or solution**, then locate your extracted SA-MP source folder, open **client** or **server** what you want to compile, and in those folder you'll find an search for .sln (Visual Studio Solution) or .vcxproj (VC++ Project) and open one of it.
+5. Press **F7** to build or click on the **Build** menu and **Build Solution**. Right after clicking on build, an **Output** window pops up, and when the compilation is done, in the output will tells you that it is 1 succeeded or failed. If the compilation succeeded, the **samp.dll** or **server.exe** can be found in the Debug or Release folder (depends on what have been defaulted to) inside the **client** or **server** what you have compiled.
+6. Before you copy the samp.dll to your GTA: San Andreas installation folder, make a copy of your currently installed SA-MP version, if there's available. It's not compatible with the SA-MP 0.3.7/0.3DL samp.saa or bass.dll. The compatible samp.saa can be found in ./SA-MP/archive/build folder, and bass.dll in ./SA-MP/nsis folder.
+7. Now you can launch the mod with any SA-MP Server Browser (samp.exe) or the Debug Launcher (samp_debug.exe). If it is a server, it is recommended to recompile every filterscripts and gamemodes with the included Pawno in the SA-MP folder, to disable natives that are not available, and different #define macros.
 
-Status values may not be 100% accurate and will fluctuate during the analyzation of the binary files. These numbers currently are based on the number of functions marked in light green color and the number of visible functions in the IDA Pro database, and this does not represent the overall byte-for-byte accuracy of the output file with the original one.
+If the compilation fails or you find an issue, please head over the project's Discord server and report it in #bug-report channel, or open a New Issue in Issues.
 
-## Building
+### Screenshots
+![Screenshot 1](https://github.com/dashr9230/SAMPC/blob/master/images/sa-mp-002.jpg "SetVehicleFeature test")
+![Screenshot 2](https://github.com/dashr9230/SAMPC/blob/master/images/sa-mp-000.jpg "SetPlayerCameraPos rotation test")
 
-TODO
+### Discord
+
+If you are interested, you can join the project's Discord server to see updates, suggest new features, or just hang around with the community.
+
+https://discord.gg/sCZgszw
+
+### Credits
+
+A shout-out to those who have contributed to the project.
+
+- **Teredo Kot** - https://github.com/teredokot
+- **AliLogic** - https://github.com/AliLogic
+- **Alexander Markelov** - https://github.com/alexmarkel0v
+- **0x8964** - https://github.com/0x8964
+- **Romz24** - https://github.com/Romz24
+- **FlexodBR** - https://github.com/FlexodBR
+- **the-x80** - https://github.com/the-x80

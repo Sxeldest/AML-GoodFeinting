@@ -1,3 +1,16 @@
+/*
+
+	SA:MP Multiplayer Modification
+	Copyright 2004-2005 SA:MP Team
+
+	file:
+		console.h
+	desc:
+		Console command and variable system header file.
+
+    Version: $Id: console.h,v 1.6 2006/03/20 17:59:34 kyeman Exp $
+
+*/
 
 #ifndef SAMPSRV_CONSOLE_H
 #define SAMPSRV_CONSOLE_H
@@ -49,6 +62,8 @@ public:
 
 	bool GetBoolVariable(char* pVarName);
 	void SetBoolVariable(char* pVarName, bool bBool);
+
+	void SendRules(SOCKET s, char* data, const sockaddr_in* to, int tolen);
 
 	void Execute(char* pExecLine);
 };

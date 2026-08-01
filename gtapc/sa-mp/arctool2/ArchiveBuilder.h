@@ -1,3 +1,9 @@
+//----------------------------------------------------------
+//
+//   SA:MP Multiplayer Modification For GTA:SA
+//   Copyright 2004-2006 SA:MP team
+//
+//----------------------------------------------------------
 
 #pragma once
 
@@ -9,7 +15,7 @@
 
 #pragma pack(1)
 
-typedef struct _AB_ENTRY_MEMSTATE
+typedef struct _AB_ENTRY_MEMSTATE 
 {
 	SAA_ENTRY*	pEntry;
 
@@ -53,7 +59,7 @@ private:
 	void BuildEntryTable(SAA_ENTRY* pEntryTable, DWORD dwInvalidIndex);
 	void BuildEntryData(FILE* fiArchive);
 	void SignArchive(FILE *fiArchive, DWORD dwSignatureOffset, SAA_FILE_HEADER *pHeader);
-
+	
 public:
 	CArchiveBuilder(void);
 	CArchiveBuilder(DWORD dwNumEntries, DWORD dwFDSize, BOOL bProperHeader);

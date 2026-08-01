@@ -2,7 +2,7 @@
 # Load IDEs first, then the models and after that the IPLs
 #
 
-IMG SAMP\SAMPCOL.IMG
+IMG DATA\PATHS\CARREC.IMG
 IMG DATA\SCRIPT\SCRIPT.IMG
 IMG MODELS\CUTSCENE.IMG
 
@@ -72,10 +72,6 @@ IDE DATA\MAPS\veh_mods\veh_mods.IDE
 # txd parents
 IDE DATA\TXDCUT.IDE
 
-# sa-mp additions
-IDE SAMP\samp.IDE
-IDE SAMP\custom.IDE
-
 # have to load map.zon before any of the IPLs
 IPL DATA\MAP.ZON
 # IPL DATA\NAVIG.ZON
@@ -142,5 +138,9 @@ IPL DATA\MAPS\occluLA.ipl
 IPL DATA\MAPS\occluint.ipl
 IPL DATA\MAPS\audiozon.ipl
 
-# sa-mp additions
-IPL SAMP\samp.ipl
+#
+#  Interiors
+#
+SPLASH loadsc4
+
+

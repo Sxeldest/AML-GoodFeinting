@@ -21,8 +21,6 @@
 
 unit FindSort;
 
-{$R+} // enable range checks
-
 interface
 
 uses

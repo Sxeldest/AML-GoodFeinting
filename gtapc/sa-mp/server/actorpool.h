@@ -2,20 +2,31 @@
 #ifndef SAMPSRV_ACTORPOOL_H
 #define SAMPSRV_ACTORPOOL_H
 
-class CActorPool // size: WL 12004
+class CActorPool
 {
 private:
-	int field_0[1000];
-	int field_FA0[1000];
-	int field_1F40[1000];
-	int m_iPoolSize;
+	CActor* m_pActors[MAX_ACTORS];
+	bool m_bSlotState[MAX_ACTORS];
+	//int m_iVirtualWorld[MAX_ACTORS]; // moved to CActor
+	int m_iLastActorID;
+
 public:
 	CActorPool();
 	~CActorPool();
 
-	BOOL Delete(ACTORID ActorID);
+	CActor* GetAt(int iActorID);
+	bool GetSlotState(int iActorID);
 
-	int GetPoolSize() { return m_iPoolSize; };
+	void UpdateLastActorID();
+	unsigned short New(int iModelID, VECTOR vecPos, float fAngle);
+	bool Destroy(int iActorID);
+	//void SetActorVirtualWorld(unsigned short ActorID, int iVirtualWorld); // moved to CActor
+	//int GetActorVirtualWorld(unsigned short ActorID); // moved to CActor
+	void StreamActorInForPlayer(unsigned short ActorID, unsigned short PlayerID);
+	void StreamActorOutForPlayer(unsigned short ActorID, unsigned short PlayerID);
+
+	inline int GetLastActorID() { return m_iLastActorID; };
+
 };
 
-#endif
+#endif // SAMPSRV_ACTORPOOL_H

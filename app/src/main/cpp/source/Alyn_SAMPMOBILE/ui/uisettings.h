@@ -16,6 +16,7 @@ public:
 
 	/* font */
 	static float fontSize() { return m_fontSize; }
+	static void setFontSize(float size) { m_fontSize = size; }
 	static float outlineSize() { return m_outlineSize; }
 
 	/* widgets */

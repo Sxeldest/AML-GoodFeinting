@@ -16,6 +16,7 @@
 #include "samp_widgets/voicebutton.h"
 #include "samp_widgets/deathwindow.h"
 #include "samp_widgets/playertags.h"
+#include "samp_widgets/chatwindow.h"
 #include "../net/chatbubble.h"
 #include "../net/textlabel.h"
 
@@ -32,6 +33,7 @@ public:
 	VoiceButton* voicebutton() const { return m_voicebutton; }
 	DeathWindow* deathwindow() const { return m_deathwindow; }
 	PlayerTags* playertags() const { return m_playertags; }
+	ChatWindow* chatwindow() const { return m_chatwindow; }
 	ChatBubble* chatbubble() const { return m_chatbubble; }
 	TextLabel* textlabel() const { return m_textlabel; }
 
@@ -62,6 +64,7 @@ private:
 	VoiceButton* m_voicebutton;
 	DeathWindow* m_deathwindow;
 	PlayerTags* m_playertags;
+	ChatWindow* m_chatwindow;
 	ChatBubble* m_chatbubble;
 	TextLabel* m_textlabel;
 	RwTexture* m_pCrosshairTex;

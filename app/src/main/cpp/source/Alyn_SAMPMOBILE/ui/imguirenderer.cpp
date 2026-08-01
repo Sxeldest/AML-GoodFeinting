@@ -43,7 +43,7 @@ void ImGuiRenderer::drawConvexPolyFilled(ImVec2* points, int num_points, const I
 }
 
 void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char* begin,
-                             const char* end, bool outline, float font_size, ImFont* font)
+                             const char* end, bool outline, float font_size, ImFont* font, bool bold_outline)
 {
     float sz_font = font_size == 0.0f ? m_font->FontSize : font_size;
     font = font == NULL ? m_font : font;
@@ -51,32 +51,50 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
     ImVec2 p = ImVec2(floorf(pos.x + 0.5f), floorf(pos.y + 0.5f));
 
     if (outline) {
-        float outerSize = 2.0f;
-        ImColor softBlack(0.0f, 0.0f, 0.0f, color.Value.w * 0.35f);
+        if (bold_outline) {
+            ImColor black(0.0f, 0.0f, 0.0f, color.Value.w);
+            float off2 = floorf(RS(2.0f) + 0.5f);
+            float off1 = floorf(RS(1.5f) + 0.5f);
+            if (off2 < 1.0f) off2 = 1.0f;
+            if (off1 < 1.0f) off1 = 1.0f;
 
-        m_drawList->AddText(font, sz_font, ImVec2(p.x - outerSize, p.y), softBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x + outerSize, p.y), softBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - outerSize), softBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + outerSize), softBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - off2), black, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + off2), black, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - off2, p.y), black, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + off2, p.y), black, begin, end);
 
-        float innerSize = 1.0f;
-        ImColor solidBlack(0.0f, 0.0f, 0.0f, color.Value.w * 0.65f);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - off1, p.y - off1), black, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + off1, p.y - off1), black, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - off1, p.y + off1), black, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + off1, p.y + off1), black, begin, end);
+        } else {
+            float outerSize = 2.0f;
+            ImColor softBlack(0.0f, 0.0f, 0.0f, color.Value.w * 0.35f);
 
-        m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y), solidBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y), solidBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - innerSize), solidBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + innerSize), solidBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y - innerSize), solidBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y - innerSize), solidBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y + innerSize), solidBlack, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y + innerSize), solidBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - outerSize, p.y), softBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + outerSize, p.y), softBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - outerSize), softBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + outerSize), softBlack, begin, end);
+
+            float innerSize = 1.0f;
+            ImColor solidBlack(0.0f, 0.0f, 0.0f, color.Value.w * 0.65f);
+
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y), solidBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y), solidBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - innerSize), solidBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + innerSize), solidBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y - innerSize), solidBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y - innerSize), solidBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - innerSize, p.y + innerSize), solidBlack, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + innerSize, p.y + innerSize), solidBlack, begin, end);
+        }
     }
 
     m_drawList->AddText(font, sz_font, p, color, begin, end);
 }
 
 void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const std::string& text,
-                             bool outlined, float font_size, ImFont* font)
+                             bool outlined, float font_size, ImFont* font, bool bold_outline)
 {
     if (text.empty()) {
         return;
@@ -95,7 +113,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const std:
         if (*text_cur == '{' && ((&text_cur[7] < text_end) && text_cur[7] == '}')) {
             // print accumulated text
             if (text_cur != text_start) {
-                drawText(pos_cur, color_cur, text_start, text_cur, outlined, sz_font, font);
+                drawText(pos_cur, color_cur, text_start, text_cur, outlined, sz_font, font, bold_outline);
                 ImVec2 sz = calculateTextSize(text_start, text_cur, sz_font);
                 pos_cur.x += floorf(sz.x + 0.5f);
             }
@@ -112,7 +130,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const std:
         else if (*text_cur == '\n') {
             // print accumulated text
             if (text_cur != text_start) {
-                drawText(pos_cur, color_cur, text_start, text_cur, outlined, sz_font, font);
+                drawText(pos_cur, color_cur, text_start, text_cur, outlined, sz_font, font, bold_outline);
             }
 
             pos_cur.x = pos.x;
@@ -122,7 +140,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const std:
         else if (*text_cur == '\t') {
             // print accumulated text
             if (text_cur != text_start) {
-                drawText(pos_cur, color_cur, text_start, text_cur, outlined, sz_font);
+                drawText(pos_cur, color_cur, text_start, text_cur, outlined, sz_font, font, bold_outline);
                 ImVec2 sz = calculateTextSize(text_start, text_cur, sz_font);
                 pos_cur.x += floorf(sz.x + 0.5f);
             }
@@ -135,7 +153,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const std:
     }
 
     if (text_cur != text_start) {
-        drawText(pos_cur, color_cur, text_start, text_cur, outlined, sz_font, font);
+        drawText(pos_cur, color_cur, text_start, text_cur, outlined, sz_font, font, bold_outline);
     }
 }
 

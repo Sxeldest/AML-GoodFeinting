@@ -1,5 +1,24 @@
+//----------------------------------------------------------
+//
+//   SA:MP Multiplayer Modification For GTA:SA
+//   Copyright 2004-2006 SA:MP team
+//
+//----------------------------------------------------------
 
 #include "main.h"
+//#include "plugins.h"
+//#include "signer.h"
+//#include "jenkinshash.h"
+//#include "pluginkey.h"
+//#include "console.h"
+
+// TODO: Place plugins here which will not be compatible with SAMPC
+static const char* g_szBlacklist[] = {
+	"pawnraknet",
+	"pawncmd",
+	"sky",
+	"ysf",
+};
 
 //---------------------------------------
 // Some Helpers
@@ -110,7 +129,7 @@ CPlugins::CPlugins()
 
 	// Set up table of Plugin exports
 	m_PluginData[PLUGIN_DATA_LOGPRINTF] = (void*)&logprintf;
-
+	
 	m_PluginData[PLUGIN_DATA_AMX_EXPORTS] = m_AMXExports;
 	m_PluginData[PLUGIN_DATA_CALLPUBLIC_FS] = (void*)&PluginCallPublicFS;
 	m_PluginData[PLUGIN_DATA_CALLPUBLIC_GM] = (void*)&PluginCallPublicGM;
@@ -121,12 +140,14 @@ CPlugins::CPlugins()
 	m_PluginData[PLUGIN_DATA_RAKSERVER] = (void*)&PluginGetRakServer;
 	m_PluginData[PLUGIN_DATA_LOADFSCRIPT] = (void*)&PluginLoadFilterScriptFromMemory;
 	m_PluginData[PLUGIN_DATA_UNLOADFSCRIPT] = (void*)&PluginUnloadFilterScript;
+
 }
 
 //---------------------------------------
 
 CPlugins::~CPlugins()
 {
+
 	ServerPluginVector::iterator itor;
 
 	for(itor=m_Plugins.begin(); itor!=m_Plugins.end(); itor++) 
@@ -137,22 +158,154 @@ CPlugins::~CPlugins()
 		PLUGIN_UNLOAD(pSPlugin->hModule);
 		delete pSPlugin;
 	}
+
 }
 
 //---------------------------------------
 
-BOOL CPlugins::LoadSinglePlugin(char *szPluginPath)
+/*void CPlugins::ConvertFromHex(unsigned char* pbBuffer, char* szData, unsigned int dwMaxLength)
 {
+	unsigned int i=0, dwTemp=0;
+	char szTemp[4] = {0,0,0,0};
+	while(szData[i]!=0)
+	{
+		if ((i/2) >= dwMaxLength)
+			break;
+		if (szData[i+0]==0 || szData[i+1]==0)
+			break;
+		szTemp[0] = szData[i+0];
+		szTemp[1] = szData[i+1];
+		sscanf(szTemp, "%X", &dwTemp);
+		pbBuffer[i/2] = dwTemp;
+		i+=2;
+	}
+}
+
+//---------------------------------------
+
+bool CPlugins::VerifyPluginSignature(char* szPluginFilename)
+{
+	CSHA1 sha1;
+	sha1.HashFile(szPluginFilename);
+	sha1.Final();
+	BYTE* pbHash = sha1.GetHash();
+
+	CSigner signer;
+	signer.SetPublicKey((unsigned char*)PLUGIN_PUB_KEY);
+
+	CHAR szFilename[MAX_PATH];
+	strcpy(szFilename, szPluginFilename);
+	DWORD dwLength = strlen(szFilename);
+	for(DWORD i=dwLength-1; i>0; i--) 
+	{
+		if (szFilename[i] == '.')
+		{
+			szFilename[i] = 0;
+			break;
+		}
+	}
+	strcat(szFilename, ".sig");
+
+	FILE* pFile = fopen(szFilename, "rt");
+	if (pFile == NULL)
+		return false;
+
+	DWORD dwSignatureStringSize = signer.GetSignatureSize() * 2 + 1;
+	CHAR* szSignature = new CHAR[dwSignatureStringSize];
+	BYTE* pbSignature = new BYTE[signer.GetSignatureSize()];
+	fgets(szSignature, dwSignatureStringSize, pFile);
+	fclose(pFile);
+	ConvertFromHex(pbSignature, szSignature, signer.GetSignatureSize());
+
+	signer.SetSignature(pbSignature);
+	bool bVerified = signer.VerifyHash(pbHash);
+			
+	delete pbSignature;
+	delete szSignature;
+
+	return bVerified;
+}
+
+//---------------------------------------
+
+bool CPlugins::IsValidForNoSign(char* szFilename)
+{
+	char szLCFilename[MAX_PATH];
+
+	int i = 0, j = 0;
+	for(i=strlen(szFilename)-1; i>=0; i--) 
+	{
+		if (szFilename[i] == '.') 
+		{
+			j=i;
+		}
+		if (szFilename[i] == '\\' || szFilename[i] == '/') 
+		{
+			i++;
+			break;
+		}
+	}
+
+	strcpy(szLCFilename, szFilename+i);		// Get part of filename with the \ or / 
+	szLCFilename[j-i] = 0;					// Get rid of extension
+
+	char *szNoSign = pConsole->GetStringVariable("nosign");
+	char *szLCNoSign = new char[strlen(szNoSign)+1];
+	strcpy(szLCNoSign, szNoSign);
+
+	char *szTok = strtok(szLCNoSign, " ");
+	while(szTok)
+	{
+#ifdef LINUX
+		if (strcmp(szTok, szLCFilename)==0) 
+#else
+		if (strcmpi(szTok, szLCFilename)==0) 
+#endif
+		{
+			delete[] szLCNoSign;
+			return true;
+		}
+		szTok = strtok(NULL, " ");
+	}
+
+	delete[] szLCNoSign;
+
+	return false;
+}*/
+
+//---------------------------------------
+	
+bool CPlugins::LoadSinglePlugin(char *szPluginPath) 
+{
+	// Verify the plugin
+	/*
+	// NO MORE SIGNATURE VERIFICATION
+	bool bVerify = VerifyPluginSignature(szPluginPath);
+	if (!bVerify)
+	{
+		if (IsValidForNoSign(szPluginPath)) 
+		{
+			logprintf("  Loading without valid signature (nosign).");
+			bVerify = true;
+		}
+	}
+	if (!bVerify)
+	{
+		logprintf("  Could not authenticate validity.");
+		return FALSE;
+	}
+	*/
+
 	// Load it
 	ServerPlugin_s* pSPlugin;
 	pSPlugin = new ServerPlugin_s();
-
+	
 	pSPlugin->hModule = PLUGIN_LOAD(szPluginPath);
-	if (pSPlugin->hModule == NULL)
+	if (pSPlugin->hModule == NULL) 
 	{
 		// Failed to load
 		delete pSPlugin;
-		return FALSE;
+		return false;
 	}
 
 	pSPlugin->Load = (ServerPluginLoad_t)PLUGIN_GETFUNCTION(pSPlugin->hModule, "Load");
@@ -165,7 +318,7 @@ BOOL CPlugins::LoadSinglePlugin(char *szPluginPath)
 		logprintf("  Plugin does not conform to architecture.");
 		PLUGIN_UNLOAD(pSPlugin->hModule);
 		delete pSPlugin;
-		return FALSE;
+		return false;
 	}
 
 	pSPlugin->dwSupportFlags = (SUPPORTS_FLAGS)pSPlugin->Supports();
@@ -176,15 +329,15 @@ BOOL CPlugins::LoadSinglePlugin(char *szPluginPath)
 		logprintf("  Unsupported version - This plugin requires version %x.", (pSPlugin->dwSupportFlags & SUPPORTS_VERSION_MASK));
 		PLUGIN_UNLOAD(pSPlugin->hModule);
 		delete pSPlugin;
-		return FALSE;
+		return false;
 	}
 
-	if ((pSPlugin->dwSupportFlags & SUPPORTS_AMX_NATIVES) != 0)
+	if ((pSPlugin->dwSupportFlags & SUPPORTS_AMX_NATIVES) != 0) 
 	{
 		pSPlugin->AmxLoad = (ServerPluginAmxLoad_t)PLUGIN_GETFUNCTION(pSPlugin->hModule, "AmxLoad");
 		pSPlugin->AmxUnload = (ServerPluginAmxUnload_t)PLUGIN_GETFUNCTION(pSPlugin->hModule, "AmxUnload");
 	} 
-	else
+	else 
 	{
 		pSPlugin->AmxLoad = NULL;
 		pSPlugin->AmxUnload = NULL;
@@ -199,22 +352,23 @@ BOOL CPlugins::LoadSinglePlugin(char *szPluginPath)
 		pSPlugin->ProcessTick = NULL;
 	}
 
-	if (!pSPlugin->Load(m_PluginData))
+	if (!pSPlugin->Load(m_PluginData)) 
 	{
 		// Initialize failed!
 		PLUGIN_UNLOAD(pSPlugin->hModule);
 		delete pSPlugin;
-		return FALSE;
+		return false;
 	}
 
 	m_Plugins.push_back(pSPlugin);
 
-	return TRUE;
+	return true;
+
 }
 
 //---------------------------------------
 
-void CPlugins::LoadPlugins(char *szSearchPath)
+/*void CPlugins::LoadPlugins(char *szSearchPath)
 {
 	char szPath[MAX_PATH];
 	char szFullPath[MAX_PATH];
@@ -222,17 +376,17 @@ void CPlugins::LoadPlugins(char *szSearchPath)
 	strcpy(szPath, szSearchPath);
 
 #ifdef LINUX
-	if (szPath[strlen(szPath)-1] != '/')
+	if (szPath[strlen(szPath)-1] != '/') 
 		strcat(szPath, "/");
 #else
-	if (szPath[strlen(szPath)-1] != '\\')
+	if (szPath[strlen(szPath)-1] != '\\') 
 		strcat(szPath, "\\");
 #endif
 
 	logprintf("");
 	logprintf("Server Plugins");
 	logprintf("--------------");
-
+	int iPluginCount = 0;
 	char* szFilename = strtok(pConsole->GetStringVariable("plugins"), " ");
 	while (szFilename)
 	{
@@ -243,15 +397,15 @@ void CPlugins::LoadPlugins(char *szSearchPath)
 
 		if (LoadSinglePlugin(szFullPath))
 		{
-			logprintf("  Loaded.");
-		}
-		else
+            logprintf("  Loaded.");
+		} 
+		else 
 		{
 #ifdef LINUX
 			szDlerror = PLUGIN_GETERROR();
-			if (szDlerror)
+			if (szDlerror) 
 				logprintf("  Failed (%s)", szDlerror);
-			else
+			else 
 				logprintf("  Failed.");
 #else
 			logprintf("  Failed.");
@@ -261,10 +415,63 @@ void CPlugins::LoadPlugins(char *szSearchPath)
 		szFilename = strtok(NULL, " ");
 	}
 	logprintf(" Loaded %d plugins.\n", GetPluginCount());
+}*/
+
+void CPlugins::LoadPlugins(std::string strPath)
+{
+#ifdef WIN32
+	if (strPath.back() != '\\')
+		strPath += '\\';
+#else
+	if (strPath.back() != '/')
+		strPath += '/';
+#endif
+
+	logprintf("\nServer Plugins");
+	logprintf("--------------");
+
+	unsigned int uiPluginCount = 0;
+	char* szPlugins = pConsole->GetStringVariable("plugins");
+	if (szPlugins)
+	{
+		std::istringstream issPlugins(szPlugins);
+		std::string strPlugin;
+		while (std::getline(issPlugins, strPlugin, ' '))
+		{
+			logprintf(" Loading plugin: %s", strPlugin.c_str());
+
+			for (unsigned char i = 0; i < sizeof(g_szBlacklist) / sizeof(char*); i++) {
+				if (stricmp(strPlugin.c_str(), g_szBlacklist[i]) == 0) {
+					logprintf("  Blacklisted - Loading this plugin will cause a server crash.");
+					continue;
+				}
+			}
+
+			std::string strFullPath;
+			strFullPath = strPath + strPlugin;
+			if (LoadSinglePlugin((char*)strFullPath.c_str()))
+			{
+				logprintf("  Loaded.");
+				uiPluginCount++;
+			}
+			else
+			{
+#ifdef WIN32
+				logprintf("  Failed. (Error code: %d)", GetLastError());
+#else
+				char* szDLError = 0;
+				szDLError = PLUGIN_GETERROR();
+				logprintf((szDLError) ? ("  Failed. (%s)") : ("  Failed."), szDLError);
+#endif
+			}
+		}
+	}
+
+	logprintf(" Loaded %d plugins.\n", uiPluginCount);
 }
 
 // [OBSOLETE: Using the non search defined method]
-void CPlugins::LoadPluginsSearch(char *szSearchPath)
+/*void CPlugins::LoadPluginsSearch(char *szSearchPath)
 {
 #ifdef LINUX
 	DIR *dir = opendir(szSearchPath);
@@ -277,40 +484,40 @@ void CPlugins::LoadPluginsSearch(char *szSearchPath)
 	if (szPath[strlen(szPath)-1] != '/') strcat(szPath, "/");
 	char szFullPath[255];
 	char *szDlerror = NULL;
-	if (dir)
+	if (dir) 
 	{
 		logprintf("");
 		logprintf("Server Plugins");
 		logprintf("--------------");
 
 		// Load the plugins
-		while (dir)
+		while (dir) 
 		{
 			strcpy(szFullPath, szPath);
-			if ((file = readdir(dir)) != NULL)
+			if ((file = readdir(dir)) != NULL) 
 			{
 				szFilename = (char*)file->d_name;
 				iStrLen = strlen(szFilename);
-				if (iStrLen > 3)
+				if (iStrLen > 3) 
 				{
 					szExt = szFilename+iStrLen-3;
-					if (strcmp(".so", szExt) == 0)
+					if (strcmp(".so", szExt) == 0) 
 					{
 						logprintf(" Loading plugin: %s", szFilename);
 						strcat(szFullPath, szFilename);
 						bool bSuccess = LoadSinglePlugin(szFullPath);
-						if (!bSuccess)
+						if (!bSuccess) 
 						{
 							szDlerror = PLUGIN_GETERROR();
-							if (szDlerror)
+							if (szDlerror) 
 								logprintf("  Failed (%s)", szDlerror);
-							else
-								logprintf(("  Failed.");
+							else 
+								logprintf("  Failed.");
 						}
 					}
 				}
-			}
-			else
+			} 
+			else 
 			{
 				closedir(dir);
 				dir = NULL;
@@ -335,12 +542,12 @@ void CPlugins::LoadPluginsSearch(char *szSearchPath)
 
 	WIN32_FIND_DATA fdFindData;
 	HANDLE hFindFile = FindFirstFile(szSearch, &fdFindData);
-	if (hFindFile != INVALID_HANDLE_VALUE)
+	if (hFindFile != INVALID_HANDLE_VALUE) 
 	{
 		logprintf("");
 		logprintf("Server Plugins");
 		logprintf("--------------");
-
+		
 		// Load the plugins
 		while(true) {
 			logprintf(" Loading plugin: %s", fdFindData.cFileName);
@@ -355,14 +562,14 @@ void CPlugins::LoadPluginsSearch(char *szSearchPath)
 	}
 	FindClose(hFindFile);
 #endif
-}
+}*/
 
 //---------------------------------------
-
-DWORD CPlugins::GetPluginCount()
+	
+/*DWORD CPlugins::GetPluginCount()
 {
 	return (DWORD)m_Plugins.size();
-}
+}*/
 
 //---------------------------------------
 
@@ -375,6 +582,7 @@ ServerPlugin_s* CPlugins::GetPlugin(DWORD index)
 
 void CPlugins::DoProcessTick()
 {
+
 	ServerPluginVector::iterator itor;
 
 	for(itor=m_Plugins.begin(); itor!=m_Plugins.end(); itor++) {
@@ -383,12 +591,14 @@ void CPlugins::DoProcessTick()
 			if (pSPlugin->ProcessTick != NULL)
 				pSPlugin->ProcessTick();
 	}
+
 }
 
 //---------------------------------------
 
-void CPlugins::DoAmxLoad(AMX *amx)
+void CPlugins::DoAmxLoad(AMX *amx) 
 {
+
 	ServerPluginVector::iterator itor;
 
 	for(itor=m_Plugins.begin(); itor!=m_Plugins.end(); itor++) {
@@ -397,20 +607,24 @@ void CPlugins::DoAmxLoad(AMX *amx)
 			if (pSPlugin->AmxLoad != NULL)
 				pSPlugin->AmxLoad(amx);
 	}
+
 }
 
 //---------------------------------------
 
 void CPlugins::DoAmxUnload(AMX *amx)
 {
+
 	ServerPluginVector::iterator itor;
 
-	for(itor=m_Plugins.begin(); itor!=m_Plugins.end(); itor++) {
+	for(itor=m_Plugins.begin(); itor!=m_Plugins.end(); itor++) 
+	{
 		ServerPlugin_s* pSPlugin = *itor;
 		if ((pSPlugin->dwSupportFlags & SUPPORTS_AMX_NATIVES) != 0)
 			if (pSPlugin->AmxUnload != NULL)
 				pSPlugin->AmxUnload(amx);
 	}
+
 }
 
 //---------------------------------------

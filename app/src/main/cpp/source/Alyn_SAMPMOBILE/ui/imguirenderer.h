@@ -21,7 +21,7 @@ public:
                       bool fill = false, float thickness = 1.0f);
     void drawConvexPolyFilled(ImVec2* points, int num_points, const ImColor& color);
     void drawText(const ImVec2& pos, const ImColor& color, const std::string& text,
-                  bool outlined = false, float font_size = 0.0f, ImFont* font = NULL);
+                  bool outlined = false, float font_size = 0.0f, ImFont* font = NULL, bool bold_outline = false);
     void drawImage(const ImVec2& a, const ImVec2& b, ImTextureID texture);
 
     void pushClipRect(const ImVec2& min, const ImVec2& max, bool intersect = false);
@@ -33,7 +33,7 @@ private:
     ImVec2 calculateTextSize(const char* begin, const char* end, float font_size = 0.0f);
     void drawText(const ImVec2& pos, const ImColor& color, const char* begin,
                   const char* end = nullptr, bool outlined = false, float font_size = 0.0f,
-                  ImFont* font = NULL);
+                  ImFont* font = NULL, bool bold_outline = false);
     bool processInlineHexColor(const char* start, const char* end, ImVec4& color);
 
 private:

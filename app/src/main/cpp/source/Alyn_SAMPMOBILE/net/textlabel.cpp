@@ -37,17 +37,13 @@ void TextLabel::render(ImGuiRenderer* renderer) {
     CPlayerPool* pPlayerPool = SAMP::netgame()->m_pools->playerPool;
     CVehiclePool* pVehiclePool = SAMP::netgame()->m_pools->vehiclePool;
 
-    // Camera position for distance check
     VECTOR camPos;
     camPos.X = *(float*)(SA_Addr(0x9528D4));
     camPos.Y = *(float*)(SA_Addr(0x9528D8));
     camPos.Z = *(float*)(SA_Addr(0x9528DC));
 
     for (int i = 0; i < 2048; i++) {
-        // bActive array starts at poolAddr + 0x14000
         if (*(uint8_t*)(poolAddr + 0x14000 + i) == 0) continue;
-
-        // Data entry i starts at poolAddr + (i * 0x28)
         uintptr_t pData = poolAddr + (i * 0x28);
 
         VECTOR pos;
@@ -70,7 +66,6 @@ void TextLabel::render(ImGuiRenderer* renderer) {
         } else if (vehicleID != 0xFFFF) {
             CVehicle* pVehicle = pVehiclePool->getAt(vehicleID);
             if (pVehicle && pVehicle->isAdded()) {
-                // Approximate vehicle center
                 VECTOR vehPos = pVehicle->m_vehicle->entity.mat->pos;
                 pos.X += vehPos.X;
                 pos.Y += vehPos.Y;
@@ -83,7 +78,6 @@ void TextLabel::render(ImGuiRenderer* renderer) {
 
         if (fDist > fMaxDist) continue;
 
-        // LOS Check if required
         if (*(uint8_t*)(pData + 0x20)) {
              bool bClear = ((bool (*)(VECTOR*, VECTOR*, bool, bool, bool, bool, bool, bool, bool)) (SA_Addr(0x423418 + 1)))(&camPos, &pos, true, true, false, true, true, false, false);
              if (!bClear) continue;
@@ -97,7 +91,6 @@ void TextLabel::render(ImGuiRenderer* renderer) {
             if(text.empty()) continue;
 
             uint32_t dwColor = *(uint32_t*)(pData + 0x0C);
-            // Convert ABGR to ImColor
             ImColor finalColor = ImColor(
                 (int)(dwColor & 0xFF),
                 (int)((dwColor >> 8) & 0xFF),
@@ -105,9 +98,8 @@ void TextLabel::render(ImGuiRenderer* renderer) {
                 (int)((dwColor >> 24) & 0xFF)
             );
 
-            float fontSize = UISettings::fontSize() * 0.8f;
+            float fontSize = UISettings::fontSize() * 0.875f;
 
-            // Center multiline text
             std::vector<std::string> lines;
             size_t start = 0, end;
             while ((end = text.find('\n', start)) != std::string::npos) {

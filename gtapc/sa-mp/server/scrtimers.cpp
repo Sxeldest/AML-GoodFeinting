@@ -1,3 +1,18 @@
+/*
+
+	SA:MP Multiplayer Modification
+	Copyright 2004-2006 SA:MP Team
+
+	file:
+		scrtimers.cpp
+	desc:
+		Gamemode script timers.
+
+    Version: $Id: scrtimers.cpp,v 1.7 2006/03/25 09:12:48 kyeman Exp $
+
+*/
+
+//----------------------------------------------------------------------------------
 
 #include "main.h"
 
@@ -34,6 +49,8 @@ void CScriptTimers::FreeMem(ScriptTimer_s* Timer)
 
 //----------------------------------------------------------------------------------
 
+// Kills only the timers found in one mode
+
 void CScriptTimers::DeleteForMode(AMX* pEndedAMX)
 {
 	bool bRestart = false;
@@ -46,7 +63,7 @@ void CScriptTimers::DeleteForMode(AMX* pEndedAMX)
 			FreeMem(itor->second);
 			SAFE_DELETE(itor->second);
 			m_Timers.erase(itor);
-
+			
 			// Can't continue iteration if a node is deleted, start iteration from start again.
 			bRestart = true;
 		}
@@ -55,21 +72,43 @@ void CScriptTimers::DeleteForMode(AMX* pEndedAMX)
 
 //----------------------------------------------------------------------------------
 
-DWORD CScriptTimers::New(char* szScriptFunc, int iInterval, BOOL bRepeating, AMX* pAMX)
+DWORD CScriptTimers::New(char* szScriptFunc, int iInterval, bool bRepeating, AMX* pAMX)
 {
+	int idx;
+
+	if (amx_FindPublic(pAMX, szScriptFunc, &idx) != AMX_ERR_NONE)
+	{
+		return 0;
+	}
+
 	m_dwTimerCount++;
 
 	ScriptTimer_s* NewTimer = new ScriptTimer_s;
 
-	strncpy(NewTimer->szScriptFunc, szScriptFunc, 255);
+	if(iInterval < 500) iInterval = 500;
+
+	//strncpy(NewTimer->szScriptFunc, szScriptFunc, 255);
 	NewTimer->iTotalTime = iInterval;
-	NewTimer->iRemainingTime = iInterval;
+	//NewTimer->iRemainingTime = iInterval;
 	NewTimer->bRepeating = bRepeating;
 	NewTimer->iParamCount = 0;
 	NewTimer->bKilled = false;
 	NewTimer->pAMX = pAMX;
 	NewTimer->cellParams = NULL;
+	NewTimer->iIdx = idx;
+	NewTimer->CallTime = RakNet::GetTime() + iInterval;
 
+	// Checks if it's called from a filterscript, if not, mark it for destruction at gamemode end
+	/*if (pAMX == pNetGame->GetGameMode()->GetGameModePointer())
+	{
+		NewTimer->bFilterscript = false;
+		//print("GM");
+	}
+	else
+	{
+		NewTimer->bFilterscript = true;
+		//print("FS");
+	}*/
 	m_Timers.insert(DwordTimerMap::value_type(m_dwTimerCount, NewTimer));
 	return m_dwTimerCount;
 }
@@ -77,21 +116,32 @@ DWORD CScriptTimers::New(char* szScriptFunc, int iInterval, BOOL bRepeating, AMX
 //----------------------------------------------------------------------------------
 // Same as new only with parameters to be passed to the called function
 cell* get_amxaddr(AMX *amx, cell amx_addr);
-DWORD CScriptTimers::NewEx(char* szScriptFunc, int iInterval, BOOL bRepeating, cell *params, AMX* pAMX)
+DWORD CScriptTimers::NewEx(char* szScriptFunc, int iInterval, bool bRepeating, cell *params, AMX* pAMX)
 {
+	int idx;
+
+	if (amx_FindPublic(pAMX, szScriptFunc, &idx) != AMX_ERR_NONE)
+	{
+		return 0;
+	}
+
 	m_dwTimerCount++;
 
 	ScriptTimer_s* NewTimer = new ScriptTimer_s;
 
-	strncpy(NewTimer->szScriptFunc, szScriptFunc, 255);
+	if (iInterval < 500) iInterval = 500;
+
+	//strncpy(NewTimer->szScriptFunc, szScriptFunc, 255);
 	NewTimer->iTotalTime = iInterval;
-	NewTimer->iRemainingTime = iInterval;
+	//NewTimer->iRemainingTime = iInterval;
 	NewTimer->bRepeating = bRepeating;
 	NewTimer->bKilled = false;
 	NewTimer->pAMX = pAMX;
+	NewTimer->iIdx = idx;
+	NewTimer->CallTime = RakNet::GetTime() + iInterval;
 
 	cell amx_addr[256];
-
+	
 	char* szParamList;
 	amx_StrParam(pAMX, params[4], szParamList);
 	int j, numstr, iOff = 5; // Count, func, interval, repeat, map
@@ -153,7 +203,7 @@ DWORD CScriptTimers::NewEx(char* szScriptFunc, int iInterval, BOOL bRepeating, c
 		NewTimer->cellParams = NULL;
 	}
 	NewTimer->iParamCount = numstr;
-
+	
 	m_Timers.insert(DwordTimerMap::value_type(m_dwTimerCount, NewTimer));
 	return m_dwTimerCount;
 }
@@ -169,6 +219,7 @@ void CScriptTimers::Delete(DWORD dwTimerId)
 		FreeMem(itor->second);
 		SAFE_DELETE(itor->second);
 		m_Timers.erase(itor);
+		//Delete(itor->first);
 	}
 }
 
@@ -180,38 +231,46 @@ void CScriptTimers::Kill(DWORD dwTimerId)
 	itor = m_Timers.find(dwTimerId);
 	if (itor != m_Timers.end())
 	{
-		itor->second->iRemainingTime = 0;
+		//SAFE_DELETE(itor->second);
+		//m_Timers.erase(itor);
+		//itor->second->iRemainingTime = 0;
 		itor->second->bKilled = true;
 		itor->second->bRepeating = false;
+		//Delete(itor->first);
 	}
 }
 
 //-----------------------------------------------------------
 
+//int AMXAPI amx_Push(AMX *amx, cell value);
 void CScriptTimers::Process(int iElapsedTime)
 {
+	RakNet::Time TimeNow = RakNet::GetTime();
 	DwordTimerMap::iterator itor;
-	CGameMode *pGameMode;
+	//CGameMode *pGameMode;
 	for (itor = m_Timers.begin(); itor != m_Timers.end(); itor++)
 	{
-		itor->second->iRemainingTime -= iElapsedTime;
-		if (itor->second->iRemainingTime <= 0)
+		//itor->second->iRemainingTime -= (TimeNow - m_LastProcessTime);
+		//if (itor->second->iRemainingTime <= 0)
+		if(itor->second->CallTime <= TimeNow)
 		{
 			DwordTimerMap::iterator itor_tmp = ++itor; itor--;
 			if (!itor->second->bKilled)
 			{
-				pGameMode = pNetGame->GetGameMode();
-				if (pGameMode)
+				//pGameMode = pNetGame->GetGameMode();
+				//if (pGameMode)
 				{
-					int idx;
+					int idx = itor->second->iIdx;
 					AMX* amx = itor->second->pAMX;
-					if (amx && !amx_FindPublic(amx, itor->second->szScriptFunc, &idx))
+					if (amx /*&& !amx_FindPublic(amx, itor->second->szScriptFunc, &idx)*/)
 					{
 						cell ret;
+						//cell releases[16];
 						int count = itor->second->iParamCount;
 						int i = 0;
 						if (count > 0)
 						{
+							//strings = PushList(amx, (cell*)itor->second->cellParams, count);
 							cell* pars = (cell*)itor->second->cellParams;
 							while (i < count)
 							{
@@ -220,13 +279,22 @@ void CScriptTimers::Process(int iElapsedTime)
 							}
 						}
 						amx_Exec(amx, &ret, idx);
+						/*if (itor->second->iParamCount > 0)
+						{
+							while (strings)
+							{
+								strings--;
+								amx_Release(amx, releases[strings]);
+							}
+						}*/
 					}
 				}
 			}
-
+	
 			if (itor->second->bRepeating)
 			{
-				itor->second->iRemainingTime = itor->second->iTotalTime;
+				//itor->second->iRemainingTime = itor->second->iTotalTime;
+				itor->second->CallTime = TimeNow + itor->second->iTotalTime;
 			}
 			else
 			{
@@ -239,6 +307,20 @@ void CScriptTimers::Process(int iElapsedTime)
 		if (itor == m_Timers.end()) break;
 	}
 }
+
+//----------------------------------------------------------------------------------
+
+/*int CScriptTimers::PushList(AMX* amxFile, cell* params, int count)
+{
+	//cell amx_addr[16]; // = NULL, *phys_addr[16];
+	int j = 0;
+	
+	while (j < count)
+	{
+		j++; // Go forwards to maintain push order
+		amx_push(amxFile, params[j]);
+	}
+}*/
 
 //----------------------------------------------------------------------------------
 // EOF

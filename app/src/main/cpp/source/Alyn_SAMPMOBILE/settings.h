@@ -44,6 +44,9 @@ public:
 	static ImVec2 chatpos() { return m_chatpos; }
 	static ImVec2 chatsize() { return m_chatsize; }
 
+	static void setFontSize(float size) { m_fontsize = size; }
+	static void save();
+
 private:
 	static bool m_initialized;
 

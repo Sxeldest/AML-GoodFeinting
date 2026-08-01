@@ -22,6 +22,7 @@ bool UI::initialize()
 
 	m_voicebutton = new VoiceButton();
 	m_deathwindow = new DeathWindow();
+	m_chatwindow = new ChatWindow();
 	m_playertags = new PlayerTags();
 	m_chatbubble = new ChatBubble();
 	m_textlabel = new TextLabel();
@@ -47,6 +48,10 @@ void UI::drawList()
 
 	if (m_playertags) {
 		m_playertags->render(renderer());
+	}
+
+	if (m_chatwindow) {
+		m_chatwindow->render(renderer());
 	}
 
 	if (m_chatbubble) {

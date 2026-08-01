@@ -1,26 +1,37 @@
+/*
+
+	SA:MP Multiplayer Modification
+	Copyright 2004-2005 SA:MP Team
+
+    Version: $Id: query.cpp,v 1.16 2006/05/08 13:28:46 kyeman Exp $
+
+*/
 
 #include "main.h"
 
-BOOL	bRconSocketReply	= FALSE;
-
-SOCKET	cur_sock			= INVALID_SOCKET;
-char*	cur_data			= NULL;
-int		cur_datalen			= 0;
-sockaddr_in to;
+bool bRconSocketReply = false;
 
 void RconSocketReply(char* szMessage)
 {
-	if (bRconSocketReply)
-	{
-		char* newdata = (char*)malloc(cur_datalen + strlen(szMessage) + sizeof(WORD));
-		char* keep_ptr = newdata;
-		memcpy(newdata, cur_data, cur_datalen);
-		newdata += cur_datalen;
-		*(WORD*)newdata = (WORD)strlen(szMessage);
-		newdata += sizeof(WORD);
-		memcpy(newdata, szMessage, strlen(szMessage));
-		newdata += strlen(szMessage);
-		sendto(cur_sock, keep_ptr, (int)(newdata - keep_ptr), 0, (sockaddr*)&to, sizeof(to));
-		free(keep_ptr);
+	if (bRconSocketReply) {
+		size_t nLength = strlen(szMessage);
 	}
+}
+
+int ProcessQueryPacket(unsigned int binaryAddress, unsigned short port, char* data, int length, SOCKET s)
+{
+	// Expecting atleast 10 bytes long data, starting first 4 bytes with "SAMP"
+	if (length >= 11 && *(unsigned int*)data == 0x504D4153) {
+
+		// Tell the user someone sent a request, if "logqueries" enabled
+		if (bQueryLogging) {
+			in_addr in;
+			in.s_addr = binaryAddress;
+			logprintf("[query:%c] from %s:%d", data[10], inet_ntoa(in), port);
+		}
+
+		// Data was in fact query request 
+		return 1;
+	}
+	return 0;
 }

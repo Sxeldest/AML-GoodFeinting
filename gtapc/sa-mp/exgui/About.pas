@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, MMSystem, StdCtrls, Jpeg;
+  Dialogs, MMSystem, StdCtrls;
 
 type
   TfmAbout = class(TForm)
@@ -55,16 +55,16 @@ var
     (Line: ''; Color: 666; Bold: false), // Spacer
     (Line: ''; Color: 666; Bold: false), // Spacer
 
-    //---------- Past Coders Start
+    //---------- PC Start
     (Line: 'Past coders:'; Color: COLOR_TITLE; Bold: true),
     (Line: ''; Color: 666; Bold: false), // Spacer
     (Line: 'Y_Less'; Color: COLOR_NAME; Bold: false),
-    //---------- Past Coders End
+    //---------- PC End
 
     (Line: ''; Color: 666; Bold: false), // Spacer
     (Line: ''; Color: 666; Bold: false), // Spacer
 
-    //---------- Tester Start
+    //---------- BT Start
     (Line: 'Beta Testing:'; Color: COLOR_TITLE; Bold: true),
     (Line: ''; Color: 666; Bold: false), // Spacer
     (Line: 'BlueG, cessil, CrazyBob'; Color: COLOR_NAME; Bold: false),
@@ -72,7 +72,7 @@ var
     (Line: 'Jay, JernejL, kaisersouse'; Color: COLOR_NAME; Bold: false),
     (Line: 'KingJ, Matite, Mmartin'; Color: COLOR_NAME; Bold: false),
     (Line: 'RayW, Si|ent, Wicko'; Color: COLOR_NAME; Bold: false),
-    //---------- Tester End
+    //---------- BT End
 
     (Line: ''; Color: 666; Bold: false), // Spacer
     (Line: ''; Color: 666; Bold: false), // Spacer
@@ -101,7 +101,7 @@ var
     (Line: ''; Color: 666; Bold: false), // Spacer
     (Line: ''; Color: 666; Bold: false), // Spacer
     (Line: ''; Color: 666; Bold: false), // Spacer
-    (Line: ''; Color: 666; Bold: false) // Spacer
+    (Line: ''; Color: 666; Bold: false)  // Spacer
   );
 
   fmAbout: TfmAbout;
@@ -117,6 +117,7 @@ var
 
   // Drawing
   RenderThread: THandle;
+  Thread: Integer;
   bmi: BITMAPINFO;
   hDC1, hDC2: HDC;
   Buf: PBGRArray;
@@ -129,7 +130,7 @@ implementation
 {$R *.dfm}
 
 var
-  CreditsRollY: Integer = 300;
+  CreditsRollY: Integer = 260;
   TempCRY: Integer = 0;
 procedure Flip;
 var
@@ -183,7 +184,9 @@ begin
     EnterCriticalSection(CritSect);
     if GameOver then begin
       LeaveCriticalSection(CritSect);
-      Exit;
+      EndThread(0);
+      //Exit;
+
     end;
     Render;
     LeaveCriticalSection(CritSect);
@@ -214,7 +217,7 @@ begin
 
   Ticks:= timeGetTime;
   GameOver:= false;
-  BeginThread(nil, 0, @RenderTimer, nil, 0, RenderThread);
+  Thread:= BeginThread(nil, 0, @RenderTimer, nil, 0, RenderThread);
 end;
 
 procedure TfmAbout.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -264,6 +267,7 @@ end;
 
 procedure TfmAbout.FormClick(Sender: TObject);
 begin
+  CloseHandle(Thread);
   Close;
 end;
 

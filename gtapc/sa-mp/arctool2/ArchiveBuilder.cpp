@@ -1,3 +1,9 @@
+//----------------------------------------------------------
+//
+//   SA:MP Multiplayer Modification For GTA:SA
+//   Copyright 2004-2006 SA:MP team
+//
+//----------------------------------------------------------
 
 #include "ArchiveBuilder.h"
 
@@ -51,7 +57,7 @@ CArchiveBuilder::~CArchiveBuilder(void)
 
 //------------------------------------
 
-DWORD CArchiveBuilder::HashString(PCHAR szString)
+DWORD CArchiveBuilder::HashString(PCHAR szString) 
 {
 	// This is an implementation of the Jenkins hash
 
@@ -67,13 +73,13 @@ DWORD CArchiveBuilder::HashString(PCHAR szString)
 		b -= c; b -= a; b ^= (a<<10); \
 		c -= a; c -= b; c ^= (b>>15); \
 	}
-
+	
 	register BYTE* k = (BYTE*)szString;
 	register DWORD initval = 0x12345678;
 	register DWORD length;
 
 	length = (DWORD)strlen(szString);
-
+	
 	register DWORD a,b,c,len;
 
 	/* Set up the internal state */
@@ -134,27 +140,27 @@ DWORD CArchiveBuilder::AddFile(PCHAR szFileName)
 {
 
 	AB_ENTRY_MEMSTATE* pEntry = new AB_ENTRY_MEMSTATE();
-
+	
 	PCHAR szNameOnly = ExtractFileName(szFileName);
 	if ((strlen(szNameOnly)+1) > sizeof(pEntry->szFileName))
 		throw "Internal Error: Not enough memory allocated for the length of the filename.";
 
-	strcpy(pEntry->szFileName, szNameOnly);
-	_strlwr(pEntry->szFileName);
+	strcpy_s(pEntry->szFileName, szNameOnly);
+	_strlwr_s(pEntry->szFileName);
 	pEntry->dwFileNameHash = HashString(pEntry->szFileName);
 
 	FILE* fiFile;
-	fiFile = fopen(szFileName, "rb");
+	fopen_s(&fiFile, szFileName, "rb");
 	if (!fiFile)
 		throw "Could not load archive data file.";
-
+	
 	pEntry->fiFile = fiFile;
-
+	
 	fseek(fiFile, 0, SEEK_END);
 	pEntry->dwFileSize = (DWORD)ftell(fiFile);
-
+	
 	fseek(fiFile, 0, SEEK_SET);
-
+	
 	if (pEntry->dwFileSize > 16*1024*1024)
 		throw "Archive data file is greater than 16MB.";
 
@@ -167,10 +173,11 @@ DWORD CArchiveBuilder::AddFile(PCHAR szFileName)
 //------------------------------------
 
 void CArchiveBuilder::BuildEntryTable(SAA_ENTRY *pEntryTable, DWORD dwInvalidIndex)
+
 {
 	CCryptoContext context;
 	BOOL* pbEntryUsed;
-
+	
 	EntryMemStateVector_t::iterator it;
 	DWORD dwIndex;
 	AB_ENTRY_MEMSTATE* pEntry;
@@ -217,20 +224,21 @@ void CArchiveBuilder::BuildEntryTable(SAA_ENTRY *pEntryTable, DWORD dwInvalidInd
 		pEntryTable[i].dwPrevEntry = i;
 	}
 
+
 	// Randomly place our loaded entries into the entry table
-	it = m_vecEntries.begin();
+	it = m_vecEntries.begin();	
 	while(it != m_vecEntries.end()) {
 		pEntry = (*it);
-
+		
 		// Generate a random value that works for us
-		while(1) {
+		while(1) {	
 			dwIndex = (GetRandom() >> 5) & 0xFF;	// Take it from the middle!
 			dwIndex %= m_dwNumEntries;
-
+			
 			// Check if it matches our reserved index for invalid files
 			if (dwIndex == dwInvalidIndex)
 				continue;
-
+			
 			// Check to see if any existing entries have this index
 			if (pbEntryUsed[dwIndex])
 				continue;
@@ -242,12 +250,12 @@ void CArchiveBuilder::BuildEntryTable(SAA_ENTRY *pEntryTable, DWORD dwInvalidInd
 
 		pEntry->pEntry = &(pEntryTable[dwIndex]);
 		pEntry->dwEntryTableOffset = dwIndex;
-		pEntry->pbTEAKey = reinterpret_cast<BYTE*>(pEntryTable) +
-			(pEntry->dwFileNameHash % (sizeof(SAA_ENTRY)*m_dwNumEntries-TEA_KEY_SIZE));
+		pEntry->pbTEAKey = reinterpret_cast<BYTE*>(pEntryTable) + 
+								(pEntry->dwFileNameHash % (sizeof(SAA_ENTRY)*m_dwNumEntries-TEA_KEY_SIZE));
 
 		pEntry->pEntry->dwFileNameHash = pEntry->dwFileNameHash;
 		pEntry->pEntry->dwFileSize = pEntry->dwFileSize;
-
+		
 		if (it == m_vecEntries.begin()) {
 			// Ver2: Set the first index to the invalid index
 			pEntry->pEntry->dwPrevEntry = dwInvalidIndex;
@@ -263,13 +271,13 @@ void CArchiveBuilder::BuildEntryTable(SAA_ENTRY *pEntryTable, DWORD dwInvalidInd
 	// Process the first entry finally and set its previous index to
 	// an invalid entry, but not to our invalid index
 	it = m_vecEntries.begin();
-	while(1) {
+	while(1) {	
 		dwIndex = (GetRandom() >> 5) & 0xFF;	// Take it from the middle!
-
+		
 		// Check if it matches our reserved index for invalid files
 		if (dwIndex == dwInvalidIndex)
 			continue;
-
+		
 		// Check to see if any existing entries have this index
 		if (pbEntryUsed[dwIndex])
 			continue;
@@ -278,7 +286,7 @@ void CArchiveBuilder::BuildEntryTable(SAA_ENTRY *pEntryTable, DWORD dwInvalidInd
 	}
 	(*it)->pEntry->dwPrevEntry = dwIndex;
 	*/
-
+	
 	// Now obfuscate the non-hash part of all our entries
 	// XOR it with the hash for good measure.
 	for(DWORD i=0; i<m_dwNumEntries; i++) {
@@ -318,12 +326,12 @@ void CArchiveBuilder::BuildHeader(SAA_FILE_HEADER* pFileHeader)
 	context.GenerateRandom(pFileHeader->SizeOf(), reinterpret_cast<BYTE*>(pFileHeader));
 
 	pFileHeader->dwFakeDataSize = this->m_dwFDSize;
-
+	
 	if (this->m_bProperHeader)
 		pFileHeader->InitializeDataV1();
-
+	
 	pFileHeader->InitializeDataV2();
-
+	
 	pFileHeader->headerV2.dwInvalidIndex %= m_dwNumEntries;
 
 }
@@ -368,11 +376,11 @@ void CArchiveBuilder::BuildEntryData(FILE *fiArchive)
 
 //------------------------------------
 
-void CArchiveBuilder::SignArchive(FILE *fiArchive, DWORD dwSignatureOffset, SAA_FILE_HEADER *pHeader)
+void CArchiveBuilder::SignArchive(FILE *fiArchive, DWORD dwSignatureOffset, SAA_FILE_HEADER *pHeader) 
 {
 
 	// Sign the archive file
-
+	
 	CCryptoContext context;
 	CKeyPair keyPair(&context);
 	CHasher hasher(&context);
@@ -405,13 +413,13 @@ void CArchiveBuilder::SignArchive(FILE *fiArchive, DWORD dwSignatureOffset, SAA_
 
 //------------------------------------
 
-void CArchiveBuilder::WriteArchive(PCHAR szFileName)
+void CArchiveBuilder::WriteArchive(PCHAR szFileName) 
 {
 	SAA_FILE_HEADER header;
 	SAA_ENTRY *pEntryTable;
 	FILE* fiArchive;
 
-	fiArchive = fopen(szFileName, "w+b");
+	fopen_s(&fiArchive, szFileName, "w+b");
 
 	pEntryTable = new SAA_ENTRY[m_dwNumEntries];
 
@@ -425,7 +433,7 @@ void CArchiveBuilder::WriteArchive(PCHAR szFileName)
 	fseek(fiArchive, header.SizeOf(), SEEK_SET);
 	BuildEntryData(fiArchive);
 
-	// 4. Encrypt and write the entry table
+	// 4. Encrypt and write the entry table 
 	//    (Note that the file data decryption must be done with decrypted entry table used for keys)
 	CTinyEncrypt tinyEnc;
 	tinyEnc.LoadKey("skey.bin");
@@ -445,10 +453,10 @@ void CArchiveBuilder::WriteArchive(PCHAR szFileName)
 	header.Write(fiArchive);
 
 	// And we're done.
-	fclose(fiArchive);
-
+	fclose(fiArchive);	
+	
 	delete[] pEntryTable;
-
+	
 }
 
 //------------------------------------

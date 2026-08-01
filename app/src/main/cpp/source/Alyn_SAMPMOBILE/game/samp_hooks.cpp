@@ -85,9 +85,9 @@ DECL_HOOK(void, TouchEvent, int type, int num, int posX, int posY)
 DECL_HOOK(void, Chat_addChatMessage, uintptr_t a1, std::string const& message, std::string const& nick, ImColor const& nickColor)
 {
 	std::string color = "{" +
-			utils::int_to_hex((int) (nickColor.Value.x * 255.0f)) +
-			utils::int_to_hex((int) (nickColor.Value.y * 255.0f)) +
-			utils::int_to_hex((int) (nickColor.Value.z * 255.0f)) + "}";
+						utils::int_to_hex((int) (nickColor.Value.x * 255.0f)) +
+						utils::int_to_hex((int) (nickColor.Value.y * 255.0f)) +
+						utils::int_to_hex((int) (nickColor.Value.z * 255.0f)) + "}";
 
 	SAMP::addDebugMessage(std::string(color + nick + "{FFFFFF}" + message).c_str());
 }
@@ -317,6 +317,45 @@ DECL_HOOK(void, ctrBtn_callback)
 	}
 }
 
+DECL_HOOK(void, Chat_AddEntry, uintptr_t pChatWindow, uintptr_t pData)
+{
+	auto get_std_string_ptr = [](uintptr_t str_addr) -> const char* {
+		unsigned char size = *(unsigned char*)str_addr;
+		if (size & 1) return *(const char**)(str_addr + 8);
+		return (const char*)(str_addr + 1);
+	};
+
+	if (pUI && pUI->chatwindow()) {
+		int type = *(int*)(pData + 0);
+		const char* szMsg = get_std_string_ptr(pData + 4);
+		const char* szNick = get_std_string_ptr(pData + 0x10);
+		float* fMsgCol = (float*)(pData + 0x28);
+
+		if (szMsg && strlen(szMsg) > 0) {
+			std::string utfMsg = Encoding::cp2utf(szMsg);
+
+			ImColor finalColor = ImColor(fMsgCol[0], fMsgCol[1], fMsgCol[2], 1.0f);
+			if (type == 8) finalColor = ImColor(0xB9, 0xC9, 0xBF, 255);
+			else if (type == 4) finalColor = ImColor(0xA9, 0xC4, 0xE4, 255);
+
+			if (szNick && strlen(szNick) > 0) {
+				char full[1024];
+				snprintf(full, sizeof(full), "%s: %s", szNick, utfMsg.c_str());
+				pUI->chatwindow()->addMessage(full, finalColor);
+			} else {
+				pUI->chatwindow()->addMessage(utfMsg.c_str(), finalColor);
+			}
+		}
+	}
+
+	Chat_AddEntry(pChatWindow, pData);
+}
+
+DECL_HOOK(void, ChatWindow_Render, uintptr_t a1)
+{
+	return;
+}
+
 DECL_HOOK(void, ChatBubble_Render, uintptr_t a1, uintptr_t a2)
 {
 	return;
@@ -346,6 +385,9 @@ void initializeSAMPHooks()
 	// Chat_addChatMessage
 	HOOK(SAMP_Addr(0x12D258), Chat_addChatMessage);
 
+	// Chat_AddEntry
+	HOOK(SAMP_Addr(0x12D6B4), Chat_AddEntry);
+
 	// CTouchInterface_IsTouched
 	HOOK(SAMP_Addr(0xFEA2C), CTouchInterface_IsTouched);
 
@@ -369,6 +411,9 @@ void initializeSAMPHooks()
 
 	// ChatBubble_Render
 	HOOK(SAMP_Addr(0xE3464), ChatBubble_Render);
+
+	// ChatWindow_Render
+	HOOK(SAMP_Addr(0x12D7B8), ChatWindow_Render);
 
 	// TextLabel_Render
 	HOOK(SAMP_Addr(0x14F958), TextLabel_Render);

@@ -1,186 +1,103 @@
+//----------------------------------------------------
+//
+// SA:MP Multiplayer Modification For GTA:SA
+// Copyright 2004-2005 SA:MP team
+//
+// Version: $Id: exceptions.cpp,v 1.11 2006/05/08 17:35:55 kyeman Exp $
+//
+//----------------------------------------------------
 
 #ifdef WIN32
 
 #include "main.h"
 #include <Tlhelp32.h>
 
-PCONTEXT pContextRecord;
-CHAR	 szErrorString[16384];
-
-//----------------------------------------------------
-
-void DumpLoadedModules(PCHAR sz)
+static const char* GetExpCodeAsStr(int iCode)
 {
-	HANDLE        hModuleSnap = NULL;
-	MODULEENTRY32 me32;
-	char s[16384];
-
-	hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
-
-	strcpy(sz, "\r\nLoaded Modules:\r\n");
-
-	if(hModuleSnap == INVALID_HANDLE_VALUE)
+	switch (iCode)
 	{
-		strcat(sz, "-FailedCreate-\r\n");
-		return;
+	case EXCEPTION_ACCESS_VIOLATION: return "EXCEPTION_ACCESS_VIOLATION";
+	case EXCEPTION_ARRAY_BOUNDS_EXCEEDED: return "EXCEPTION_ARRAY_BOUNDS_EXCEEDED";
+	case EXCEPTION_BREAKPOINT: return "EXCEPTION_BREAKPOINT";
+	case EXCEPTION_DATATYPE_MISALIGNMENT: return "EXCEPTION_DATATYPE_MISALIGNMENT";
+	case EXCEPTION_FLT_DENORMAL_OPERAND: return "EXCEPTION_FLT_DENORMAL_OPERAND";
+	case EXCEPTION_FLT_DIVIDE_BY_ZERO: return "EXCEPTION_FLT_DIVIDE_BY_ZERO";
+	case EXCEPTION_FLT_INEXACT_RESULT: return "EXCEPTION_FLT_INEXACT_RESULT";
+	case EXCEPTION_FLT_INVALID_OPERATION: return "EXCEPTION_FLT_INVALID_OPERATION";
+	case EXCEPTION_FLT_OVERFLOW: return "EXCEPTION_FLT_OVERFLOW";
+	case EXCEPTION_FLT_STACK_CHECK: return "EXCEPTION_FLT_STACK_CHECK";
+	case EXCEPTION_FLT_UNDERFLOW: return "EXCEPTION_FLT_UNDERFLOW";
+	case EXCEPTION_ILLEGAL_INSTRUCTION: return "EXCEPTION_ILLEGAL_INSTRUCTION";
+	case EXCEPTION_IN_PAGE_ERROR: return "EXCEPTION_IN_PAGE_ERROR";
+	case EXCEPTION_INT_DIVIDE_BY_ZERO: return "EXCEPTION_INT_DIVIDE_BY_ZERO";
+	case EXCEPTION_INT_OVERFLOW: return "EXCEPTION_INT_OVERFLOW";
+	case EXCEPTION_INVALID_DISPOSITION: return "EXCEPTION_INVALID_DISPOSITION";
+	case EXCEPTION_NONCONTINUABLE_EXCEPTION: return "EXCEPTION_NONCONTINUABLE_EXCEPTION";
+	case EXCEPTION_PRIV_INSTRUCTION: return "EXCEPTION_PRIV_INSTRUCTION";
+	case EXCEPTION_SINGLE_STEP: return "EXCEPTION_SINGLE_STEP";
+	case EXCEPTION_STACK_OVERFLOW: return "EXCEPTION_STACK_OVERFLOW";
 	}
-
-	me32.dwSize = sizeof( MODULEENTRY32 );
-
-	if( !Module32First( hModuleSnap, &me32 ) )
-	{
-		strcat(sz, "-FailedFirst-" );  // Show cause of failure
-		CloseHandle( hModuleSnap );     // Must clean up the snapshot object!
-		return;
-	}
-
-	do
-	{
-		if (me32.szModule[0] != 'f' && me32.szModule[1] != 'l' && me32.szModule[2] != 'a')
-		{
-			sprintf(s, "%s\tA: 0x%08X - 0x%08X\t(%s)\r\n",
-				me32.szModule, me32.modBaseAddr, me32.modBaseAddr + me32.modBaseSize, me32.szExePath);
-			strcat(sz, s);
-		}
-	} while( Module32Next( hModuleSnap, &me32 ) );
-
-	CloseHandle( hModuleSnap );
-
-	return;
+	return "Unknown";
 }
 
-//----------------------------------------------------
-
-void DumpModuleName(BYTE *pData, PCHAR sz)
+static void DumpCrashInfo(_EXCEPTION_POINTERS* exc_inf)
 {
-	HANDLE        hModuleSnap = NULL;
-	MODULEENTRY32 me32;
+	PEXCEPTION_RECORD pExpRec = exc_inf->ExceptionRecord;
+	PCONTEXT pCtx = exc_inf->ContextRecord;
 
-	if(!sz) return;
+	FILE* f = fopen("crashinfo.txt","a");
+	if (f) {
+		SYSTEMTIME tm;
+		GetSystemTime(&tm);
 
-	sprintf(sz, "(Unknown)");
+		fprintf_s(f, "\n-----------------------------------------------\n"
+			"Crash report generation date: %02d/%02d/%04d %02d:%02d:%02d\n\n"
+			"Exeption Code: %s\nException At Address: 0x%08X\n\n",
+			tm.wDay, tm.wMonth, tm.wYear, tm.wHour, tm.wMinute, tm.wSecond,
+			GetExpCodeAsStr(pExpRec->ExceptionCode), (DWORD)pExpRec->ExceptionAddress);
 
-	hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
-	if(hModuleSnap == INVALID_HANDLE_VALUE)
-	{
-		return;
-	}
+		char s[130] = { 0 };
+		if (pCtx->ContextFlags & CONTEXT_CONTROL)
+			strcat_s(s, "CONTEXT_CONTROL\n");
+		if (pCtx->ContextFlags & CONTEXT_INTEGER)
+			strcat_s(s, "CONTEXT_INTEGER\n");
+		if (pCtx->ContextFlags & CONTEXT_SEGMENTS)
+			strcat_s(s, "CONTEXT_SEGMENTS\n");
+		if (pCtx->ContextFlags & CONTEXT_FLOATING_POINT)
+			strcat_s(s, "CONTEXT_FLOATING_POINT\n");
+		if (pCtx->ContextFlags & CONTEXT_DEBUG_REGISTERS)
+			strcat_s(s, "CONTEXT_DEBUG_REGISTERS\n");
+		if (pCtx->ContextFlags & CONTEXT_EXTENDED_REGISTERS)
+			strcat_s(s, "CONTEXT_EXTENDED_REGISTERS\n");
 
-	me32.dwSize = sizeof( MODULEENTRY32 );
+		fprintf_s(f,
+			"Context Flags:\n%s\n"
+			"Dr0: 0x%08X Dr1: 0x%08X Dr2: 0x%08X\n"
+			"Dr3: 0x%08X Dr6: 0x%08X Dr6: 0x%08X\n"
+			"SegGs: 0x%08X SegFs: 0x%08X\n"
+			"SegEs: 0x%08X SegDs: 0x%08X\n"
+			"Edi: 0x%08X Esi: 0x%08X Ebx: 0x%08X\n"
+			"Edx: 0x%08X Ecx: 0x%08X Eax: 0x%08X\n"
+			"SegCs: 0x%08X Ebp: 0x%08X Esp: 0x%08X\n"
+			"SegSs: 0x%08X Eip: 0x%08X EFlags: 0x%08X\n",
+			s,
+			pCtx->Dr0, pCtx->Dr1, pCtx->Dr2,
+			pCtx->Dr3, pCtx->Dr6, pCtx->Dr7,
+			pCtx->SegGs, pCtx->SegFs,
+			pCtx->SegEs, pCtx->SegDs,
+			pCtx->Edi,pCtx->Esi,pCtx->Ebx,
+			pCtx->Edx,pCtx->Ecx,pCtx->Eax,
+			pCtx->SegCs,pCtx->Ebp,pCtx->Esp,
+			pCtx->SegSs,pCtx->Eip,pCtx->EFlags);
 
-	if( !Module32First( hModuleSnap, &me32 ) )
-	{
-		CloseHandle( hModuleSnap );     // Must clean up the snapshot object!
-		return;
-	}
-
-	do
-	{
-		if(pData >= me32.modBaseAddr && pData <= me32.modBaseAddr + me32.modBaseSize)
-		{
-			sprintf(sz, "(%s)", me32.szModule);
-			CloseHandle( hModuleSnap );
-			return;
-		}
-	} while( Module32Next( hModuleSnap, &me32 ) );
-
-	CloseHandle( hModuleSnap );
-
-	return;
-}
-
-//----------------------------------------------------
-
-void DumpMemory(BYTE *pData, DWORD dwCount, PCHAR sz, BOOL bAsDWords = FALSE)
-{
-	char s[16384];
-
-	if (bAsDWords)
-	{
-		for(int i=0; i<(int)dwCount; i += 16)
-		{
-			sprintf(s, "+%04X: 0x%08X   0x%08X   0x%08X   0x%08X\r\n", i,
-					*(DWORD*)(pData+i+0), *(DWORD*)(pData+i+4),
-					*(DWORD*)(pData+i+8), *(DWORD*)(pData+i+12)
-				);
-			strcat(sz,s);
-		}
-	}
-	else
-	{
-		for(int i=0; i<(int)dwCount; i += 16)
-		{
-			sprintf(s, "+%04X: %02X %02X %02X %02X   %02X %02X %02X %02X   "
-					"%02X %02X %02X %02X   %02X %02X %02X %02X\r\n", i,
-					pData[i+0], pData[i+1], pData[i+2], pData[i+3],
-					pData[i+4], pData[i+5], pData[i+6], pData[i+7],
-					pData[i+8], pData[i+9], pData[i+10], pData[i+11],
-					pData[i+12], pData[i+13], pData[i+14], pData[i+15]
-				);
-			strcat(sz,s);
-		}
+		fclose(f);
 	}
 }
-
-//----------------------------------------------------
-
-void DumpCrashInfo(char * szFileName)
-{
-	DWORD *pdwStack;
-	int x=0;
-
-	FILE *f = fopen(szFileName,"a");
-	if(!f) return; // nothing we can do
-
-	fputs("\r\n--------------------------\r\n", f);
-
-	char szModuleName[MAX_PATH];
-	DumpModuleName((BYTE*)pContextRecord->Eip, szModuleName);
-
-	sprintf(szErrorString,
-		"SA-MP Server: %s\r\n\r\n"
-		"Exception At Address: 0x%08X Module: %s\r\n\r\n"
-		"Registers:\r\n"
-		"EAX: 0x%08X\tEBX: 0x%08X\tECX: 0x%08X\tEDX: 0x%08X\r\n"
-		"ESI: 0x%08X\tEDI: 0x%08X\tEBP: 0x%08X\tESP: 0x%08X\r\n"
-		"EFLAGS: 0x%08X\r\n\r\nStack:\r\n",
-		SAMP_VERSION,
-		pContextRecord->Eip,
-		szModuleName,
-		pContextRecord->Eax,
-		pContextRecord->Ebx,
-		pContextRecord->Ecx,
-		pContextRecord->Edx,
-		pContextRecord->Esi,
-		pContextRecord->Edi,
-		pContextRecord->Ebp,
-		pContextRecord->Esp,
-		pContextRecord->EFlags);
-
-	pdwStack = (DWORD *)pContextRecord->Esp;
-	DumpMemory(reinterpret_cast<BYTE*>(pdwStack), 320, szErrorString, TRUE);
-
-	fputs(szErrorString,f);
-
-    fputs("\r\n--------------------------\r\n",f);
-
-    DumpLoadedModules(szErrorString);
-
-    fputs(szErrorString,f);
-    fclose(f);
-}
-
-//----------------------------------------------------
 
 LONG WINAPI exc_handler(_EXCEPTION_POINTERS* exc_inf)
 {
-	pContextRecord = exc_inf->ContextRecord;
-
-	DumpCrashInfo("crashinfo.txt");
-
-	return EXCEPTION_EXECUTE_HANDLER;
+	DumpCrashInfo(exc_inf);
+	return EXCEPTION_CONTINUE_SEARCH;
 }
-
-//----------------------------------------------------
 
 #endif

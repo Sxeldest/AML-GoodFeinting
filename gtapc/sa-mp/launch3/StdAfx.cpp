@@ -1,8 +1,5 @@
-// stdafx.cpp : source file that includes just the standard includes
-//	launch3.pch will be the pre-compiled header
-//	stdafx.obj will contain the pre-compiled type information
+// pch.cpp: source file corresponding to the pre-compiled header
 
-#include "stdafx.h"
+#include "StdAfx.h"
 
-
-
+// When you are using pre-compiled headers, this source file is necessary for compilation to succeed.

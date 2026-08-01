@@ -1,3 +1,9 @@
+//----------------------------------------------------------
+//
+//   SA:MP Multiplayer Modification For GTA:SA
+//   Copyright 2004-2006 SA:MP team
+//
+//----------------------------------------------------------
 
 #include <windows.h>
 #include <stdio.h>
@@ -7,14 +13,14 @@
 #include "../saco/archive/ArchiveFS.h"
 #include "ArchiveBuilder.h"
 
-void CreateArchive(PCHAR szFileList, PCHAR szArchive)
+void CreateArchive(PCHAR szFileList, PCHAR szArchive) 
 {
-
+	
 	CArchiveBuilder archiveBuilder;
 
 	// Load the file list
 	FILE* fiList;
-	fiList = fopen(szFileList, "rb");
+	fopen_s(&fiList, szFileList, "rb");
 	if (!fiList)
 		throw "Could not find file list.";
 	fseek(fiList, 0, SEEK_END);
@@ -26,15 +32,16 @@ void CreateArchive(PCHAR szFileList, PCHAR szArchive)
 	fclose(fiList);
 
 	// Load the files and stuff
+	CHAR* szNextToken;
 	CHAR* szToken;
-	szToken = strtok(szFiles, "\r\n");
+	szToken = strtok_s(szFiles, "\r\n", &szNextToken);
 	while(szToken != NULL) {
 		if (szToken[0] != 0 && szToken[0] != '#') {
 			printf("Adding file: %s...\t", szToken);
 			DWORD hash = archiveBuilder.AddFile(szToken);
 			printf("  Added, file hash=0x%x\n", hash);
 		}
-		szToken = strtok(NULL, "\r\n");
+		szToken = strtok_s(NULL, "\r\n", &szNextToken);
 	}
 
 	// Write the archive
@@ -47,9 +54,9 @@ void CreateArchive(PCHAR szFileList, PCHAR szArchive)
 }
 
 
-void CreateArchiveSingle(PCHAR szFile, PCHAR szArchive)
+void CreateArchiveSingle(PCHAR szFile, PCHAR szArchive) 
 {
-
+	
 	CArchiveBuilder archiveBuilder(4, 0, FALSE);
 
 	// Load the file
@@ -75,7 +82,7 @@ PCHAR ExtractFileName(PCHAR szString)
 		return szString+dwOffset+1;
 }
 
-// Test routine to see if the archive making works properly...
+// Test routine to see if the archive making works properly... 
 // And for archive verification!
 void VerifyArchive(PCHAR szFileList, PCHAR szArchive)
 {
@@ -87,7 +94,7 @@ void VerifyArchive(PCHAR szFileList, PCHAR szArchive)
 
 	// Load the file list
 	FILE* fiList;
-	fiList = fopen(szFileList, "rb");
+	fopen_s(&fiList, szFileList, "rb");
 	if (!fiList)
 		throw "Could not find file list.";
 	fseek(fiList, 0, SEEK_END);
@@ -103,13 +110,14 @@ void VerifyArchive(PCHAR szFileList, PCHAR szArchive)
 		throw "Failed to load archive.";
 
 	// Load the files and stuff
+	CHAR* szNextToken;
 	CHAR* szToken;
 	FILE* fiData;
 
-	szToken = strtok(szFiles, "\r\n");
+	szToken = strtok_s(szFiles, "\r\n", &szNextToken);
 	while(szToken != NULL) {
 		if (szToken[0] != 0 && szToken[0] != '#') {
-
+			
 			// Get the file data
 			DWORD dwFileIndex = fs.GetFileIndex(ExtractFileName(szToken));
 
@@ -121,7 +129,7 @@ void VerifyArchive(PCHAR szFileList, PCHAR szArchive)
 				printf("Verifying file: %s...\t", szToken);
 
 				// Load the actual file and verify the data
-				fiData = fopen(szToken, "rb");
+				fopen_s(&fiData, szToken, "rb");
 
 				if (dwFileSize == 0)
 					printf("  Warning: 0 byte file.\n");
@@ -138,7 +146,7 @@ void VerifyArchive(PCHAR szFileList, PCHAR szArchive)
 					dwReadBytes = (DWORD)fread(pbBuffer, 1, dwReadBytes, fiData);
 					if (memcmp(pbBuffer, pbFileData+i, dwReadBytes) != 0) {
 						throw "  Failed to verify file.\n";
-					}
+					}				
 				}
 				fclose(fiData);
 
@@ -149,7 +157,7 @@ void VerifyArchive(PCHAR szFileList, PCHAR szArchive)
 			}
 
 		}
-		szToken = strtok(NULL, "\r\n");
+		szToken = strtok_s(NULL, "\r\n", &szNextToken);
 	}
 
 	// Close the archive
@@ -172,7 +180,7 @@ void VerifyArchiveSingle(PCHAR szFile, PCHAR szArchive)
 
 	// Load the files and stuff
 	FILE* fiData;
-
+	
 	// Get the file data
 	DWORD dwFileIndex = fs.GetFileIndex(ExtractFileName(szFile));
 
@@ -184,7 +192,7 @@ void VerifyArchiveSingle(PCHAR szFile, PCHAR szArchive)
 		printf("Verifying file: %s...\t", szFile);
 
 		// Load the actual file and verify the data
-		fiData = fopen(szFile, "rb");
+		fopen_s(&fiData, szFile, "rb");
 
 		if (dwFileSize == 0)
 			printf("  Warning: 0 byte file.\n");
@@ -201,7 +209,7 @@ void VerifyArchiveSingle(PCHAR szFile, PCHAR szArchive)
 			dwReadBytes = (DWORD)fread(pbBuffer, 1, dwReadBytes, fiData);
 			if (memcmp(pbBuffer, pbFileData+i, dwReadBytes) != 0) {
 				throw "  Failed to verify file.\n";
-			}
+			}				
 		}
 		fclose(fiData);
 
@@ -217,13 +225,13 @@ void VerifyArchiveSingle(PCHAR szFile, PCHAR szArchive)
 
 }
 
-void GenerateKeys()
+void GenerateKeys() 
 {
 	CCryptoContext context;
 	CKeyPair keyPair(&context);
 	CTinyEncrypt tinyEncrypt;
 	BYTE pbTEAKey[TEA_KEY_SIZE];
-
+	
 	keyPair.GenerateKey();
 	keyPair.WriteToFile("pkey.bin");
 	keyPair.WriteCHeaderFile("pkey.h");
@@ -235,14 +243,14 @@ void GenerateKeys()
 	tinyEncrypt.WriteCHeaderFile("skey.h");
 }
 
-void PrintBanner()
+void PrintBanner() 
 {
 	printf("SA:MP Archive 2 Tool\n");
 	printf("Copyright(C) 2006, SA:MP Team\n");
 	printf("Built on " __DATE__ " at " __TIME__ ".\n\n");
 }
 
-void PrintUsage()
+void PrintUsage() 
 {
 	printf("Usage:\n");
 	printf("  -c [filelist.txt] [samp.saa]\n  \tGenerates samp.saa from filelist.txt\n");
@@ -252,11 +260,11 @@ void PrintUsage()
 	printf("  -gk\tGenerates a new set of TEA and RSA keys\n");
 }
 
-DWORD main(DWORD argc, CHAR** argv)
+DWORD main(DWORD argc, CHAR** argv) 
 {
 
 	PrintBanner();
-
+	
 	if (argc == 1) {
 		PrintUsage();
 	} else {
@@ -267,13 +275,13 @@ DWORD main(DWORD argc, CHAR** argv)
 			if (argc > 2)
 				szFileList = argv[2];
 			if (argc > 3)
-				szArchive = argv[3];
-			try
+				szArchive = argv[3];	
+			try 
 			{
 				printf("Creating archive...\n");
 				CreateArchive(szFileList, szArchive);
 				printf("Archive generated successfully.\n");
-			}
+			} 
 			catch (PCHAR error)
 			{
 				printf("Error: %s\n", error);
@@ -285,13 +293,13 @@ DWORD main(DWORD argc, CHAR** argv)
 			if (argc > 2)
 				szFileList = argv[2];
 			if (argc > 3)
-				szArchive = argv[3];
-			try
+				szArchive = argv[3];	
+			try 
 			{
 				printf("Verifying archive...\n");
 				VerifyArchive(szFileList, szArchive);
 				printf("Archive verification complete.\n");
-			}
+			} 
 			catch (PCHAR error)
 			{
 				printf("Error: %s\n", error);
@@ -303,12 +311,12 @@ DWORD main(DWORD argc, CHAR** argv)
 			// generate file
 			PCHAR szFile = argv[2];
 			PCHAR szArchive = argv[3];
-			try
+			try 
 			{
 				printf("Creating archive...\n");
 				CreateArchiveSingle(szFile, szArchive);
 				printf("Archive generated successfully.\n");
-			}
+			} 
 			catch (PCHAR error)
 			{
 				printf("Error: %s\n", error);
@@ -317,12 +325,12 @@ DWORD main(DWORD argc, CHAR** argv)
 			// generate file
 			PCHAR szFile = argv[2];
 			PCHAR szArchive = argv[3];
-			try
+			try 
 			{
 				printf("Verifying archive...\n");
 				VerifyArchiveSingle(szFile, szArchive);
 				printf("Archive verification complete.\n");
-			}
+			} 
 			catch (PCHAR error)
 			{
 				printf("Error: %s\n", error);

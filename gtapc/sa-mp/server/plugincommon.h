@@ -1,3 +1,9 @@
+//----------------------------------------------------------
+//
+//   SA:MP Multiplayer Modification For GTA:SA
+//   Copyright 2004-2007 SA:MP Team
+//
+//----------------------------------------------------------
 
 #ifndef _PLUGINCOMMON_H_INCLUDED
 #define _PLUGINCOMMON_H_INCLUDED
@@ -11,19 +17,19 @@
 #ifdef __cplusplus
   #define PLUGIN_EXTERN_C extern "C"
 #else
-  #define PLUGIN_EXTERN_C
+  #define PLUGIN_EXTERN_C 
 #endif
 
 #if defined(LINUX) || defined(FREEBSD) || defined(__FreeBSD__) || defined(__OpenBSD__)
   #ifndef __GNUC__
     #pragma message "Warning: Not using a GNU compiler."
   #endif
-  #define PLUGIN_CALL
+  #define PLUGIN_CALL 
   #ifndef SAMPSVR
     // Compile code with -fvisibility=hidden to hide non-exported functions.
     #define PLUGIN_EXPORT PLUGIN_EXTERN_C __attribute__((visibility("default")))
   #else
-    #define PLUGIN_EXPORT PLUGIN_EXTERN_C
+    #define PLUGIN_EXPORT PLUGIN_EXTERN_C 
   #endif
 #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
   #ifndef _MSC_VER
@@ -37,7 +43,7 @@
 
 //----------------------------------------------------------
 
-enum SUPPORTS_FLAGS
+enum SUPPORTS_FLAGS 
 {
 	SUPPORTS_VERSION		= SAMP_PLUGIN_VERSION,
 	SUPPORTS_VERSION_MASK	= 0xffff,
@@ -56,6 +62,7 @@ enum PLUGIN_DATA_TYPE
 	PLUGIN_DATA_AMX_EXPORTS		= 0x10,	// void* AmxFunctionTable[]    (see PLUGIN_AMX_EXPORT)
 	PLUGIN_DATA_CALLPUBLIC_FS	= 0x11, // int (*AmxCallPublicFilterScript)(char *szFunctionName)
 	PLUGIN_DATA_CALLPUBLIC_GM	= 0x12, // int (*AmxCallPublicGameMode)(char *szFunctionName)
+
 };
 
 //----------------------------------------------------------

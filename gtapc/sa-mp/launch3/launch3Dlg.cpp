@@ -1,87 +1,114 @@
+
 // launch3Dlg.cpp : implementation file
 //
 
 #include "stdafx.h"
 #include "launch3.h"
 #include "launch3Dlg.h"
-
-#include "detours.h"
+#include "afxdialogex.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
 #endif
 
+
+PROCESS_INFORMATION ModProcInfo;
+STARTUPINFOA ModStartupInfo;
+
+
+typedef BOOL(WINAPI PFNCREATEPROCESSA)(
+	_In_opt_ LPCSTR lpApplicationName,
+	_Inout_opt_ LPSTR lpCommandLine,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	_In_ BOOL bInheritHandles,
+	_In_ DWORD dwCreationFlags,
+	_In_opt_ LPVOID lpEnvironment,
+	_In_opt_ LPCSTR lpCurrentDirectory,
+	_In_ LPSTARTUPINFOA lpStartupInfo,
+	_Out_ LPPROCESS_INFORMATION lpProcessInformation);
+
+
+void LaunchMod(PCHAR szPath, PCHAR szCmdLine);
+DWORD GetStartAddress();
+BOOL CreateProcessAndInjectDll(PCHAR szGamePath, PCHAR szCmdLine, LPSECURITY_ATTRIBUTES pProcAttrs,
+	LPSECURITY_ATTRIBUTES pThreadAttrs, BOOL bInheritHandles, DWORD dwFlags, LPVOID pEnv, PCHAR szDir,
+	LPSTARTUPINFOA pStartupInfo, LPPROCESS_INFORMATION pProcInfo, PCHAR szDLLPath, PFNCREATEPROCESSA pfnCreateProcessA);
+BOOL InjectDLL(HANDLE hProcess, HANDLE hThread,
+	DWORD dwStartAddress, PCHAR szDllPath, DWORD dwSize);
+BYTE* MovEAX(BYTE* pAtAddress, DWORD dwEAX);
+BYTE* MovEBX(BYTE* pAtAddress, DWORD dwEBX);
+BYTE* MovECX(BYTE* pAtAddress, DWORD dwECX);
+BYTE* MovEDX(BYTE* pAtAddress, DWORD dwEDX);
+BYTE* MovESI(BYTE* pAtAddress, DWORD dwESI);
+BYTE* MovEDI(BYTE* pAtAddress, DWORD dwEDI);
+BYTE* MovEBP(BYTE* pAtAddress, DWORD dwEBP);
+BYTE* MovESP(BYTE* pAtAddress, DWORD dwESP);
+BYTE* PushValue(BYTE* pAtAddress, DWORD dwValue);
+BYTE* MovEIP(BYTE* pAtAddress, DWORD dwEIP, DWORD dwNewEIP);
+BYTE* CallProcedure(BYTE* pAtAddress, DWORD dwAddress, DWORD dwNewAddress);
+
+
 /////////////////////////////////////////////////////////////////////////////
+// Claunch3Dlg dialog
 
-STARTUPINFO StartupInfo;
-PROCESS_INFORMATION ProcessInformation;
 
-void LaunchMod(LPCSTR lpPath, LPSTR lpParams, int unk=0)
+Claunch3Dlg::Claunch3Dlg(CWnd* pParent /*=nullptr*/)
+	: CDialogEx(IDD_LAUNCH3_DIALOG, pParent)
 {
-	char szGtaExe[256];
-	char szSampDll[256];
-
-	sprintf(szGtaExe,"%s\\%s",lpPath,"gta_sa.exe");
-	sprintf(szSampDll,"%s\\%s",lpPath,"samp.dll");
-
-	ZeroMemory(&StartupInfo, sizeof(StartupInfo));
-	StartupInfo.cb = sizeof(StartupInfo);
-	ZeroMemory(&ProcessInformation, sizeof(ProcessInformation));
-
-	if (!DetourCreateProcessWithDll(szGtaExe,
-		lpParams,
-		NULL,
-		NULL,
-		FALSE,
-		CREATE_DEFAULT_ERROR_MODE,
-		NULL,
-		lpPath,
-		&StartupInfo,
-		&ProcessInformation,
-		szSampDll,
-		NULL))
-	{
-		MessageBoxA(NULL, "Initialization failed.\r\nPlease reinstall.", "SA:MP", MB_OK | MB_ICONERROR | MB_HELP);	
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// CLaunch3Dlg dialog
-
-CLaunch3Dlg::CLaunch3Dlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CLaunch3Dlg::IDD, pParent)
-{
-	//{{AFX_DATA_INIT(CLaunch3Dlg)
-		// NOTE: the ClassWizard will add member initialization here
-	//}}AFX_DATA_INIT
-	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
-void CLaunch3Dlg::DoDataExchange(CDataExchange* pDX)
+void Claunch3Dlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CLaunch3Dlg)
-		// NOTE: the ClassWizard will add DDX and DDV calls here
-	//}}AFX_DATA_MAP
+	CDialogEx::DoDataExchange(pDX);
 }
 
-BEGIN_MESSAGE_MAP(CLaunch3Dlg, CDialog)
-	//{{AFX_MSG_MAP(CLaunch3Dlg)
+BEGIN_MESSAGE_MAP(Claunch3Dlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_EN_CHANGE(IDC_NICK, OnChangeNick)
-	ON_BN_CLICKED(IDC_LAUNCH, OnLaunch)
-	ON_BN_CLICKED(IDC_BUTTON2, OnButton2)
-	ON_BN_CLICKED(IDC_BUTTON1, OnButton1)
-	//}}AFX_MSG_MAP
+	ON_BN_CLICKED(IDC_BUTTON3, &Claunch3Dlg::OnBnClickedButton3)
+	ON_BN_CLICKED(IDC_BUTTON4, &Claunch3Dlg::OnBnClickedButton4)
+	ON_BN_CLICKED(IDC_BUTTON2, &Claunch3Dlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 
-CString GetAppPath ()
+void LaunchMod(PCHAR szPath, PCHAR szCmdLine)
+{
+	char szGamePath[MAX_PATH];
+	char szDllPath[MAX_PATH];
+
+	sprintf(szGamePath, "%s\\%s", szPath, "gta_sa.exe");
+	sprintf(szDllPath, "%s\\%s", szPath, "samp.dll");
+
+	memset(&ModProcInfo, 0, sizeof(PROCESS_INFORMATION));
+	memset(&ModStartupInfo, 0, sizeof(STARTUPINFOA));
+	ModStartupInfo.cb = sizeof(STARTUPINFOA);
+
+	BOOL bResult = CreateProcessAndInjectDll(
+					szGamePath,
+					szCmdLine,
+					NULL,
+					NULL,
+					FALSE,
+					CREATE_DEFAULT_ERROR_MODE,
+					NULL,
+					szPath,
+					&ModStartupInfo,
+					&ModProcInfo,
+					szDllPath,
+					NULL);
+
+	if (!bResult)
+	{
+		MessageBoxA(NULL, "Initialization failed.\r\nPlease reinstall.", "SA:MP", MB_OK | MB_ICONERROR | MB_HELP);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+CString GetAppPath()
 {
 TCHAR app_path[_MAX_PATH];
 
@@ -93,19 +120,19 @@ return app_str;
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// CLaunch3Dlg message handlers
+// Claunch3Dlg message handlers
 
-BOOL CLaunch3Dlg::OnInitDialog()
+BOOL Claunch3Dlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CDialogEx::OnInitDialog();
 
 	// Set the icon for this dialog.  The framework does this automatically
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
-	
+
 	// TODO: Add extra initialization here
-	
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -113,13 +140,13 @@ BOOL CLaunch3Dlg::OnInitDialog()
 //  to draw the icon.  For MFC applications using the document/view model,
 //  this is automatically done for you by the framework.
 
-void CLaunch3Dlg::OnPaint() 
+void Claunch3Dlg::OnPaint()
 {
 	if (IsIconic())
 	{
 		CPaintDC dc(this); // device context for painting
 
-		SendMessage(WM_ICONERASEBKGND, (WPARAM) dc.GetSafeHdc(), 0);
+		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
 		// Center icon in client rectangle
 		int cxIcon = GetSystemMetrics(SM_CXICON);
@@ -134,39 +161,257 @@ void CLaunch3Dlg::OnPaint()
 	}
 	else
 	{
-		CDialog::OnPaint();
+		CDialogEx::OnPaint();
 	}
 }
 
-// The system calls this to obtain the cursor to display while the user drags
+// The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
-HCURSOR CLaunch3Dlg::OnQueryDragIcon()
+HCURSOR Claunch3Dlg::OnQueryDragIcon()
 {
-	return (HCURSOR) m_hIcon;
+	return static_cast<HCURSOR>(m_hIcon);
 }
 
-void CLaunch3Dlg::OnChangeNick() 
+/////////////////////////////////////////////////////////////////////////////
+// Event for "Exit" button
+
+void Claunch3Dlg::OnBnClickedButton3()
 {
-	// TODO: If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CDialog::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
+	CDialogEx::OnCancel();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// Event for "Connect localhost" button
+
+void Claunch3Dlg::OnBnClickedButton4()
+{
+	CString app_path = GetAppPath();
+	LaunchMod((PCHAR)app_path.GetString(), "-c -h 127.0.0.1 -p 7777 -n Player");
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// Event for "Launch Debug" button
+
+void Claunch3Dlg::OnBnClickedButton2()
+{
+	CString app_path = GetAppPath();
+	LaunchMod((PCHAR)app_path.GetString(), "-d");
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+#pragma warning(disable : 6387) // bla-bla, could be 0, blah...
+DWORD GetStartAddress()
+{
+	return (DWORD)GetProcAddress(GetModuleHandleA("Kernel32"), "LoadLibraryA");
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BOOL CreateProcessAndInjectDll(PCHAR szGamePath, PCHAR szCmdLine, LPSECURITY_ATTRIBUTES pProcAttrs,
+	LPSECURITY_ATTRIBUTES pThreadAttrs, BOOL bInheritHandles, DWORD dwFlags, LPVOID pEnv, PCHAR szDir,
+	LPSTARTUPINFOA pStartupInfo, LPPROCESS_INFORMATION pProcInfo, PCHAR szDLLPath, PFNCREATEPROCESSA pfnCreateProcessA)
+{
+	PROCESS_INFORMATION pi;
+	DWORD dwSize;
+	DWORD dwStartAddr;
+	DWORD dwCreationFlags;
+
+	if (!pfnCreateProcessA)
+		pfnCreateProcessA = CreateProcessA;
+
+	dwCreationFlags = dwFlags | CREATE_SUSPENDED;
+
+	if (pfnCreateProcessA(szGamePath, szCmdLine, pProcAttrs, pThreadAttrs,
+		bInheritHandles, dwCreationFlags, pEnv, szDir, pStartupInfo, &pi))
+	{
+		if (szDLLPath)
+			dwSize = strlen(szDLLPath) + 1;
+		else
+			dwSize = 0;
+
+		dwStartAddr = GetStartAddress();
+
+		if (InjectDLL(pi.hProcess, pi.hThread, dwStartAddr, szDLLPath, dwSize))
+		{
+			if (pProcInfo)
+				memcpy(pProcInfo, &pi, sizeof(PROCESS_INFORMATION));
+
+			if (!(dwFlags & CREATE_SUSPENDED))
+				ResumeThread(pi.hThread);
+
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BOOL InjectDLL(HANDLE hProcess, HANDLE hThread,
+	DWORD dwStartAddress, PCHAR szDllPath, DWORD dwSize)
+{
+	SIZE_T BytesWritten = 0;
+	CONTEXT context;
+	BYTE ByteBuffer[0x480];
+	BYTE* pByteAt;
+	DWORD dwOldProtect = 0;
+	BYTE* pESPAddress;
+	BOOL bSuccess = FALSE;
+
+	SuspendThread(hThread);
 	
-	// TODO: Add your control notification handler code here
+	memset(&context, 0, sizeof(CONTEXT));
+	context.ContextFlags = CONTEXT_FULL;
+
+	if (GetThreadContext(hThread, &context))
+	{
+		pESPAddress = (BYTE*)((context.Esp - 0x480) & 0xFFFFFFE0);
+
+		pByteAt = &ByteBuffer[0];
+
+		if (szDllPath)
+		{
+			memcpy(ByteBuffer + 128, szDllPath, dwSize);
+
+			pByteAt = PushValue(pByteAt, (DWORD)pESPAddress + 128);
+			pByteAt = CallProcedure(pByteAt, dwStartAddress,
+				(DWORD)pESPAddress + (DWORD)pByteAt - (DWORD)&ByteBuffer);
+
+		}
+
+		pByteAt = MovEAX(pByteAt, context.Eax);
+		pByteAt = MovEBX(pByteAt, context.Ebx);
+		pByteAt = MovECX(pByteAt, context.Ecx);
+		pByteAt = MovEDX(pByteAt, context.Edx);
+		pByteAt = MovESI(pByteAt, context.Esi);
+		pByteAt = MovEDI(pByteAt, context.Edi);
+		pByteAt = MovEBP(pByteAt, context.Ebp);
+		pByteAt = MovESP(pByteAt, context.Esp);
+
+		pByteAt = MovEIP(pByteAt, context.Eip,
+			(DWORD)pESPAddress + (DWORD)pByteAt - (DWORD)&ByteBuffer);
+
+		context.Esp = (DWORD)(pESPAddress - 4);
+		context.Eip = (DWORD)pESPAddress;
+
+		if (VirtualProtectEx(hProcess, pESPAddress, 0x480, PAGE_EXECUTE_READWRITE, &dwOldProtect) &&
+			WriteProcessMemory(hProcess, pESPAddress, &ByteBuffer, 0x480, &BytesWritten) &&
+			FlushInstructionCache(hProcess, pESPAddress, 0x480) &&
+			SetThreadContext(hThread, &context))
+		{
+			bSuccess = TRUE;
+		}
+	}
+
+	ResumeThread(hThread);
 	
+	return bSuccess;
 }
 
-void CLaunch3Dlg::OnLaunch() 
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* MovEAX(BYTE* pAtAddress, DWORD dwEAX)
 {
-	LaunchMod(GetAppPath(), "-d");
+	*pAtAddress = 0xB8;
+	*(DWORD*)(pAtAddress + 1) = dwEAX;
+	return pAtAddress + 5;
 }
 
-void CLaunch3Dlg::OnButton2() 
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* MovEBX(BYTE* pAtAddress, DWORD dwEBX)
 {
-	this->OnCancel();
+	*pAtAddress = 0xBB;
+	*(DWORD*)(pAtAddress + 1) = dwEBX;
+	return pAtAddress + 5;
 }
 
-void CLaunch3Dlg::OnButton1() 
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* MovECX(BYTE* pAtAddress, DWORD dwECX)
 {
-	LaunchMod(GetAppPath(), "-c -h 127.0.0.1 -p 7777 -n Player");
+	*pAtAddress = 0xB9;
+	*(DWORD*)(pAtAddress + 1) = dwECX;
+	return pAtAddress + 5;
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* MovEDX(BYTE* pAtAddress, DWORD dwEDX)
+{
+	*pAtAddress = 0xBA;
+	*(DWORD*)(pAtAddress + 1) = dwEDX;
+	return pAtAddress + 5;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* MovESI(BYTE* pAtAddress, DWORD dwESI)
+{
+	*pAtAddress = 0xBE;
+	*(DWORD*)(pAtAddress + 1) = dwESI;
+	return pAtAddress + 5;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* MovEDI(BYTE* pAtAddress, DWORD dwEDI)
+{
+	*pAtAddress = 0xBF;
+	*(DWORD*)(pAtAddress + 1) = dwEDI;
+	return pAtAddress + 5;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* MovEBP(BYTE* pAtAddress, DWORD dwEBP)
+{
+	*pAtAddress = 0xBD;
+	*(DWORD*)(pAtAddress + 1) = dwEBP;
+	return pAtAddress + 5;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* MovESP(BYTE* pAtAddress, DWORD dwESP)
+{
+	*pAtAddress = 0xBC;
+	*(DWORD*)(pAtAddress + 1) = dwESP;
+	return pAtAddress + 5;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* PushValue(BYTE* pAtAddress, DWORD dwValue)
+{
+	*pAtAddress = 0x68;
+	*(DWORD*)(pAtAddress + 1) = dwValue;
+	return pAtAddress + 5;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* MovEIP(BYTE* pAtAddress, DWORD dwEIP, DWORD dwNewEIP)
+{
+	if (!dwNewEIP)
+		dwNewEIP = (DWORD)pAtAddress;
+
+	*pAtAddress = 0xE9;
+	*(DWORD*)(pAtAddress + 1) = dwEIP - (dwNewEIP + 5);
+	return pAtAddress + 5;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BYTE* CallProcedure(BYTE* pAtAddress, DWORD dwAddress, DWORD dwNewAddress)
+{
+	if (!dwNewAddress)
+		dwNewAddress = (DWORD)pAtAddress;
+
+	*pAtAddress = 0xE8;
+	*(DWORD*)(pAtAddress + 1) = dwAddress - (dwNewAddress + 5);
+	return pAtAddress + 5;
+}
+
+/////////////////////////////////////////////////////////////////////////////

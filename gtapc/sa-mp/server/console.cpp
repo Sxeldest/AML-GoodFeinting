@@ -1,7 +1,18 @@
+/*
+
+	SA:MP Multiplayer Modification
+	Copyright 2004-2005 SA:MP Team
+
+	file:
+		console.cpp
+	desc:
+		Console command and variable system.
+
+    Version: $Id: console.cpp,v 1.21 2006/04/15 17:21:15 kyeman Exp $
+
+*/
 
 #include "main.h"
-
-extern bool	bQuitApp;
 
 void con_exit()
 {
@@ -24,19 +35,17 @@ void con_exec()
 	char* arg = strtok(NULL, " ");
 	if (arg)
 	{
-		char tmp[1025];
-		char tmpvarname[1025];
+		char tmp[256];
+		char tmpvarname[128];
 		sprintf(tmp, "%s.cfg", arg);
 		FILE* f = fopen(tmp, "r");
 		if (!f)
 		{
 			logprintf("Unable to exec file '%s'.", tmp);
 		} else {
-			memset(tmp, 0, sizeof(tmp));
-			while (fgets(tmp, 1024, f))
+			while (fgets(tmp, sizeof(tmp), f))
 			{
 				int len = strlen(tmp);
-				if (len > 1024) continue;
 				if (len > 0 && tmp[len-1] == '\n')
 					tmp[strlen(tmp)-1] = 0;
 				len = strlen(tmp);
@@ -55,8 +64,7 @@ void con_exec()
 				}
 				if (strlen(tmp) > 2)
 				{
-					if ((tmp[0] != '/') && (tmp[1] != '/')) {
-						memset(tmpvarname, 0, sizeof(tmpvarname));
+					if ((tmp[0] != '/') && (tmp[1] != '/'))
 						for(int i = 0; tmp[i] != '\0'; i++)
 						{
 							if (tmp[i] == ' ')
@@ -64,15 +72,14 @@ void con_exec()
 								tmpvarname[i] = '\0';
 								break;
 							}
+
 							tmpvarname[i] = tmp[i];
 						}
 						if (pConsole->FindVariable(tmpvarname))
 						{
 							pConsole->Execute(tmp);
 						}
-					}
 				}
-				memset(tmp, 0, sizeof(tmp));
 			}
 			fclose(f);
 		}
@@ -82,28 +89,115 @@ void con_exec()
 	}
 }
 
-void con_kick() {} // TODO: con_kick W: 0048A530 L: 0809ECB0
-void con_ban() {} // TODO: con_ban W: 0048A5D0 L: 0809ED80
-void con_banip() {} // TODO: con_banip W: 0048A740 L: 0809EF40
-void con_unbanip() {} // TODO: con_unbanip W: 0048A790 L: 0809EFB0
+void con_kick()
+{
+	char* arg = strtok(NULL, "");
+	if(arg)
+	{
+		CPlayerPool* pPlayerPool = pNetGame->GetPlayerPool();
+		WORD wPlayerId = atoi(arg);
+
+		if(pPlayerPool->GetSlotState(wPlayerId))
+		{
+			RakServerInterface* pRak = pNetGame->GetRakServer();
+			PlayerID Player = pRak->GetPlayerIDFromIndex(wPlayerId);
+			in_addr in;
+			in.s_addr = Player.binaryAddress;
+			logprintf("%s <#%d - %s> has been kicked.",pPlayerPool->GetAt(wPlayerId)->GetName(), wPlayerId, inet_ntoa(in));
+			pNetGame->KickPlayer(wPlayerId);
+		}
+	}
+}
+
+void con_ban()
+{
+	char* arg = strtok(NULL, " ");
+	if (arg)
+	{
+		CPlayerPool* pPlayerPool = pNetGame->GetPlayerPool();
+		WORD wPlayerId = atoi(arg);
+		if (pPlayerPool->GetSlotState(wPlayerId))
+		{
+			RakServerInterface* pRak = pNetGame->GetRakServer();
+			PlayerID Player = pRak->GetPlayerIDFromIndex(wPlayerId);
+			in_addr in;
+			in.s_addr = Player.binaryAddress;
+			CPlayer* pPlayer = pPlayerPool->GetAt(wPlayerId);
+			logprintf("%s <#%d - %s> has been banned.", pPlayer->GetName(), wPlayerId, inet_ntoa(in));
+			pNetGame->AddBan((char*)pPlayer->GetName(), inet_ntoa(in), "CONSOLE BAN");
+			pNetGame->KickPlayer(wPlayerId);
+		}
+	}
+}
+
+bool IsStrIp(char* szIn)
+{
+	char* part;
+	char tmp[16];
+	memcpy(&tmp, szIn, 16);
+	int parts = 0;
+	part = strtok(szIn, ".");
+	while (part != NULL)
+	{
+		parts++;
+		//if (parts > 4) return false;
+		if (part != "*")
+		{
+			if (atoi(part) < 0 || atoi(part) > 255) return false;
+		}
+		part = strtok(NULL, ".");
+	}
+	if (parts != 4) return false;
+	memcpy(szIn, &tmp, 16);
+	return true;
+}
+
+void con_banip()
+{
+	char* arg = strtok(NULL, " ");
+	if (arg && IsStrIp(arg))
+	{
+		logprintf("IP %s has been banned.", arg);
+		pNetGame->AddBan("NONE", arg, "IP BAN");
+	}
+}
+
+void con_unbanip()
+{
+	char* arg = strtok(NULL, " ");
+	if (arg && IsStrIp(arg))
+	{
+		pNetGame->RemoveBan(arg);
+	}
+}
 
 void con_gmx()
 {
-	char *szMode;
-	szMode = pNetGame->GetNextScriptFile();
-	if (szMode != NULL && pNetGame->SetNextScriptFile(szMode))
+	if (pNetGame && pNetGame->GetGameState() == GAMESTATE_RUNNING)
 	{
-		bGameModeFinished = TRUE;
+		// restart with no rotations.
+		//int tmp = pNetGame->GetRepeats;
+		// Gets the name of the next mode to avoid standard cycling
+		char* szMode;
+		szMode = pNetGame->GetNextScriptFile();
+		if (szMode != NULL && pNetGame->SetNextScriptFile(szMode))
+		{
+			bGameModeFinished = true;
+		}
 	}
 }
 
 void con_changemode()
 {
-	char* arg = strtok(NULL, "");
-	if (arg)
+	if (pNetGame && pNetGame->GetGameState() == GAMESTATE_RUNNING)
 	{
-		if(pNetGame->SetNextScriptFile(arg)) {
-			bGameModeFinished = TRUE;
+		char* arg = strtok(NULL, "");
+		if (arg)
+		{
+			if (pNetGame->SetNextScriptFile(arg)) {
+				bGameModeFinished = true;
+			}
+			// do nothing if we can't set the requested script.
 		}
 	}
 }
@@ -115,33 +209,80 @@ void con_varlist()
 	pConsole->PrintVariableList();
 }
 
-void con_say() {} // TODO: con_say W: 0048A830 L: 0809F0A0
-void con_reloadbans() {} // TODO: con_reloadbans W: 0048A880 L: 0809F110
+void con_say() {
+	char* arg = strtok(NULL, "");
+	char Message[256];
+	if (arg) {
+		sprintf(Message, "* Admin: %.230s", arg);
+		pNetGame->SendClientMessageToAll(0x2587CEAA, Message);
+	}
+}
+
+void con_reloadbans() {
+	pNetGame->LoadBanList();
+}
 
 void con_reloadlog() {
 	LoadLogFile();
 }
 
-void con_players() {} // TODO: con_players W: 0048A8A0 L: 0809F140
-void con_gravity() {} // TODO: con_gravity W: 0048A950 L: 0809F220
-void con_weather() {} // TODO: con_weather W: 0048A980 L: 0809F260
+void con_players() {
+	RakServerInterface* pRak = pNetGame->GetRakServer();
+
+	if ( pRak->GetConnectedPlayers() == 0 ) // If there is no players, why continue?
+		return;
+
+	CPlayerPool* pPlayerPool = pNetGame->GetPlayerPool();
+
+	logprintf("ID\tName\tPing\tIP");
+
+	for( int i = 0; i < MAX_PLAYERS; i++)
+	{
+		if ( pPlayerPool->GetSlotState(i) )
+		{
+			PlayerID Player = pRak->GetPlayerIDFromIndex(i);
+			in_addr in;
+			in.s_addr = Player.binaryAddress;
+
+			logprintf("%d\t%s\t%d\t%s", i, pPlayerPool->GetAt(i)->GetName(), pRak->GetLastPing( Player ), inet_ntoa(in));
+		}
+	}
+}
+
+/*void con_gravity()
+{
+	char* arg = strtok(NULL, " ");
+	if (arg)
+	{
+		pNetGame->SetGravity((float)atof(arg));
+	}
+}
+
+void con_weather()
+{
+	char* arg = strtok(NULL, " ");
+	if (arg)
+	{
+		pNetGame->SetWeather(atoi(arg));
+	}
+}*/
 
 void con_loadfs()
 {
-	PLAYERID Temp = RconUser;
+	WORD wTemp = wRconUser;
 	// Stop sending all the filterscripts prints to the user if they used in-game RCON
-	RconUser = INVALID_ID;
+	wRconUser = INVALID_ID;
 	char* arg = strtok(NULL, "");
 	if (arg)
 	{
 		if(!pNetGame->GetFilterScripts()->LoadFilterScript(arg))
 		{
-			RconUser = Temp;
+			wRconUser = wTemp;
 			logprintf("  Filterscript '%s.amx' load failed.", arg);
 		}
 		else
 		{
-			RconUser = Temp;
+			wRconUser = wTemp;
 			logprintf("  Filterscript '%s.amx' loaded.", arg);
 		}
 	}
@@ -149,32 +290,32 @@ void con_loadfs()
 
 void con_reloadfs()
 {
-	PLAYERID Temp = RconUser;
+	WORD wTemp = wRconUser;
 	// Stop sending all the filterscripts prints to the user if they used in-game RCON
-	RconUser = INVALID_ID;
+	wRconUser = INVALID_ID;
 	char* arg = strtok(NULL, "");
 	if (arg)
 	{
 		if(pNetGame->GetFilterScripts()->UnloadOneFilterScript(arg))
 		{
-			RconUser = Temp;
+			wRconUser = wTemp;
 			logprintf("  Filterscript '%s.amx' unloaded.", arg);
 		}
 		else
 		{
-			RconUser = Temp;
+			wRconUser = wTemp;
 			logprintf("  Filterscript '%s.amx' unload failed.", arg);
 		}
 
-		RconUser = INVALID_ID;
+		wRconUser = INVALID_ID;
 		if(!pNetGame->GetFilterScripts()->LoadFilterScript(arg))
 		{
-			RconUser = Temp;
+			wRconUser = wTemp;
 			logprintf("  Filterscript '%s.amx' load failed'.", arg);
 		}
 		else
 		{
-			RconUser = Temp;
+			wRconUser = wTemp;
 			logprintf("  Filterscript '%s.amx' loaded.", arg);
 		}
 	}
@@ -182,26 +323,41 @@ void con_reloadfs()
 
 void con_unloadfs()
 {
-	PLAYERID Temp = RconUser;
+	WORD wTemp = wRconUser;
 	// Stop sending all the filterscripts prints to the user if they used in-game RCON
-	RconUser = INVALID_ID;
+	wRconUser = INVALID_ID;
 	char* arg = strtok(NULL, "");
 	if (arg)
 	{
 		if(pNetGame->GetFilterScripts()->UnloadOneFilterScript(arg))
 		{
-			RconUser = Temp;
+			wRconUser = wTemp;
 			logprintf("  Filterscript '%s.amx' unloaded.", arg);
 		}
 		else
 		{
-			RconUser = Temp;
+			wRconUser = wTemp;
 			logprintf("  Filterscript '%s.amx' unload failed.", arg);
 		}
 	}
 }
 
+static void con_clear()
+{
+#ifdef WIN32
+	DWORD mode;
+	HANDLE hnd = GetStdHandle(STD_OUTPUT_HANDLE);
+	GetConsoleMode(hnd, &mode);
+	SetConsoleMode(hnd, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#endif
+	printf("\033[2J\033[1;1H");
+#ifdef WIN32
+	SetConsoleMode(hnd, mode);
+#endif
+}
+
 #define CON_CMDFLAG_DEBUG		1
+#define CON_CMDFLAG_HIDDEN		2
 
 struct ConsoleCommand_s
 {
@@ -224,11 +380,12 @@ struct ConsoleCommand_s
 	{"players",		0,	con_players},
 	{"banip",		0,	con_banip},
 	{"unbanip",		0,	con_unbanip},
-	{"gravity",		0,	con_gravity},
-	{"weather",		0,	con_weather},
+	//{"gravity",		0,	con_gravity},
+	//{"weather",		0,	con_weather},
 	{"loadfs",		0,	con_loadfs},
 	{"unloadfs",	0,	con_unloadfs},
 	{"reloadfs",	0,	con_reloadfs},
+	{"cls", 0, con_clear},
 };
 
 void con_cmdlist()
@@ -267,7 +424,10 @@ CConsole::~CConsole()
 
 ConsoleVariable_s* CConsole::FindVariable(char* pVarName)
 {
-	char VarName[256];
+	if (pVarName == 0)
+		return 0;
+
+	char VarName[255];
 	strncpy(VarName, pVarName, 255);
 	strlwr(VarName);
 
@@ -315,7 +475,7 @@ void CConsole::PrintVariableList()
 void CConsole::AddVariable(char* pVarName, CON_VARTYPE VarType, DWORD VarFlags, void* VarPtr,
 						   VARCHANGEFUNC VarChangeFunc)
 {
-	char VarName[256];
+	char VarName[255];
 	strncpy(VarName, pVarName, 255);
 	strlwr(VarName);
 
@@ -348,7 +508,7 @@ char* CConsole::AddStringVariable(char* pVarName, DWORD VarFlags, char* pInitStr
 		str[0] = 0;
 	} else {
 		str = (char*)malloc(strlen(pInitStr)+1);
-		strcpy(str,pInitStr);
+		strcpy(str, pInitStr);
 	}
 	AddVariable(pVarName, CON_VARTYPE_STRING, VarFlags, (void*)str, VarChangeFunc);
 	return str;
@@ -367,7 +527,7 @@ void CConsole::RemoveVariable(char* pVarName)
 		char VarName[255];
 		strncpy(VarName, pVarName, 255);
 		strlwr(VarName);
-		delete ConVar;
+		SAFE_DELETE(ConVar);
 		ConsoleVariables.erase(VarName);
 	}
 }
@@ -430,6 +590,7 @@ void CConsole::SetFloatVariable(char* pVarName, float fFloat)
 	}
 }
 
+
 int CConsole::GetIntVariable(char* pVarName)
 {
 	ConsoleVariable_s* ConVar = FindVariable(pVarName);
@@ -472,16 +633,81 @@ void CConsole::SetBoolVariable(char* pVarName, bool bBool)
 	}
 }
 
+void CConsole::SendRules(SOCKET s, char* data, const sockaddr_in* to, int tolen)
+{
+	const char* VarName;
+	char VarValue[1024];
+
+	StringConvarMap::iterator itor;
+
+	WORD wRuleCount = 0;
+	for (itor = ConsoleVariables.begin(); itor != ConsoleVariables.end(); itor++)
+		if (itor->second->VarFlags & CON_VARFLAG_RULE)
+			wRuleCount++;
+
+	char* newdata = (char*)malloc(13 + (wRuleCount * 62)); // malloc without a free
+	char* keep_ptr = newdata;
+	// Previous Data
+	memcpy(newdata, data, 11);
+	newdata += 11;
+
+	// Player Count
+	memcpy(newdata, &wRuleCount, sizeof(WORD));
+	newdata += sizeof(WORD);
+
+	BYTE byteStrLen;
+
+	for (itor = ConsoleVariables.begin(); itor != ConsoleVariables.end(); itor++)
+	{
+		if (itor->second->VarFlags & CON_VARFLAG_RULE)
+		{
+			VarName = itor->first.c_str();
+			switch (itor->second->VarType)
+			{
+				case CON_VARTYPE_FLOAT:
+					sprintf(VarValue, "%f", *(float*)itor->second->VarPtr);
+					break;
+				case CON_VARTYPE_INT:
+					sprintf(VarValue, "%d", *(int*)itor->second->VarPtr);
+					break;
+				case CON_VARTYPE_BOOL:
+					sprintf(VarValue, "%d", *(bool*)itor->second->VarPtr);
+					break;
+				case CON_VARTYPE_STRING:
+					strcpy(VarValue, (char*)itor->second->VarPtr);
+					break;
+			}
+
+			byteStrLen = (BYTE)strlen(VarName);
+			memcpy(newdata, &byteStrLen, sizeof(BYTE));
+			newdata += sizeof(BYTE);
+			memcpy(newdata, VarName, byteStrLen);
+			newdata += byteStrLen;
+
+			byteStrLen = (BYTE)strlen(VarValue);
+			memcpy(newdata, &byteStrLen, sizeof(BYTE));
+			newdata += sizeof(BYTE);
+			memcpy(newdata, VarValue, byteStrLen);
+			newdata += byteStrLen;
+		}
+	}
+
+	sendto(s, keep_ptr, (int)(newdata - keep_ptr), 0, (sockaddr*)to, tolen);
+
+	free(keep_ptr);
+}
+
 void CConsole::Execute(char* pExecLine)
 {
 	if (!pExecLine) return;
 
 	// Ya can't strtok on a read-only string!
 	char cpy[256];
-	memset(cpy,0,sizeof(cpy));
+	memset(cpy, 0, sizeof cpy); 
 	strncpy(cpy, pExecLine, 255);
 	char* tmp = strtok(cpy, " ");
-	if(!tmp) return;
+	if (!tmp)
+		return;
 	char* cmd = strlwr(tmp);
 
 	for (int i=0; i<ARRAY_SIZE(ConsoleCommands); i++)
@@ -536,7 +762,29 @@ void CConsole::Execute(char* pExecLine)
 			case CON_VARTYPE_BOOL:
 				if ((arg) && (!readonly))
 				{
-					*(bool*)ConVar->VarPtr = (atoi(arg) > 0);
+					bool bValue = true;
+					switch (arg[0])
+					{
+					case 'T': case 't':
+					case 'Y': case 'y':
+					case '1':
+						bValue = true;
+						break;
+					case 'F': case 'f':
+					case 'N': case 'n':
+					case '0':
+						bValue = false;
+						break;
+					case 'O': case 'o':
+						if (arg[1] == 'N' || arg[1] == 'n')
+							bValue = true;
+						if (arg[1] == 'F' || arg[1] == 'f')
+							bValue = false;
+						break;
+					default:
+						bValue = (atoi(arg) > 0);
+					}
+					*(bool*)ConVar->VarPtr = bValue;
 					bChangedVar = true;
 				} else {
 					logprintf("%s = %d  (bool%s)", cmd, *(bool*)ConVar->VarPtr, readonly?", read-only":"");
@@ -579,14 +827,11 @@ void CConsole::Execute(char* pExecLine)
 		return;
 	}
 
-	if (!pNetGame->GetFilterScripts()->OnRconCommand(pExecLine))
-	{
-		if (pNetGame->GetGameMode())
+	if (pNetGame->GetGameMode() != NULL && pNetGame->GetFilterScripts() != NULL) {
+		if (!pNetGame->GetGameMode()->OnRconCommand(pExecLine) ||
+			!pNetGame->GetFilterScripts()->OnRconCommand(pExecLine))
 		{
-			if (!pNetGame->GetGameMode()->OnRconCommand(pExecLine))
-			{
-					logprintf("Unknown command or variable:\n  %s", cmd);
-			}
+			logprintf("Unknown command or variable:\n  %s", cmd);
 		}
 	}
 }

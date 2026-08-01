@@ -50,7 +50,7 @@ void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlay
     if (!bClear) return;
 
     VECTOR Out;
-    // Use CSprite::CalcScreenCoors
+    // CSprite::CalcScreenCoors
     bool bVisible = ((bool (*)(VECTOR*, VECTOR*, float*, float*, bool, bool)) (SA_Addr(0x5C5798 + 1)))(pos, &Out, nullptr, nullptr, false, false);
 
     if (!bVisible || Out.Z < 1.0f) return;
@@ -103,8 +103,6 @@ void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlay
 
         // Armour Progress
         renderer->drawRect(barPos, ImVec2(barPos.x + aProgress, barPos.y + barHeight), colorArmourBar, true);
-
-        // Offset for the next bar (Health)
         barPos.y += RS(6.5f);
     }
 

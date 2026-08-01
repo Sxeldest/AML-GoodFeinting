@@ -1,3 +1,13 @@
+//----------------------------------------------------
+//
+//	HTTP/1.0 Client Procedures.
+//	(c) 2002-2005 Kye Bitossi
+//
+//  Basic web document fetcher.
+//
+//  Version: $Id: httpclient.cpp,v 1.4 2006/05/03 17:32:37 kyeman Exp $
+//
+//----------------------------------------------------
 
 #include <stdio.h>
 #include <string.h>
@@ -20,18 +30,10 @@
 
 //----------------------------------------------------
 
-CHttpClient::CHttpClient(char *szBindAddress)
+CHttpClient::CHttpClient()
 {
 	memset(&m_Request,0,sizeof(HTTP_REQUEST));
 	memset(&m_Response,0,sizeof(HTTP_RESPONSE));
-
-	m_iHasBindAddress = 0;
-	memset(m_szBindAddress,0,sizeof(m_szBindAddress));
-	if(szBindAddress) {
-		m_iHasBindAddress = 1;
-		strcpy(m_szBindAddress,szBindAddress);
-	}
-
 	m_iError = HTTP_SUCCESS; // Request is successful until otherwise indicated
 	m_iSocket = (-1);
 
@@ -97,10 +99,10 @@ bool CHttpClient::GetHeaderValue(char *szHeaderName,char *szReturnBuffer, int iB
 
 //----------------------------------------------------
 
-bool CHttpClient::Connect(char *szHost, int iPort, char *szBindAddress)
+bool CHttpClient::Connect(char *szHost, int iPort)
 {
-	struct sockaddr_in	sa, bind_sa;
-	struct hostent		*hp, *bind_hp;
+	struct sockaddr_in	sa;
+	struct hostent		*hp;
 
 	// Hostname translation
 	if((hp=(struct hostent *)gethostbyname(szHost)) == NULL ) {
@@ -110,28 +112,12 @@ bool CHttpClient::Connect(char *szHost, int iPort, char *szBindAddress)
 
 	// Prepare a socket	
 	memset(&sa,0,sizeof(sa));
-	memset(&bind_sa,0,sizeof(bind_sa));
 	memcpy(&sa.sin_addr,hp->h_addr,hp->h_length);
 	sa.sin_family = hp->h_addrtype;
 	sa.sin_port = htons((unsigned short)iPort);
 
-	if(szBindAddress) {
-		if((bind_hp=(struct hostent *)gethostbyname(szBindAddress)) == NULL ) {
-			m_iError=HTTP_ERROR_BAD_HOST;
-			return false;
-		}
-		memcpy(&bind_sa.sin_addr,bind_hp->h_addr,bind_hp->h_length);
-		bind_sa.sin_family = bind_hp->h_addrtype;
-		bind_sa.sin_port = 0;
-	}
-
 	if((m_iSocket=socket(AF_INET,SOCK_STREAM,0)) < 0) {
 		m_iError=HTTP_ERROR_NO_SOCKET;
-		return false;
-	}
-
-	if(szBindAddress && bind(m_iSocket,(struct sockaddr *)&bind_sa,sizeof bind_sa) < 0) {
-		m_iError=HTTP_ERROR_CANT_CONNECT;
 		return false;
 	}
 
@@ -159,8 +145,8 @@ void CHttpClient::CloseConnection()
 //----------------------------------------------------
 
 bool CHttpClient::Send(char *szData)
-{
-	if(send(m_iSocket,szData,strlen(szData),0) < 0) {
+{	
+	if(send(m_iSocket,szData,strlen(szData),0) < 0) {	
 		m_iError = HTTP_ERROR_CANT_WRITE;
 		return false;
 	}
@@ -170,7 +156,7 @@ bool CHttpClient::Send(char *szData)
 //----------------------------------------------------
 
 int CHttpClient::Recv(char *szBuffer, int iBufferSize)
-{
+{	
 	return recv(m_iSocket,szBuffer,iBufferSize,0);
 }
 
@@ -234,14 +220,8 @@ void CHttpClient::Process()
 	int   header_len;
 	char  request_head[16384];
 
-	if(m_iHasBindAddress) {
-		if(!Connect(m_Request.host,m_Request.port,m_szBindAddress)) {
-			return;
-		}
-	} else {
-		if(!Connect(m_Request.host,m_Request.port)) {
-			return;
-		}
+	if(!Connect(m_Request.host,m_Request.port)) {
+		return;
 	}
 
 	// Build the HTTP Header
@@ -266,7 +246,7 @@ void CHttpClient::Process()
 				strlen(m_Request.host)+strlen(POST_FORMAT)+
 				strlen(USER_AGENT)+strlen(m_Request.referer);
 			sprintf(request_head,POST_FORMAT,m_Request.file,USER_AGENT,m_Request.referer,m_Request.host,strlen(m_Request.data),m_Request.data);
-			break;
+			break;	
 	}
 
 	//OutputDebugString(request_head);
@@ -301,7 +281,7 @@ void CHttpClient::HandleEntity()
 	{
 		bytes_total+=bytes_read;
 		memcpy(response+(bytes_total-bytes_read),buffer,(unsigned int)bytes_read);
-
+	
 		if(!header_got)
 		{
 			if((head_end=strstr(response,"\r\n\r\n"))!=NULL
@@ -348,6 +328,7 @@ void CHttpClient::HandleEntity()
 					}
 
 					content_len=atoi(content_len_str);
+	
 					if(content_len > MAX_ENTITY_LENGTH) {
 						CloseConnection();
 						m_iError = HTTP_ERROR_CONTENT_TOO_BIG;
@@ -362,7 +343,7 @@ void CHttpClient::HandleEntity()
 	}
 
 	CloseConnection();
-
+	
 	response[bytes_total]='\0';
 
 	// check the returned header
@@ -398,7 +379,7 @@ void CHttpClient::HandleEntity()
 
 	char szContentType[256];
 
-	if(GetHeaderValue("CONTENT-TYPE:",szContentType,256) == true) {
+	if(GetHeaderValue((char*)"CONTENT-TYPE:",szContentType,256) == true) {
 		if(strstr(szContentType,"text/html") != NULL) {
 			m_Response.content_type = CONTENT_TYPE_HTML;
 		}
@@ -409,5 +390,6 @@ void CHttpClient::HandleEntity()
 		}
 	}
 }
+
 
 //----------------------------------------------------

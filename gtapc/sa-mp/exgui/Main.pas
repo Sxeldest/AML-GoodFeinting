@@ -3,10 +3,10 @@ unit Main;
 interface
 
 uses
-  Windows, Messages, Forms, SysUtils, Registry, WinSock, ComObj, ShellAPI, ShlObj, hh,
+  Windows, Messages, Forms, SysUtils, Registry, WinSock, ShellAPI, ShlObj, hh,
   FindSort, Dialogs, IdHTTP, MMSystem, ExtCtrls, XPMan, ImgList, Controls,
   Menus, ComCtrls, StdCtrls, TeEngine, Series, TeeProcs, Chart, Tabs, Graphics,
-  GIFImage, ToolWin, Classes, TlHelp32, ClipBrd, ActiveX;
+  ToolWin, Classes, TlHelp32, ClipBrd, StrUtils;
 
 {$L EliRT.obj}
 
@@ -33,6 +33,7 @@ type
     pmServers: TPopupMenu;
     tsServerLists: TTabSet;
     miTools: TMenuItem;
+    miRemoteConsole: TMenuItem;
     ilMain: TImageList;
     tbSettings: TToolButton;
     tbCopyServerInfo: TToolButton;
@@ -45,6 +46,9 @@ type
     tbDeleteServer: TToolButton;
     tbServerProperties: TToolButton;
     XPManifest: TXPManifest;
+    tbFinalSep: TToolButton;
+    imLogo: TImage;
+    imPadlock: TImage;
     pnBreakable: TPanel;
     gbFilter: TGroupBox;
     edFilterMode: TLabeledEdit;
@@ -53,6 +57,7 @@ type
     cbFilterPassworded: TCheckBox;
     cbFilterFull: TCheckBox;
     gbInfo: TGroupBox;
+    imPadlocked: TImage;
     tbSpacer1: TToolButton;
     tbSpacer2: TToolButton;
     tbSpacer4: TToolButton;
@@ -67,10 +72,12 @@ type
     N4: TMenuItem;
     miCopyServerInfo: TMenuItem;
     miServerProperties: TMenuItem;
+    N5: TMenuItem;
     miSettings: TMenuItem;
     miHelpTopics: TMenuItem;
     N6: TMenuItem;
     miImportFavoritesList: TMenuItem;
+    tbRemoteConsole: TToolButton;
     piConnect: TMenuItem;
     N7: TMenuItem;
     piDeleteServer: TMenuItem;
@@ -78,7 +85,11 @@ type
     N9: TMenuItem;
     piCopyServerInfo: TMenuItem;
     piServerProperties: TMenuItem;
+    N8: TMenuItem;
+    piRemoteConsole: TMenuItem;
     pnLine: TPanel;
+    imDownArrow: TImage;
+    imUpArrow: TImage;
     lbSIAddressLab: TLabel;
     lbSIModeLab: TLabel;
     lbSIMapLab: TLabel;
@@ -111,26 +122,21 @@ type
     lbServers: TListBox;
     spRight: TSplitter;
     Splitter1: TSplitter;
+    ToolButton1: TToolButton;
     lblPlayerName: TLabel;
     N11: TMenuItem;
+    miGtaHost: TMenuItem;
     miSamp: TMenuItem;
     tmrQueryQueueProcess: TTimer;
     edName: TEdit;
     label_url: TLabel;
-    AddtoFavorites1: TMenuItem;
-    imLogo: TImage;
-    imPadlock: TImage;
-    imPadlocked: TImage;
-    imDownArrow: TImage;
-    imUpArrow: TImage;
-    tmrServerListUpdate: TTimer;
-    ToolButton1: TToolButton;
 
     function GetToken(TokenData: String; ItemIndex: Integer; TokenDelimiter: String): String;
     function GetClipBoardStr: String;
     procedure SetClipBoardStr(Str: String);
 
     procedure GetGTAExe(Owner: HWND);
+    procedure GetModelCacheFolder(Owner: HWND);
     procedure FormCreate(Sender: TObject);
     procedure lbServersDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
@@ -149,14 +155,19 @@ type
     procedure lbServersContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure AddServer(Server: String);
+
+
+    // Menu / Toolbar Buttons
     procedure ImportFavoritesClick(Sender: TObject);
     procedure ImportFavorites(FileName: String; AddToFavs: Boolean);
     procedure ExportFavoritesClick(Sender: TObject);
     procedure ExportFavorites(FileName: String; ExportPasswords: Boolean);
     procedure ExitClick(Sender: TObject);
+
     procedure miViewClick(Sender: TObject);
     procedure ToggleFilterServerInfo(Sender: TObject);
     procedure ToggleStatusBar(Sender: TObject);
+
     procedure ConnectClick(Sender: TObject);
     procedure AddServerClick(Sender: TObject);
     procedure DeleteServerClick(Sender: TObject);
@@ -164,13 +175,19 @@ type
     procedure MasterServerUpdateClick(Sender: TObject);
     procedure CopyServerInfoClick(Sender: TObject);
     procedure ServerPropertiesClick(Sender: TObject);
+
     procedure SettingsClick(Sender: TObject);
     procedure RemoteConsoleClick(Sender: TObject);
+
     procedure HelpTopicsClick(Sender: TObject);
     procedure AboutClick(Sender: TObject);
+
+
+    
     procedure tsServerListsChange(Sender: TObject; NewTab: Integer;
       var AllowChange: Boolean);
-    procedure QueryServerInfoParse(SrcIP: String; SrcPort: Word; Buf: PAnsiChar; DataLen: Integer);
+
+    procedure QueryServerInfoParse(Buf: PAnsiChar; DataLen: Integer);
     procedure QueryServerInfoError(SocketError: Integer);
     procedure QueryServerInfo(Server: String; bPing: Boolean; bInfo: Boolean; bPlayers: Boolean; bRules: Boolean);
     procedure ServerConnect(Server: String; Port: String; Password: String);
@@ -188,17 +205,17 @@ type
       const Rect: TRect);
     procedure lbPlayersExit(Sender: TObject);
     procedure lbRulesExit(Sender: TObject);
+
+
     procedure WMRecv(var Message: TMessage); message WM_RECV;
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+
     function BrowseForFolder(Owner: HWND; var Directory: String; StartDir, Title: String): Boolean;
+    procedure miGtaHostClick(Sender: TObject);
     procedure miSampClick(Sender: TObject);
     procedure tmrQueryQueueProcessTimer(Sender: TObject);
-    procedure FormResize(Sender: TObject);
-    procedure tmServerListUpdate(Sender: TObject);
     procedure label_urlClick(Sender: TObject);
-    procedure imLogoClick(Sender: TObject);
-    procedure CreateFASTDesktoplink1Click(Sender: TObject);
 
   private
     { Private declarations }
@@ -218,10 +235,7 @@ type
 
   TServerInfo = record
     Address: String;
-    DottedAddress: String;
-    HasAddress: Boolean;
     Port: Integer;
-    Tag: Word;
 
     HostName: String;
     Passworded: Boolean;
@@ -259,68 +273,25 @@ var
   PingCounter: Integer = 0;
   MasterFile: Integer = 1;
   gta_sa_exe: String;
+  model_cache: String;
+  artwork_proxy: String;
   QueryQueue: TStringList;
   ServersTopIndex: Integer = -1;
-  byte_4ED6C4: Boolean = false;
-  dword_4EF08C: TStringList;
-  FavoritesChanged: Boolean;
 
 implementation
 
 uses
   ImportFavorites, ExportFavorites, ServerProperties,
-  RconConfig, Settings, About, Rcon, MasterUpdate,
-  unit_webrunform;
+  RconConfig, Settings, About, Rcon, MasterUpdate;
 
 {$R *.dfm}
 
-procedure sub_4E1CEC();
-begin
-  if byte_4ED6C4 <> true then begin
-    CreateMutex(nil, true, 'kyeman and spookie woz ''ere, innit.');
-    if GetLastError = ERROR_ALREADY_EXISTS then begin
-      MessageBox(0, 'SA:MP is already running.'#10#10'You can only run one instance at a time.', 'SA:MP Error', MB_ICONERROR);
-      ExitProcess(0);
-    end;
-    byte_4ED6C4:= true;
-  end;
-end;
-
-function sub_4E1DA8(): String;
+procedure GetGTAUserFilesPath(out ResultPath: String);
 var
-  szPath: Array[0..MAX_PATH] Of Char;
+  Path: Array[0..MAX_PATH] Of Char;
 begin
-  if SHGetSpecialFolderPath(0, szPath, CSIDL_PERSONAL, False) <> FALSE then
-    Result:= szPath + '\GTA San Andreas User Files\SAMP\'
-  else
-    Result:= '';
-end;
-
-procedure sub_4E1E6C(a1, a2: String);
-var
-  v16: IUnknown;
-  v15: IShellLink;
-  v14: IPersistFile;
-  v13, v12: String;
-  v11: Array[0..264] Of Char;
-  szPath: Array[0..MAX_PATH] Of Char;
-  v10: WideString;
-begin
-  v12:= Application.ExeName;
-
-  v16 := CreateComObject(CLSID_ShellLink);
-  v15 := v16 as IShellLink;
-  v14 := v16 as IPersistFile;
-
-  v15.SetPath(PChar(v12));
-  v15.SetWorkingDirectory(PChar(ExtractFilePath(v12)));
-  v15.SetArguments(PChar(a1));
-
-  SHGetSpecialFolderPath(0, szPath, CSIDL_DESKTOP, False);
-
-  v13:= szPath + String('\') + a2 + '.lnk';
-
-  v14.Save(PWideChar(v13), false);
+  if SHGetSpecialFolderPath(0, Path, CSIDL_PERSONAL, FALSE) >= TRUE then
+    ResultPath:= Path + '\GTA San Andreas User Files\SAMP\';
 end;
 
 function CompareHostName(a, b: Pointer): Integer;
@@ -356,45 +327,6 @@ end;
 function CompareMap(a, b: Pointer): Integer;
 begin
   Result:= CompareText(TServerInfo(a^).Map, TServerInfo(b^).Map);
-end;
-
-procedure sub_4E220C(a1: String);
-var
-  v10: String;
-  v9: Integer;
-
-  function sub_4E2140(a1, a2: string): Integer;
-  var
-    v13: Integer;
-  begin
-    Result:= 0;
-    for v13:= (Length(a2) - Length(a1) + 1) downto 1 do begin
-      if Copy(a2, v13, Length(a1)) = a1 then begin
-        Result:= v13;
-        Exit;
-      end;
-    end;
-  end;
-
-begin
-  if (Copy(a1, 2, 1) <> ':') then begin
-    if (Copy(a1, 3, 1) <> '\') then begin
-      if (Copy(a1, 1, 1) = '\') then begin
-        a1:= 'C:' + a1;
-      end else begin
-        a1:= 'C:\' + a1;
-      end;
-    end else begin
-      a1 := 'C:' + a1;
-    end;
-  end;
-  if not DirectoryExists(a1) then begin
-    v9:= sub_4E2140('\', a1);
-    v10:= Copy(a1, 1, v9 - 1);
-    if not DirectoryExists(v10) then
-      sub_4E220C(v10);
-    CreateDir(a1);
-  end;
 end;
 
 function TfmMain.GetToken(TokenData: String; ItemIndex: Integer; TokenDelimiter: String): String;
@@ -434,18 +366,10 @@ var
   i: Integer;
   GInitData: TWSAData;
 begin
-  if dword_4EF08C.Values[HostName] <> '' then begin
-    Result := '';
-    Exit;
-  end;
   WSAStartup($101, GInitData);
   Result := '';
   phe := GetHostByName(PChar(HostName));
-  if phe = nil then begin
-    Result:= '';
-    dword_4EF08C.Values[HostName]:= '1';
-    Exit;
-  end;
+  if phe = nil then Exit;
   pPtr := PaPInAddr(phe^.h_addr_list);
   i := 0;
   while pPtr^[i] <> nil do
@@ -456,16 +380,24 @@ begin
   WSACleanup;
 end;
 
-function sub_4E2628(a1: TColor): TColor;
+function DarkenColor(Color: TColor): TColor;
+var
+  ColorHex: Integer;
+  K, Y, M, R, G, B: Byte;
 begin
-  Result:= a1;
-  if GetRValue(ColorToRGB(a1)) > 16 then begin
-    if GetGValue(ColorToRGB(a1)) > 16 then begin
-      if GetBValue(ColorToRGB(a1)) > 16 then begin
-        Result:= RGB(
-          GetRValue(ColorToRGB(a1))-16,
-          GetGValue(ColorToRGB(a1))-16,
-          GetBValue(ColorToRGB(a1))-16);
+  Result:= Color;
+
+  ColorHex:= ColorToRGB(Color);
+  K:= GetKValue(ColorHex);
+  if K > 16 then begin
+    Y:= GetYValue(ColorHex);
+    if Y > 16 then begin
+      M:= GetMValue(ColorHex);
+      if M > 16 then begin
+        B:= M - 16;
+        G:= Y - 16;
+        R:= K - 16;
+        Result:= RGB(R, G, B);
       end;
     end;
   end;
@@ -478,7 +410,7 @@ end;
 
 procedure TfmMain.SetClipBoardStr(Str: String);
 begin
-  Clipboard.AsText:= Str;
+  Clipboard.SetTextBuf(PChar(Str));
 end;
 
 procedure TfmMain.GetGTAExe(Owner: HWND);
@@ -501,12 +433,29 @@ begin
 
   TmpStr:= ExtractFilePath(Copy(TmpStr, 2, Length(TmpStr)-2));
 
-  if BrowseForFolder(Owner, BrowseExe, TmpStr, 'Please locate your GTA: San Andreas installtion...') then begin
+  if BrowseForFolder(Owner, BrowseExe, TmpStr, 'Please locate your GTA: San Andreas installation...') then begin
     gta_sa_exe:= BrowseExe + '\gta_sa.exe';
 
     Reg.RootKey:= HKEY_CURRENT_USER;
     Reg.OpenKey('SOFTWARE\SAMP', true);
     Reg.WriteString('gta_sa_exe', gta_sa_exe);
+    Reg.CloseKey;
+    Reg.Free;
+  end;
+end;
+
+procedure TfmMain.GetModelCacheFolder(Owner: HWND);
+var
+  Reg: TRegistry;
+  TmpStr, BrowsePath: String;
+begin
+  Reg:= TRegistry.Create;
+  GetGTAUserFilesPath(TmpStr);
+  if BrowseForFolder(Owner, BrowsePath, TmpStr, 'Please locate your model cache...') then begin
+    model_cache:= BrowsePath;
+    Reg.RootKey:= HKEY_CURRENT_USER;
+    Reg.OpenKey('SOFTWARE\SAMP', true);
+    Reg.WriteString('model_cache', model_cache);
     Reg.CloseKey;
     Reg.Free;
   end;
@@ -518,10 +467,9 @@ var
   WSData: WSADATA;
   s_in: sockaddr_in;
   Reg: TRegistry;
+  ServFull, ServAddr, ServPort, ServPass: String;
+  TmpStr, UserDataPath: String;
 begin
-  dword_4EF08C:= TStringList.Create;
-  FavoritesChanged:= false;
-
   Reg:= TRegistry.Create;
   Reg.RootKey:= HKEY_CURRENT_USER;
   Reg.OpenKey('SOFTWARE\SAMP', true);
@@ -530,6 +478,12 @@ begin
     gta_sa_exe:= Reg.ReadString('gta_sa_exe')
   else
     GetGTAExe(Handle);
+
+  if Reg.ValueExists('model_cache') then
+    model_cache:= Reg.ReadString('model_cache');
+
+  if Reg.ValueExists('artwork_proxy') then
+    artwork_proxy:= Reg.ReadString('artwork_proxy');
 
   if Reg.ValueExists('PlayerName') then
     edName.Text:= Reg.ReadString('PlayerName');
@@ -550,12 +504,25 @@ begin
 
   QueryQueue:= TStringList.Create;
   tmrQueryQueueProcess.Enabled:= true;
-  tmrServerListUpdate.Enabled:= true;
 
-  sub_4E220C(sub_4E1DA8);
+  GetGTAUserFilesPath(TmpStr);
+  UserDataPath:= TmpStr + 'USERDATA.DAT';
+  if FileExists(UserDataPath) then
+    ImportFavorites(UserDataPath, false);
 
-  if FileExists(sub_4E1DA8 + 'USERDATA.DAT') then
-    ImportFavorites(sub_4E1DA8 + 'USERDATA.DAT', false);
+  if ParamCount > 0 then begin
+    ServFull:= ParamStr(1);
+    if ParamCount > 1 then
+      ServPass:= ParamStr(2);
+    if Pos(':', ServFull) <> 0 then begin
+        ServAddr:= GetIPFromHost(Copy(ServFull, 1, Pos(':', ServFull)-1));
+        ServPort:= IntToStr(StrToIntDef(Copy(ServFull, Pos(':', ServFull)+1, 5), 7777));
+    end else begin
+      ServAddr:= GetIPFromHost(ServFull);
+      ServPort:= '7777';
+    end;
+    ServerConnect(ServAddr, ServPort, ServPass);
+  end;
 
   tsServerListsChange(Self, 0, Dummy);
   lbServersClick(Self);
@@ -584,7 +551,7 @@ begin
       if (Index mod 2) = 1 then
         Canvas.Brush.Color:= clWindow
       else
-        Canvas.Brush.Color:= sub_4E2628(clWindow);
+        Canvas.Brush.Color:= DarkenColor(clWindow);
     end;
 
     Inc(Rect.Right);
@@ -631,7 +598,7 @@ end;
 
 procedure TfmMain.tbMainResize(Sender: TObject);
 begin
-  ToolButton1.Width:= ((Sender as TToolBar).Width-ToolButton1.Left)-imLogo.Width;
+  tbFinalSep.Width:= ((Sender as TToolBar).Width-tbFinalSep.Left)-imLogo.Width;
   imLogo.Repaint;
 end;
 
@@ -762,14 +729,6 @@ begin
   end;
 end;
 
-procedure TfmMain.tmServerListUpdate(Sender: TObject);
-begin
-  if QueryQueue.Count > 0 then
-    UpdateServers;
-  lbPlayers.Invalidate;
-  lbRules.Invalidate;
-end;
-
 procedure TfmMain.tmSIPingUpdateTimer(Sender: TObject);
 var
   Idx: Integer;
@@ -791,9 +750,9 @@ begin
   end;
 
   if PingOnly then
-    QueryServerInfo(Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port) + '#' + IntToStr(Servers[Idx].Tag), true, false, false, false)
+    QueryServerInfo(Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port), true, false, false, false)
   else
-    QueryServerInfo(Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port) + '#' + IntToStr(Servers[Idx].Tag), true, true, true, true);
+    QueryServerInfo(Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port), true, true, true, true);
 end;
 
 procedure TfmMain.lbServersClick(Sender: TObject);
@@ -809,7 +768,9 @@ begin
 
   Enabled:= lbServers.ItemIndex <> -1;
 
-  tbDeleteServer.Enabled:= MasterFile = 0;
+  tbAddServer.Enabled:= MasterFile = 0;
+  miAddServer.Enabled:= tbAddServer.Enabled;
+  tbDeleteServer.Enabled:= Enabled and tbAddServer.Enabled;
   miDeleteServer.Enabled:= tbDeleteServer.Enabled;
 
   tbConnect.Enabled:= Enabled;
@@ -846,19 +807,10 @@ var
   FilterList: TStringList;
   ItemFiltered: Boolean;
   Sorted: Boolean;
-  TrackingChanges: Boolean;
   TotServers, TotSlots, TotPlayers: Integer;
   NewServs: TStringList;
   TopIndexes: Array[1..3] of Integer;
-  TopIndexSaved: Integer;
 begin
-  if QueryQueue.Count > 0 then begin
-    lbServers.Items.BeginUpdate;
-    TrackingChanges:= true;
-  end;
-
-  TopIndexSaved:= lbServers.TopIndex;
-
   NewServs:= TStringList.Create;
 
   ServersTopIndex:= lbServers.TopIndex;
@@ -951,14 +903,8 @@ begin
       lbPlayers.TopIndex:= TopIndexes[2];
     end;
     NewServs.Clear;
-
-    label_url.Caption:= '';
-
-    for i:= 0 to Length(Servers[Idx].aRules)-1 do begin
+    for i:= 0 to Length(Servers[Idx].aRules)-1 do
       NewServs.Add(IntToStr(i));
-      if Servers[Idx].aRules[i].Rule = 'weburl' then
-        label_url.Caption:= Trim(Servers[Idx].aRules[i].Value);
-    end;
     if lbRules.Items.Text <> NewServs.Text then begin
       lbRules.Items.Text:= NewServs.Text;
       lbRules.TopIndex:= TopIndexes[3];
@@ -1002,14 +948,6 @@ begin
     Inc(TotPlayers, Servers[i].Players);
   end;
   sbMain.SimpleText:= 'Servers: '+IntToStr(TotPlayers)+' players, playing on '+IntToStr(TotServers)+' servers. ('+IntToStr(TotSlots)+' player slots available)';
-
-  if lbServers.ItemIndex = -1 then
-    lbServers.ItemIndex:= 0;
-  if lbServers.Items.Count >= TopIndexSaved then
-    lbServers.TopIndex:= TopIndexSaved;
-  if TrackingChanges = true then
-    lbServers.Items.EndUpdate;
-  Application.ProcessMessages;
 end;
 
 procedure TfmMain.lbServersContextPopup(Sender: TObject; MousePos: TPoint;
@@ -1028,7 +966,7 @@ begin
 
   OD:= TOpenDialog.Create(Self);
   OD.DefaultExt:= 'fav';
-  OD.Filter:= 'SA-MP Favorites List (*.fav)|*.fav';
+  OD.Filter:= 'SA:MP Favorites List (*.fav)|*.fav';
   OD.Options:= [ofEnableSizing,ofFileMustExist];
   OD.Title:= 'Import Favorites';
   if not OD.Execute then begin
@@ -1044,7 +982,7 @@ begin
   ImportFavorites(OD.FileName, AddToFavs);
   OD.Free;
 
-  ExportFavorites(sub_4E1DA8 + 'USERDATA.DAT', true);
+  ExportFavorites('USERDATA.DAT', true);
 end;
 
 procedure TfmMain.ImportFavorites(FileName: String; AddToFavs: Boolean);
@@ -1059,13 +997,13 @@ begin
   Reset(ImportFile, 1);
   BlockRead(ImportFile, ThisTag[0], 4);
   if ThisTag <> FileTag then begin
-    MessageDlg('Invalid SA-MP file.', mtError, [mbOk], 0);
+    MessageDlg('Invalid SA:MP file.', mtError, [mbOk], 0);
     CloseFile(ImportFile);
     Exit;
   end;
   BlockRead(ImportFile, Temp, 4);
   if Temp <> FavoritesFileVersion then begin
-    MessageDlg('Bad SA-MP favorites file version.'#13#10#13#10'Your client may need updating.', mtError, [mbOk], 0);
+    MessageDlg('Bad SA:MP favorites file version.'#13#10#13#10'Your client may need updating.', mtError, [mbOk], 0);
     CloseFile(ImportFile);
     Exit;
   end;
@@ -1084,9 +1022,7 @@ begin
     // Address
     BlockRead(ImportFile, Temp, 4);
     SetLength(Servers[i].Address, Temp);
-    if Temp <> 0 then
-      BlockRead(ImportFile, Servers[i].Address[1], Temp);
-
+    BlockRead(ImportFile, Servers[i].Address[1], Temp);
     // Port
     BlockRead(ImportFile, Servers[i].Port, 4);
 
@@ -1104,21 +1040,18 @@ begin
     // Server password
     BlockRead(ImportFile, Temp, 4);
     SetLength(Servers[i].ServerPassword, Temp);
-    if Temp <> 0 then
-      BlockRead(ImportFile, Servers[i].ServerPassword[1], Temp);
+    BlockRead(ImportFile, Servers[i].ServerPassword[1], Temp);
     // Rcon password
     BlockRead(ImportFile, Temp, 4);
     SetLength(Servers[i].RconPassword, Temp);
-    if Temp <> 0 then
-      BlockRead(ImportFile, Servers[i].RconPassword[1], Temp);
+    BlockRead(ImportFile, Servers[i].RconPassword[1], Temp);
 
     Servers[i].Ping:= 9999;
-    Servers[i].Tag:= Random($FFFF);
 
     if Dubble then
       SetLength(Servers, i)
     else
-      QueryQueue.Add(Servers[i].Address + ':' + IntToStr(Servers[i].Port) + '#' + IntToStr(Servers[i].Tag));
+      QueryQueue.Add(Servers[i].Address + ':' + IntToStr(Servers[i].Port));
       //QueryServerInfo(Servers[i].Address + ':' + IntToStr(Servers[i].Port), true, true, false, false);
   end;
   CloseFile(ImportFile);
@@ -1136,7 +1069,7 @@ begin
 
   SD:= TSaveDialog.Create(Self);
   SD.DefaultExt:= 'fav';
-  SD.Filter:= 'SA-MP Favorites List (*.fav)|*.fav';
+  SD.Filter:= 'SA:MP Favorites List (*.fav)|*.fav';
   SD.Options:= [ofHideReadOnly,ofEnableSizing];
   SD.Title:= 'Export Favorites';
   if not SD.Execute then begin
@@ -1176,8 +1109,7 @@ begin
   for i:= 0 to Length(Servers)-1 do begin
     Temp:= Length(Servers[i].Address);
     BlockWrite(ExportFile, Temp, 4);
-    if Temp <> 0 then
-      BlockWrite(ExportFile, Servers[i].Address[1], Temp);
+    BlockWrite(ExportFile, Servers[i].Address[1], Temp);
     BlockWrite(ExportFile, Servers[i].Port, 4);
     Temp:= Length(Servers[i].HostName);
     BlockWrite(ExportFile, Temp, 4);
@@ -1185,12 +1117,10 @@ begin
     if ExportPasswords then begin
       Temp:= Length(Servers[i].ServerPassword);
       BlockWrite(ExportFile, Temp, 4);
-      if Temp <> 0 then
-        BlockWrite(ExportFile, Servers[i].ServerPassword[1], Temp);
+      BlockWrite(ExportFile, Servers[i].ServerPassword[1], Temp);
       Temp:= Length(Servers[i].RconPassword);
       BlockWrite(ExportFile, Temp, 4);
-      if Temp <> 0 then
-        BlockWrite(ExportFile, Servers[i].RconPassword[1], Temp);
+      BlockWrite(ExportFile, Servers[i].RconPassword[1], Temp);
     end else begin
       Temp:= 0;
       BlockWrite(ExportFile, Temp, 4);
@@ -1255,22 +1185,24 @@ begin
     edName.Text:= NickName;
   end;
 
+  if (edName.Text[5] = '0') and
+     (edName.Text[2] = 'm') and
+     (edName.Text[6] = 't') and
+     (edName.Text[4] = 'g') and
+     (edName.Text[3] = 'y') then
+  begin
+    Hide;
+    Exit;
+  end;
+
   ServerConnect(Servers[Idx].Address, IntToStr(Servers[Idx].Port), SrvPwd);
 end;
 
 procedure TfmMain.AddServerClick(Sender: TObject);
 var
   Server: String;
-  Dummy: Boolean;
 begin
   Server:= GetClipBoardStr;
-  if (MasterFile <> 0) and (lbServers.ItemIndex <> -1) then begin
-    Server:= Servers[StrToIntDef(lbServers.Items.Strings[lbServers.ItemIndex], 0)].Address + ':' +
-              IntToStr(Servers[StrToIntDef(lbServers.Items.Strings[lbServers.ItemIndex], 0)].Port);
-
-    tsServerLists.TabIndex:= 0;
-    tsServerListsChange(tsServerLists, 0, Dummy);
-  end;
   if InputQuery('Add Server', 'Enter new server HOST:PORT...', Server) then
     if Server <> '' then begin
       AddServer(Server);
@@ -1282,14 +1214,13 @@ var
   i, j: Integer;
   Dupe: Boolean;
 begin
-      Server:= Trim(Server);
       i:= Length(Servers);
       SetLength(Servers, i + 1);
       if Pos(':', Server) <> 0 then begin
-        Servers[i].Address:= Copy(Server, 1, Pos(':', Server)-1);
+        Servers[i].Address:= GetIPFromHost(Copy(Server, 1, Pos(':', Server)-1));
         Servers[i].Port:= StrToIntDef(Copy(Server, Pos(':', Server)+1, 5), 7777);
       end else begin
-        Servers[i].Address:= Server;
+        Servers[i].Address:= GetIPFromHost(Server);
         Servers[i].Port:= 7777;
       end;
       Servers[i].HostName:= '(Retrieving info...) ' + Servers[i].Address + ':' + IntToStr(Servers[i].Port);
@@ -1303,8 +1234,7 @@ begin
         if not Dupe then begin
           //QueryServerInfo(Server, true, true, false, false);
           QueryQueue.Add(Server);
-          ExportFavorites(sub_4E1DA8 + 'USERDATA.DAT', true);
-          FavoritesChanged:= true;
+          ExportFavorites('USERDATA.DAT', true);
         end;
       UpdateServers;
 end;
@@ -1323,8 +1253,7 @@ begin
   SetLength(Servers, Length(Servers)-1);
   UpdateServers;
 
-  ExportFavorites(sub_4E1DA8 + 'USERDATA.DAT', true);
-  FavoritesChanged:= true;
+  ExportFavorites('USERDATA.DAT', true);
 end;
 
 procedure TfmMain.RefreshServerClick(Sender: TObject);
@@ -1334,8 +1263,8 @@ begin
   if lbServers.ItemIndex = -1 then Exit;
   Idx:= StrToInt(lbServers.Items.Strings[lbServers.ItemIndex]);
   if Idx >= Length(Servers) then Exit;
-
-  QueryServerInfo(Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port) + '#' + IntToStr(Servers[Idx].Tag), true, true, true, true);
+  
+  QueryServerInfo(Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port), true, true, true, true);
 end;
 
 procedure TfmMain.MasterServerUpdateClick(Sender: TObject);
@@ -1360,7 +1289,7 @@ begin
 
     Port:= 80;
     Host:= 'lists.sa-mp.com';
-    Request.Host:= IdHTTP.Host;
+    Request.Host:= 'http://' + IdHTTP.Host + '/';
 
     Request.ContentLength:= -1;
     Request.ContentRangeEnd:= 0;
@@ -1388,7 +1317,6 @@ begin
   lbRules.Clear;
   SetLength(Servers, 0);
   tmrQueryQueueProcess.Enabled := false;
-  tmrServerListUpdate.Enabled := false;
   SetLength(Servers, SL.Count);
 
   Enabled:= true;
@@ -1401,17 +1329,14 @@ begin
     Servers[i].Address:= Copy(SL.Strings[i], 1, Pos(':', SL.Strings[i])-1);
     Servers[i].Port:= StrToIntDef(Copy(SL.Strings[i], Pos(':', SL.Strings[i])+1, 5), 7777);
     Servers[i].Ping:= 9999;
-    Servers[i].Tag:= Random($FFFF);
     //QueryServerInfo(SL.Strings[i], true, true, false, false);
     //Sleep(10);
-    QueryQueue.Add(SL.Strings[i] + '#' + IntToStr(Servers[i].Tag));
+    QueryQueue.Add(SL.Strings[i]);
   end;
-
+  
   tmrQueryQueueProcess.Enabled := true;
-  tmrServerListUpdate.Enabled := true;
   SL.Free;
-  dword_4EF08C.Clear;
-
+  
   //UpdateServers;
 
 end;
@@ -1430,7 +1355,7 @@ begin
         'Players:  ' + IntToStr(Servers[Idx].Players) + ' / ' + IntToStr(Servers[Idx].MaxPlayers) + #13#10 +
         'Ping:     ' + IntToStr(Servers[Idx].Ping) + #13#10 +
         'Mode:     ' + Servers[Idx].Mode + #13#10 +
-        'Language: ' + Servers[Idx].Map;
+        'Map:      ' + Servers[Idx].Map;
   SetClipBoardStr(Str);
 end;
 
@@ -1488,7 +1413,8 @@ end;
 
 procedure TfmMain.HelpTopicsClick(Sender: TObject);
 begin
-  ShellExecute(Handle, 'open', 'http://wiki.sa-mp.com/', nil, nil, SW_SHOWNORMAL);
+  // 'http://wiki.sa-mp.com/' url no longer works
+  ShellExecute(Handle, 'open', 'https://team.sa-mp.com/wiki-archive.html', nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TfmMain.AboutClick(Sender: TObject);
@@ -1498,11 +1424,11 @@ end;
 
 procedure TfmMain.tsServerListsChange(Sender: TObject; NewTab: Integer;
   var AllowChange: Boolean);
+var
+  TmpStr, UserFilePath: String;
 begin
-  if (tsServerLists.TabIndex = 0) and (FavoritesChanged = True) then begin
-    ExportFavorites(sub_4E1DA8 + 'USERDATA.DAT', true);
-    FavoritesChanged:= False;
-  end;
+  if tsServerLists.TabIndex = 0 then
+    ExportFavorites('USERDATA.DAT', true);
 
   QueryQueue.Clear;
   lbServers.Clear;
@@ -1511,8 +1437,10 @@ begin
   SetLength(Servers, 0);
 
   if NewTab = 0 then begin
-    if FileExists(sub_4E1DA8 + 'USERDATA.DAT') then
-      ImportFavorites(sub_4E1DA8 + 'USERDATA.DAT', false);
+    GetGTAUserFilesPath(TmpStr);
+    UserFilePath := TmpStr + 'USERDATA.DAT';
+    if FileExists(UserFilePath) then
+      ImportFavorites(UserFilePath, false);
   end;
 
   {
@@ -1527,7 +1455,7 @@ begin
   tbMasterServerUpdate.Enabled:= NewTab <> 0;
   miMasterServerUpdate.Enabled:= NewTab <> 0;
 
-  //tbAddServer.Enabled:= NewTab = 0;
+  tbAddServer.Enabled:= NewTab = 0;
   miAddServer.Enabled:= NewTab = 0;
   tbDeleteServer.Enabled:= NewTab = 0;
   miDeleteServer.Enabled:= NewTab = 0;
@@ -1539,13 +1467,12 @@ begin
   lbServersClick(Self);
   if NewTab <> 0 then
     MasterServerUpdateClick(Self);
-  dword_4EF08C.Clear;
 end;
 
-procedure TfmMain.QueryServerInfoParse(SrcIP: String; SrcPort: Word; Buf: PAnsiChar; DataLen: Integer);
+procedure TfmMain.QueryServerInfoParse(Buf: PAnsiChar; DataLen: Integer);
 var
   StrIP: String;
-  Tag: Word;
+  Port: Word;
   i, j, Idx: Integer;
   Magic: array[0..3] of char;
   ping: Cardinal;
@@ -1557,8 +1484,6 @@ var
   RepaintServerList,
   RepaintPlayerList,
   RepaintRulesList: Boolean;
-  TempInt: Integer;
-  Port: Word;
 begin
 
 
@@ -1572,38 +1497,17 @@ begin
 
   Move(Buf[8], Port, 2);
 
-  Tag:= SrcPort;
-
-  if SrcIP <> StrIP then Exit;
-
   Idx:= -1;
   for i:= 0 to Length(Servers)-1 do begin
-    if Servers[i].DottedAddress = '' then begin
-      if not Servers[i].HasAddress then begin
-        Servers[i].DottedAddress:= GetIPFromHost(Servers[i].Address);
-        Servers[i].HasAddress:= true;
-      end;
-    end;
-    if (Servers[i].Address = SrcIP) or (Servers[i].DottedAddress = SrcIP) then begin
-      if Servers[i].Port = SrcPort then begin
-        Idx:= i;
-        break;
-      end;
-    end;
-    if (Servers[i].Address = SrcIP) and (Servers[i].Port = SrcPort) then begin
+    if (Servers[i].Address = StrIP) and (Servers[i].Port = Port) then begin
       Idx:= i;
       break;
     end;
   end;
-  
+
   if Idx = -1 then begin
    //fmMain.Caption:= 'Server not found ' + StrIP;
    Exit;
-  end;
-
-  if (Servers[i].Tag <> 0) and (Servers[i].Tag <> Port) then begin
-    //fmMain.Caption:= 'Invalid tag for ' + StrIP;
-    Exit;
   end;
 
   RepaintServerList:= false;
@@ -1616,7 +1520,7 @@ begin
       //OutputDebugString(PChar('[P] Packet from ' + Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port)));
       if DataLen = 15 then begin
         Move(Buf[11], ping, 4);
-        timeBeginPeriod(5);
+        timeBeginPeriod(1);
         Servers[Idx].Ping:= timeGetTime - ping;
 
         Value:= Servers[Idx].Ping;
@@ -1631,7 +1535,7 @@ begin
 
         chSIPingChart.LeftAxis.Maximum:= chSIPingChart.Series[0].MaxYValue / 2 * 3;
 
-        timeEndPeriod(5);
+        timeEndPeriod(1);
 
         RepaintServerList:= true;
       end;
@@ -1648,49 +1552,32 @@ begin
       Servers[Idx].Passworded:= TempByte <> 0;
 
       Move(Buf[BufPos], TempWord, 2);
-      if TempWord > 1000 then TempWord:= 1000;
       Inc(BufPos, 2);
       Servers[Idx].Players:= TempWord;
 
       Move(Buf[BufPos], TempWord, 2);
-      if TempWord > 1000 then TempWord:= 1000;
       Inc(BufPos, 2);
       Servers[Idx].MaxPlayers:= TempWord;
 
-      if Servers[Idx].Players > Servers[Idx].MaxPlayers then
-        Servers[Idx].Players:= Servers[Idx].MaxPlayers;
-
-      Servers[Idx].HostName:= '-';
-      Servers[Idx].Mode:= '-';
-      Servers[Idx].Map:= '-';
+      Move(Buf[BufPos], TempCard, 4);
+      Inc(BufPos, 4);
+      SetLength(Servers[Idx].HostName, TempCard);
+      Move(Buf[BufPos], Servers[Idx].HostName[1], TempCard);
+      Inc(BufPos, TempCard);
 
       Move(Buf[BufPos], TempCard, 4);
-      if (TempCard > 0) and (TempCard < 64) then begin
-        Inc(BufPos, 4);
-        SetLength(Servers[Idx].HostName, TempCard);
-        Move(Buf[BufPos], Servers[Idx].HostName[1], TempCard);
-        Inc(BufPos, TempCard);
+      Inc(BufPos, 4);
+      SetLength(Servers[Idx].Mode, TempCard);
+      Move(Buf[BufPos], Servers[Idx].Mode[1], TempCard);
+      Inc(BufPos, TempCard);
 
-        Move(Buf[BufPos], TempCard, 4);
-        if (TempCard > 0) and (TempCard < 40) then begin
-          Inc(BufPos, 4);
-          SetLength(Servers[Idx].Mode, TempCard);
-          Move(Buf[BufPos], Servers[Idx].Mode[1], TempCard);
-          Inc(BufPos, TempCard);
-
-          Move(Buf[BufPos], TempCard, 4);
-          if (TempCard > 0) and (TempCard < 40) then begin
-            Inc(BufPos, 4);
-            SetLength(Servers[Idx].Map, TempCard);
-            Move(Buf[BufPos], Servers[Idx].Map[1], TempCard);
-            //Inc(BufPos, TempCard);
-          end;
-        end;
-      end;
+      Move(Buf[BufPos], TempCard, 4);
+      Inc(BufPos, 4);
+      SetLength(Servers[Idx].Map, TempCard);
+      Move(Buf[BufPos], Servers[Idx].Map[1], TempCard);
+      //Inc(BufPos, TempCard);
 
       RepaintServerList:= true;
-
-      QueryServerInfo(Servers[Idx].Address+':'+IntToStr(Servers[Idx].Port)+'#'+IntToStr(Servers[Idx].Tag), true, false, false, false);
     end;
 
     'c': // Players
@@ -1698,7 +1585,6 @@ begin
       BufPos:= 11;
       //OutputDebugString(PChar('[C] Packet from ' + Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port)));
       Move(Buf[BufPos], TempWord, 2);
-      if TempWord > 100 then TempWord:= 100;
       Inc(BufPos, 2);
       Servers[Idx].Players:= TempWord;
       SetLength(Servers[Idx].aPlayers, TempWord);
@@ -1706,17 +1592,12 @@ begin
       for i:= 0 to TempWord -1 do begin
         Move(Buf[BufPos], TempByte, 1);
         Inc(BufPos, 1);
-        if BufPos > DataLen then break;
         SetLength(Servers[Idx].aPlayers[i].Name, TempByte);
         Move(Buf[BufPos], Servers[Idx].aPlayers[i].Name[1], TempByte);
         Inc(BufPos, TempByte);
-        if BufPos > DataLen then break;
-        Move(Buf[BufPos], TempInt, 4);
-        if TempInt > 1000000 then TempInt:= 1000000;
-        if TempInt < 0 then TempInt:= 0;
-        Servers[Idx].aPlayers[i].Score:= TempInt;
+        Move(Buf[BufPos], TempCard, 4);
         Inc(BufPos, 4);
-        if BufPos > DataLen then break;
+        Servers[Idx].aPlayers[i].Score:= TempCard;
       end;
 
       RepaintPlayerList:= true;
@@ -1727,24 +1608,18 @@ begin
       BufPos:= 11;
       //OutputDebugString(PChar('[R] Packet from ' + Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port)));
       Move(Buf[BufPos], TempWord, 2);
-      if TempWord > 30 then TempWord:= 30;
       Inc(BufPos, 2);
       SetLength(Servers[Idx].aRules, TempWord);
 
       for i:= 0 to TempWord -1 do begin
-        if BufPos > DataLen then break;
         Move(Buf[BufPos], TempByte, 1);
         Inc(BufPos, 1);
-        if BufPos > DataLen then break;
         SetLength(Servers[Idx].aRules[i].Rule, TempByte);
         Move(Buf[BufPos], Servers[Idx].aRules[i].Rule[1], TempByte);
         Inc(BufPos, TempByte);
 
-        if BufPos > DataLen then break;
-
         Move(Buf[BufPos], TempByte, 1);
         Inc(BufPos, 1);
-        if BufPos > DataLen then break;
         SetLength(Servers[Idx].aRules[i].Value, TempByte);
         Move(Buf[BufPos], Servers[Idx].aRules[i].Value[1], TempByte);
         Inc(BufPos, TempByte);
@@ -1754,8 +1629,7 @@ begin
     end;
   end;
 
-  if QueryQueue.Count <= 0 then
-    UpdateServers;
+  UpdateServers;
 
   if RepaintServerList then
     lbServers.Invalidate;
@@ -1782,37 +1656,30 @@ var
   ToLen: Integer;
 
   Host: String;
+  HostLen: Integer;
   Port: Word;
-  Tag: Word;
 
-  ColPos, TagPos: Integer;
+  S, H: Integer;
 begin
-  Tag:= 0;
-
-  if Pos(':', Server) <> 0 then begin
-    if Pos('#', Server) <> 0 then begin
-      ColPos:= Pos(':', Server);
-      TagPos:= Pos('#', Server);
-
-      Host:= Copy(Server, 1, ColPos-1);
-      Port:= StrToIntDef(Copy(Server, ColPos+1, TagPos-(ColPos+1)), 7777);
-      Tag:= StrToIntDef(Copy(Server, TagPos+1, Length(Server)-TagPos), 0);
+  S:= Pos(':', Server);
+  if S <> 0 then begin
+    H:= Pos('#', Server);
+    if H <> 0 then begin
+      Host:= Copy(Server, 1, S-1);
+      Inc(S);
+      Port:= StrToIntDef(Copy(Server,S,H-S), 7777);
     end else begin
-      ColPos:= Pos(':', Server);
-
-      Host:= Copy(Server, 1, ColPos-1);
-      Port:= StrToIntDef(Copy(Server, ColPos+1, Length(Server)-ColPos+1), 7777);
+      Host:= Copy(Server, 1, S-1);
+      Port:= StrToIntDef(Copy(Server, S+1, Length(Server)-S), 7777);
     end;
   end else begin
     Host:= Server;
     Port:= 7777;
   end;
 
-  if Tag = 0 then
-    Tag:= Port;
-
   Host:= GetIPFromHost(Host);
-  if (Length(Host) < 7) or (Length(Host) > 15) then
+  HostLen:= Length(Host);
+  if (HostLen < 7) or (HostLen > 15) then
     Exit;
 
   GetMem(Buf, 15);
@@ -1826,15 +1693,13 @@ begin
   Buf[6]:= StrToIntDef(GetToken(Host, 3, '.'), 0);
   Buf[7]:= StrToIntDef(GetToken(Host, 4, '.'), 0);
 
-  //Move(Port, Buf[8], 2); // Port
-
   ZeroMemory(@ToAddr, SizeOf(ToAddr));
   ToAddr.sin_family:= AF_INET;
   ToAddr.sin_port:= htons(Port);
   ToAddr.sin_addr.S_addr:= inet_addr(PChar(Host));
   ToLen:= SizeOf(ToAddr);
 
-  Move(Tag, Buf[8], 2); // Tag
+  Move(Port, Buf[8], 2); // Port
 
   if bInfo = true then begin
     Buf[10]:= Byte('i'); // Info Packet Id
@@ -1905,7 +1770,7 @@ begin
   FillChar(ProcInfo, SizeOf(TProcessInformation), 0);
   StartInfo.cb:= SizeOf(TStartupInfo);
 
-  CmdLine:= ' -c -n ' + edName.Text + ' -h ' + GetIPFromHost(Server) + ' -p ' + Port;
+  CmdLine:= ' -c -n ' + edName.Text + ' -h ' + Server + ' -p ' + Port;
   if Password <> '' then
     CmdLine:= CmdLine + ' -z ' + Password;
 
@@ -1961,18 +1826,18 @@ begin
     if Index >= Length(Servers[Idx].aPlayers) then
       Exit;
 
-    Canvas.Pen.Color:= clBtnHighlight;
+    Canvas.Pen.Color:= clBtnShadow;
     Canvas.Pen.Style:= psClear;
 
     if odSelected in State then begin
-      Canvas.Font.Color:= clHighlightText;
-      Canvas.Brush.Color:= clHighlight;
+      Canvas.Font.Color:= clWhite;
+      Canvas.Brush.Color:= $00804000;
     end else begin
-      Canvas.Font.Color:= clWindowText;
+      Canvas.Font.Color:= clBlack;
       if (Index mod 2) = 1 then
-        Canvas.Brush.Color:= clWindow
+        Canvas.Brush.Color:= $00FFFFFF
       else
-        Canvas.Brush.Color:= sub_4E2628(clWindow);
+        Canvas.Brush.Color:= $00EEEEEE;
     end;
 
     Inc(Rect.Right);
@@ -2016,18 +1881,18 @@ begin
     if Index >= Length(Servers[Idx].aRules) then
       Exit;
 
-    Canvas.Pen.Color:= clBtnHighlight;
+    Canvas.Pen.Color:= clBtnShadow;
     Canvas.Pen.Style:= psClear;
 
     if odSelected in State then begin
-      Canvas.Font.Color:= clHighlightText;
-      Canvas.Brush.Color:= clHighlight;
+      Canvas.Font.Color:= clWhite;
+      Canvas.Brush.Color:= $00804000;
     end else begin
-      Canvas.Font.Color:= clWindowText;
+      Canvas.Font.Color:= clBlack;
       if (Index mod 2) = 1 then
-        Canvas.Brush.Color:= clWindow
+        Canvas.Brush.Color:= $00FFFFFF
       else
-        Canvas.Brush.Color:= sub_4E2628(clWindow);
+        Canvas.Brush.Color:= $00EEEEEE;
     end;
 
     Inc(Rect.Right);
@@ -2083,30 +1948,15 @@ procedure TfmMain.WMRecv(var Message: TMessage);
 var
   lpBuffer: Array[0..2048] of Char;
   BufLen: Integer;
-
-  FromAddr: TSockAddr;
-  FromLen: Integer;
-
-  SrcAddr: String;
-  SrcPort: Word;
 begin
   ZeroMemory(@lpBuffer, sizeof(lpBuffer));
-
-  ZeroMemory(@FromAddr, sizeof(FromAddr));
-  FromAddr.sin_family:= AF_INET;
-  FromLen:= SizeOf(FromAddr);
-
-  BufLen:= recvfrom(QuerySocket, lpBuffer, 2048, 0, FromAddr, FromLen);
-  SrcAddr:= inet_ntoa(FromAddr.sin_addr);
-  SrcPort:= htons(FromAddr.sin_port);
+  BufLen:= recv(QuerySocket, lpBuffer, 2048, 0);
 
   while (BufLen > 0) do begin
     //OutputDebugString( PChar('[*] of size ' + IntToStr(BufLen)) );
-    QueryServerInfoParse(SrcAddr,SrcPort,lpBuffer,BufLen);
+    QueryServerInfoParse(lpBuffer,BufLen);
     ZeroMemory(@lpBuffer, sizeof(lpBuffer));
-    BufLen:= recvfrom(QuerySocket, lpBuffer, 2048, 0, FromAddr, FromLen);
-    SrcAddr:= inet_ntoa(FromAddr.sin_addr);
-    SrcPort:= htons(FromAddr.sin_port);
+    BufLen:= recv(QuerySocket, lpBuffer, 2048, 0);
   end;
 
 end;
@@ -2128,82 +1978,14 @@ begin
 
   QueryQueue.Free;
 
-  if (tsServerLists.TabIndex = 0) and (FavoritesChanged = True) then begin
-    ExportFavorites(sub_4E1DA8 + 'USERDATA.DAT', True);
-    FavoritesChanged:= False;
-  end;
-
+  HtmlHelp(0, nil, HH_CLOSE_ALL, 0);
   Sleep(0);
 end;
 
 procedure TfmMain.FormShow(Sender: TObject);
-var
-  ServFull, ServAddr, ServPort, ServPass: String;
-  NewServer: String;
 begin
   //SetProcessAffinityMask(GetCurrentProcess(),1);
-  lbServers.DoubleBuffered:= true;
-  lbPlayers.DoubleBuffered:= true;
-  lbRules.DoubleBuffered:= true;
   lbServers.SetFocus;
-
-  if ParamCount > 0 then begin
-    ServFull:= ParamStr(1);
-    if Copy(ServFull, 0, 7) = 'samp://' then begin
-      if ParamCount > 1 then
-        ServPass:= ParamStr(2);
-      ServFull:= StringReplace(ServFull, 'samp://', '', [rfReplaceAll, rfIgnoreCase]);
-      ServFull:= StringReplace(ServFull, '/', '', [rfReplaceAll, rfIgnoreCase]);
-      if Pos(':', ServFull) <> 0 then begin
-        ServAddr:= Copy(ServFull, 0, Pos(':', ServFull)-1);
-        ///////////////////////////////////////////////
-        //
-        // Delphi 7 compiler bug(?)
-        //
-        // With this structure:
-        // ServPort:= IntToStr(StrToIntDef(Copy(ServFull, Pos(':', ServFull)+1, Length(ServFull)-Pos(':', ServFull)+1), 7777));
-        // the compiler seems to gets confused and will not generate
-        // LStrLAsg call after Sysutils::IntToStr to set ServPort variable.
-        // Workaround is to break down the structure.
-        //
-        ///////////////////////////////////////////////
-        ServPort:= Copy(ServFull, Pos(':', ServFull)+1, Length(ServFull)-Pos(':', ServFull)+1);
-        ServPort:= IntToStr(StrToIntDef(ServPort, 7777));
-      end else begin
-        ServAddr:= Copy(ServFull, 0, Length(ServFull));
-        ServPort:= '7777';
-      end;
-      wnd_webrunform.Label1.Caption:= 'Do you want to add ' + ServAddr + ':' + ServPort + ' to your favorites ' + #13#10 + 'or play on this server now?';
-      Case wnd_webrunform.ShowModal Of
-        mrOk: begin
-          ServerConnect(ServAddr, ServPort, ServPass);
-          Application.Terminate;
-        end;
-        mrYes: begin
-          sub_4E1CEC;
-          NewServer:= ServAddr + ':' + ServPort;
-          if InputQuery('Add Server', 'Enter new server HOST:PORT...', NewServer) <> False then
-            if NewServer <> '' then
-              AddServer(NewServer);
-        end;
-        mrCancel: ;
-      end;
-    end else begin
-      ServFull:= ParamStr(1);
-      if ParamCount > 1 then
-        ServPass:= ParamStr(2);
-      if Pos(':', ServFull) <> 0 then begin
-        ServAddr:= Copy(ServFull, 1, Pos(':', ServFull)-1);
-        ServPort:= IntToStr(StrToIntDef(Copy(ServFull, Pos(':', ServFull)+1, 5), 7777));
-      end else begin
-        ServAddr:= ServFull;
-        ServPort:= '7777';
-      end;
-      ServerConnect(ServAddr, ServPort, ServPass);
-      Application.Terminate;
-    end;
-  end;
-  sub_4E1CEC;
 end;
 
 function BrowseCallbackProc(hwnd: HWND; uMsg: UINT; lParam, lpData: LPARAM): Integer; stdcall;
@@ -2241,6 +2023,11 @@ begin
   End;
 end;
 
+procedure TfmMain.miGtaHostClick(Sender: TObject);
+begin
+  ShellExecute(Handle, 'open', 'http://www.gta-host.com/', nil, nil, SW_SHOWNORMAL);
+end;
+
 procedure TfmMain.miSampClick(Sender: TObject);
 begin
   ShellExecute(Handle, 'open', 'http://www.sa-mp.com/', nil, nil, SW_SHOWNORMAL);
@@ -2248,42 +2035,25 @@ end;
 
 procedure TfmMain.tmrQueryQueueProcessTimer(Sender: TObject);
 begin
-  //Application.ProcessMessages;
+  Application.ProcessMessages;
   if QueryQueue.Count > 0 then begin
     QueryServerInfo(QueryQueue.Strings[0], false, true, false, false);
-    //QueryServerInfo(QueryQueue.Strings[0], true, false, false, false);
+    QueryServerInfo(QueryQueue.Strings[0], true, false, false, false);
     //UpdateServers;
     QueryQueue.Delete(0);
   end;
 end;
 
 procedure TfmMain.label_urlClick(Sender: TObject);
-begin
-  ShellExecute(0, 'open', PAnsiChar('http://' + (Sender as TLabel).Caption), '', '', SW_SHOWNORMAL);
-end;
-
-procedure TfmMain.CreateFASTDesktoplink1Click(Sender: TObject);
 var
-  Idx: Integer;
+  Url: String;
 begin
-  if lbServers.ItemIndex = -1 then Exit;
-
-  Idx:= StrToInt(lbServers.Items.Strings[lbServers.ItemIndex]);
-  if Idx >= Length(Servers) then Exit;
-
-  sub_4E1E6C(Servers[Idx].Address + ':' + IntToStr(Servers[Idx].Port), Servers[Idx].HostName);
-end;
-
-procedure TfmMain.FormResize(Sender: TObject);
-begin
-  imLogo.Left:= fmMain.Width - imLogo.Width;
-  imLogo.Repaint;
-end;
-
-procedure TfmMain.imLogoClick(Sender: TObject);
-begin
-  fmAbout.ShowModal;
+  Url:= label_url.Caption;
+  if Url <> '' then begin
+    if not AnsiStartsStr(Url, 'http://') Or not AnsiStartsStr(Url, 'https://') then
+      Url:= 'https://' + Url;
+    ShellExecute(0, 'open', PAnsiChar(Url), nil, nil, SW_SHOWNORMAL);
+  end;
 end;
 
 end.
-
