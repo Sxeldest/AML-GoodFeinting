@@ -51,8 +51,8 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
     ImVec2 p = ImVec2(floorf(pos.x + 0.5f), floorf(pos.y + 0.5f));
 
     if (outline) {
-        float outerOpacity = bold_outline ? 1.0f : 0.5f;
-        float innerOpacity = bold_outline ? 1.0f : 0.45f;
+        float outerOpacity = bold_outline ? 1.0f : 0.15f;
+        float innerOpacity = bold_outline ? 1.0f : 0.25f;
 
         ImColor outerColor(0.0f, 0.0f, 0.0f, color.Value.w * outerOpacity);
         ImColor innerColor(0.0f, 0.0f, 0.0f, color.Value.w * innerOpacity);
