@@ -51,22 +51,22 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
     ImVec2 p = ImVec2(floorf(pos.x + 0.5f), floorf(pos.y + 0.5f));
 
     if (outline) {
-        float outerOpacity = bold_outline ? 1.0f : 0.15f;
-        float innerOpacity = bold_outline ? 1.0f : 0.25f;
+        ImColor outlineColor(0.0f, 0.0f, 0.0f, color.Value.w);
 
-        ImColor outerColor(0.0f, 0.0f, 0.0f, color.Value.w * outerOpacity);
-        ImColor innerColor(0.0f, 0.0f, 0.0f, color.Value.w * innerOpacity);
-
-        m_drawList->AddText(font, sz_font, ImVec2(p.x - 2.0f, p.y), outerColor, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x + 2.0f, p.y), outerColor, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - 2.0f), outerColor, begin, end);
-        m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + 2.0f), outerColor, begin, end);
-
-        for (float dx = -1.0f; dx <= 1.0f; dx += 1.0f) {
-            for (float dy = -1.0f; dy <= 1.0f; dy += 1.0f) {
-                if (dx == 0.0f && dy == 0.0f) continue;
-                m_drawList->AddText(font, sz_font, ImVec2(p.x + dx, p.y + dy), innerColor, begin, end);
-            }
+        if (bold_outline) {
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - 2.0f, p.y), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + 2.0f, p.y), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - 2.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + 2.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - 1.0f, p.y - 1.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + 1.0f, p.y - 1.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - 1.0f, p.y + 1.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + 1.0f, p.y + 1.0f), outlineColor, begin, end);
+        } else {
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - 1.0f, p.y), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + 1.0f, p.y), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - 1.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + 1.0f), outlineColor, begin, end);
         }
     }
 

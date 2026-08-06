@@ -83,7 +83,7 @@ void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlay
     float borderOffset = (float)((int)RS(1.0f));
     if (borderOffset < 1.0f) borderOffset = 1.0f;
 
-    ImVec2 barPos = ImVec2(Out.X - halfWidth, (float)((int)(Out.Y + RS(2.0f))));
+    ImVec2 barPos = ImVec2(Out.X - halfWidth, (float)((int)(Out.Y + RS(3.0f))));
 
     float health = pPlayer->getHealth();
     float armour = pPlayer->getArmour();
