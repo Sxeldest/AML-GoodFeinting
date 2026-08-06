@@ -47,12 +47,12 @@ public:
 
 	float scaleX(float x)
 	{
-		return x * displaySize().x * (1.0f / 1366.0f);
+		return x * displaySize().x * (1.0f / 1920.0f);
 	}
 
 	float scaleY(float y)
 	{
-		return y * displaySize().y * (1.0f / 768.0f);
+		return y * displaySize().y * (1.0f / 1080.0f);
 	}
 
 	virtual void touchEvent(const ImVec2& pos, TouchType type) override;

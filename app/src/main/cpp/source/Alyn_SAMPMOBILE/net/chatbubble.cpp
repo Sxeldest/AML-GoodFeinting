@@ -66,7 +66,7 @@ void ChatBubble::render(ImGuiRenderer* renderer) {
         float fMaxDist = *(float*)(pData + 0x1C);
 
         if (fDist > fMaxDist || fDist > 50.0f) continue;
-        float fVerticalOffset = 0.35f + (fDist * 0.055f);
+        float fVerticalOffset = 0.25f + (fDist * 0.055f);
         headPos.Z += fVerticalOffset;
 
         VECTOR out;
