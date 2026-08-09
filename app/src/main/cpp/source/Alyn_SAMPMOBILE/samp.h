@@ -28,6 +28,9 @@ public:
 	static void addDebugMessage(const char* message, ...);
 	static void addInfoMessage(const char* message, ...);
 
+	typedef void (*ChatCommand_t)(const char*);
+	static void registerChatCommand(const char* name, ChatCommand_t handler);
+
 private:
 	static CNetGame* m_netgame;
 };

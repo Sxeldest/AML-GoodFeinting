@@ -1,10 +1,14 @@
 #include "main.h"
 #include "samp.h"
 #include "settings.h"
-#include"game/hooks_patches.h"
-#include"game/audiostream.h"
+#include "game/hooks_patches.h"
+#include "game/audiostream.h"
 #include "voice/Plugin.h"
 #include "voice/Network.h"
+#include <functional>
+#include <string_view>
+#include <map>
+#include <string>
 
 UI* pUI = nullptr;
 AudioStream* pAudioStream = nullptr;
@@ -52,6 +56,15 @@ void* SAMP::mainThread(void*)
 	pthread_exit(nullptr);
 }
 
+void CMD_HideButtons(const char* params)
+{
+	CrackedUI* pUI = SAMP::ui();
+	if (pUI && pUI->m_buttonpanel) {
+		bool isVisible = SAMP::isWidgetVisible(pUI->m_buttonpanel);
+		SAMP::setWidgetVisible(pUI->m_buttonpanel, !isVisible);
+	}
+}
+
 void SAMP::process()
 {
 	if (!g_gameInited) {
@@ -86,8 +99,10 @@ void SAMP::process()
 		pAudioStream->Initialize();
 
 		addDebugMessage("{FFFFFF}Alyn {0b5394}SA-MP Mobile {FFFFFF}Started");
-		addDebugMessage("{FFFFFF}Client commands: {0b5394}/q /dl /odl /togdw /headmove /timestamp /pagesize<5-20> /fontsize<0.1-2.0>");
+		addDebugMessage("{FFFFFF}Client commands: {0b5394}/q /dl /odl /togdw /headmove /timestamp /pagesize<5-20> /fontsize<0.1-2.0> /btn");
 		addDebugMessage(" ");
+
+		registerChatCommand("btn", CMD_HideButtons);
 
 		g_netgameInited = true;
 	}
@@ -187,4 +202,31 @@ void SAMP::addInfoMessage(const char* message, ...)
 
 	// sub_12D490
 	Memory::callFunction(SAMP_Addr(0x12D490 + 1), ui()->m_chat, tmp_buf); // Chat::addInfoMessage
+}
+
+void SAMP::registerChatCommand(const char* name, ChatCommand_t handler)
+{
+	CrackedUI* pUI = ui();
+	if (!pUI || !pUI->m_chat) {
+		LOGE("SAMP::registerChatCommand: Chat object not found!");
+		return;
+	}
+
+	LOGI("SAMP::registerChatCommand: %s", name);
+
+	static std::map<std::string, std::function<void(std::string_view)>> s_commands;
+
+	s_commands[name] = [handler](std::string_view params) {
+		if (handler) {
+			// Convert string_view to null-terminated string
+			std::string s(params);
+			handler(s.c_str());
+		}
+	};
+
+	// sub_12CD48 signature:
+	// void RegisterChatCommand(void* pRet, void* pChat, const char* szName, int nLen, std::function<void(std::string_view)> const* pHandler)
+
+	uint8_t dummy_connection[64];
+	Memory::callFunction<void>(SAMP_Addr(0x12CD48 + 1), dummy_connection, pUI->m_chat, name, (int)strlen(name), &s_commands[name]);
 }
