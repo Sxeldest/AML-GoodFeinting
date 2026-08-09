@@ -77,13 +77,13 @@ void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlay
     uint32_t colorArmourBarBG  = 0xFF282828;
     uint32_t colorBorder       = 0xFF000000;
 
-    float halfWidth    = (float)((int)RS(19.0f));
+    float halfWidth    = 19.0f;
     float barWidth     = halfWidth * 2.0f;
-    float barHeight    = (float)((int)RS(4.0f));
-    float borderOffset = (float)((int)RS(1.0f));
+    float barHeight    = 4.0f;
+    float borderOffset = 1.0f;
     if (borderOffset < 1.0f) borderOffset = 1.0f;
 
-    ImVec2 barPos = ImVec2(Out.X - halfWidth, (float)((int)(Out.Y + RS(3.0f))));
+    ImVec2 barPos = ImVec2(Out.X - halfWidth, (float)((int)(Out.Y + 3.0f)));
 
     float health = pPlayer->getHealth();
     float armour = pPlayer->getArmour();
@@ -103,7 +103,7 @@ void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlay
 
         // Armour Progress
         renderer->drawRect(barPos, ImVec2(barPos.x + aProgress, barPos.y + barHeight), colorArmourBar, true);
-        barPos.y += RS(6.5f);
+        barPos.y += 6.5f;
     }
 
     // Health Border

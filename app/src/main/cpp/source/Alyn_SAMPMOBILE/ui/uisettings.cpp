@@ -8,7 +8,6 @@
 #include "../nerosettings.h"
 
 /* scaling */
-ImVec2 UISettings::m_baseSize = ImVec2(1920.0f, 1080.0f);
 ImVec2 UISettings::m_scaleFactor = ImVec2(1.0f, 1.0f);
 float UISettings::m_fScale = 1.0f;
 
@@ -39,31 +38,17 @@ ImColor UISettings::m_buttonFocusedColor = ImColor(0.1f, 0.1f, 0.7f, 1.0f);
 
 void UISettings::Initialize(const ImVec2& display_size)
 {
-	m_scaleFactor = display_size / m_baseSize;
-	m_fScale = display_size.y / 1080.0f;
+	m_scaleFactor = ImVec2(1.0f, 1.0f);
+	m_fScale = 1.0f;
 
 	/* font */
 	m_fontSize = NeroSettings::GetFontSize();
-	m_fontSize *= m_fScale;
 
 	/* splashscreen */
-	m_splashscreenLogoSize = m_splashscreenLogoSize * m_scaleFactor;
 	m_splashscreenLogoPos = (display_size * 0.5f) - (m_splashscreenLogoSize * 0.5f);
-	m_splashScreenPBarPos = m_splashScreenPBarPos * m_scaleFactor;
-	m_splashScreenPBarSize = m_splashScreenPBarSize * m_scaleFactor;
-
-	/* buttonpanel */
-	m_buttonPanelPos = m_buttonPanelPos * m_scaleFactor;
-	m_buttonPanelSize = m_buttonPanelSize * m_scaleFactor;
-
-	/* button voice */
-	m_voiceButtonPos = m_voiceButtonPos * m_scaleFactor;
-	m_voiceButtonSize = m_voiceButtonSize * m_scaleFactor;
 }
 
 void UISettings::ApplyStyle()
 {
-	/* imgui style scaling */
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.ScaleAllSizes(m_fScale);
+
 }

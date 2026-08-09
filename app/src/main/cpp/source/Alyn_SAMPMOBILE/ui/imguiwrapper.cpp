@@ -52,10 +52,10 @@ bool ImGuiWrapper::initialize()
 	builder.BuildRanges(ranges);
 
 	ImFontConfig fontCfg;
-	fontCfg.OversampleV = 3;
-	fontCfg.OversampleH = 3;
-	fontCfg.RasterizerMultiply = 1.0f;
-	fontCfg.PixelSnapH = true;
+	fontCfg.OversampleV = 2;
+	fontCfg.OversampleH = 2;
+	fontCfg.RasterizerMultiply = 1.5f;
+	fontCfg.PixelSnapH = false;
 	fontCfg.GlyphExtraSpacing.x = 0.0f;
 
 	ImFont* font = io.Fonts->AddFontFromFileTTF(m_fontPath.c_str(), UISettings::fontSize(), &fontCfg, ranges->Data);
@@ -132,7 +132,7 @@ void ImGuiWrapper::setupRenderState()
 	RwRenderStateSet(rwRENDERSTATEBORDERCOLOR, (void*) 0);
 	RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION, (void*) rwALPHATESTFUNCTIONGREATER);
 	RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, (void*) 2);
-	RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, (void*) rwFILTERLINEAR);
+	RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, (void*) rwFILTERNEAREST);
 	RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS, (void*) rwTEXTUREADDRESSCLAMP);
 }
 

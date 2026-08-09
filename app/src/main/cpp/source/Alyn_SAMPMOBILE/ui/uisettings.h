@@ -5,12 +5,7 @@ public:
 	static void Initialize(const ImVec2& display_size);
 	static void ApplyStyle();
 
-	/* scaling macros */
-	#define RS(v) UISettings::scale(v)
-
 	/* scaling */
-	static float scale(float v) { return v * m_fScale; }
-	static ImVec2 scale(ImVec2 v) { return ImVec2(v.x * m_fScale, v.y * m_fScale); }
 	static float getScale() { return m_fScale; }
 	static ImVec2 getScaleFactor() { return m_scaleFactor; }
 
@@ -42,7 +37,6 @@ public:
 
 private:
 	/* scaling */
-	static ImVec2 m_baseSize;
 	static ImVec2 m_scaleFactor;
 	static float m_fScale;
 

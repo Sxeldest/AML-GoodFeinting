@@ -36,9 +36,9 @@ void ChatWindow::render(ImGuiRenderer* renderer)
 	if (m_messages.empty()) return;
 
 	float fontSize = UISettings::fontSize();
-	float x = RS(45.0f);
-	float y = RS(10.0f);
-	float line_height = fontSize + RS(1.0f);
+	float x = 45.0f;
+	float y = 10.0f;
+	float line_height = fontSize + 1.0f;
 
 	int max_messages = NeroSettings::GetPageSize();
 
