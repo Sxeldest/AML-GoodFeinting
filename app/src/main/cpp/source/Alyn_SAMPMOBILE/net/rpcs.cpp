@@ -227,6 +227,17 @@ void ScrDeathMessage(RPCParameters* rpcParams)
 	pUI->deathwindow()->record(playername.c_str(), UI::fixcolor(playercolor), killername.c_str(), killercolor, reason);
 }
 
+namespace FakeFPS { extern uint32_t level; }
+void ScrSetPlayerDrunkLevel(RPCParameters* rpcParams)
+{
+	auto Data = reinterpret_cast<unsigned char*>(rpcParams->input);
+	RakNet::BitStream bsData(Data, (rpcParams->numberOfBitsOfData / 8) + 1, false);
+
+	int iLevel;
+	bsData.Read(iLevel);
+	FakeFPS::level = (uint32_t)iLevel;
+}
+
 DECL_HOOK(void, RegisterRPCs, RakClientInterface* rakClient)
 {
 	LOGI("RegisterRPCs_hook()");
@@ -236,6 +247,7 @@ DECL_HOOK(void, RegisterRPCs, RakClientInterface* rakClient)
 	rakClient->RegisterAsRemoteProcedureCall(&RPC_ScrPlayAudioStream, ScrPlayAudioStream);
 	rakClient->RegisterAsRemoteProcedureCall(&RPC_ScrStopAudioStream, ScrStopAudioStream);
 	rakClient->RegisterAsRemoteProcedureCall(&RPC_ScrDeathMessage, ScrDeathMessage);
+	rakClient->RegisterAsRemoteProcedureCall(&RPC_ScrSetPlayerDrunkLevel, ScrSetPlayerDrunkLevel);
 }
 
 DECL_HOOK(void, UnregisterRPCs, RakClientInterface* rakClient)
@@ -247,6 +259,7 @@ DECL_HOOK(void, UnregisterRPCs, RakClientInterface* rakClient)
 	rakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrPlayAudioStream);
 	rakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrStopAudioStream);
 	rakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrDeathMessage);
+	rakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrSetPlayerDrunkLevel);
 }
 
 void initializeRPC_hooks()

@@ -1,7 +1,7 @@
 #include "playertags.h"
-#include "../../main.h"
-#include "../../samp.h"
-#include "../ui.h"
+#include "../main.h"
+#include "../samp.h"
+#include "../ui/ui.h"
 
 extern UI* pUI;
 

@@ -15,8 +15,8 @@
 
 #include "samp_widgets/voicebutton.h"
 #include "samp_widgets/deathwindow.h"
-#include "samp_widgets/playertags.h"
 #include "samp_widgets/chatwindow.h"
+#include "../net/playertags.h"
 #include "../net/chatbubble.h"
 #include "../net/textlabel.h"
 

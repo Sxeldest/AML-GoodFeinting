@@ -1,3 +1,4 @@
+#include <chrono>
 #include "../main.h"
 #include "../samp.h"
 #include "../settings.h"
@@ -61,10 +62,48 @@ DECL_HOOK(void, InitGui)
 	SAMP::initializeUI();
 }
 
+namespace FakeFPS {
+	uint32_t level = 0;
+	float accumulator = 0.0f;
+	auto lastUpdate = std::chrono::steady_clock::now();
+
+	void Process() {
+		auto now = std::chrono::steady_clock::now();
+		float elapsed = std::chrono::duration<float>(now - lastUpdate).count();
+		lastUpdate = now;
+
+		if (elapsed > 0.1f) elapsed = 0.1f;
+		if (level > 0) {
+			accumulator += elapsed * 100.0f;
+			if (accumulator >= 1.0f) {
+				uint32_t toSub = (uint32_t)accumulator;
+				level = (level > toSub) ? (level - toSub) : 0;
+				accumulator -= (float)toSub;
+			}
+		}
+	}
+
+	void Apply(void* pLocalPlayer, void (*original)(void*)) {
+		if (pLocalPlayer && level > 0) {
+			uintptr_t ped = *(uintptr_t*)((uintptr_t)pLocalPlayer + 0x1C);
+			if (ped) {
+				uint32_t* pDrunk = (uint32_t*)(ped + 0x48);
+				uint32_t old = *pDrunk;
+				*pDrunk = level;
+				original(pLocalPlayer);
+				*pDrunk = old;
+				return;
+			}
+		}
+		original(pLocalPlayer);
+	}
+}
+
 DECL_HOOK(void, MainLoop)
 {
 	MainLoop();
 	SAMP::process();
+	FakeFPS::Process();
 }
 
 DECL_HOOK(void, TouchEvent, int type, int num, int posX, int posY)
@@ -375,6 +414,11 @@ DECL_HOOK(void, ctrBtn_callback)
 	}
 }
 
+DECL_HOOK(void, CLocalPlayer_SendStats, void* _this)
+{
+	FakeFPS::Apply(_this, CLocalPlayer_SendStats);
+}
+
 DECL_HOOK(void, Chat_AddEntry, uintptr_t pChatWindow, uintptr_t pData)
 {
 	auto get_std_string_ptr = [](uintptr_t str_addr) -> const char* {
@@ -472,6 +516,9 @@ void initializeSAMPHooks()
 
 	// ctrBtn_callback
 	HOOK(SAMP_Addr(0x12C9E0), ctrBtn_callback);
+
+	// SendStats
+	HOOK(SAMP_Addr(0x13F564), CLocalPlayer_SendStats);
 
 	// ChatBubble_Render
 	HOOK(SAMP_Addr(0xE3464), ChatBubble_Render);

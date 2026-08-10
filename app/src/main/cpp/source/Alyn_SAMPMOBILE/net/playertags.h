@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../game/common.h"
+#include "../game/common.h"
 
 typedef unsigned short PLAYERID;
 class ImGuiRenderer;
