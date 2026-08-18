@@ -46,24 +46,24 @@ void UI::drawList()
 		return;
 	}
 
-	if (m_playertags) {
-		m_playertags->render(renderer());
-	}
-
-	if (m_chatwindow) {
-		m_chatwindow->render(renderer());
+	if (m_textlabel) {
+		m_textlabel->render(renderer());
 	}
 
 	if (m_chatbubble) {
 		m_chatbubble->render(renderer());
 	}
 
-	if (m_textlabel) {
-		m_textlabel->render(renderer());
+	if (m_playertags) {
+		m_playertags->render(renderer());
 	}
 
 	if (m_deathwindow) {
 		m_deathwindow->render(renderer());
+	}
+
+	if (m_chatwindow) {
+		m_chatwindow->render(renderer());
 	}
 
 	draw(renderer());

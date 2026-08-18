@@ -55,7 +55,7 @@ bool ImGuiWrapper::initialize()
 	fontCfg.OversampleV = 2;
 	fontCfg.OversampleH = 2;
 	fontCfg.RasterizerMultiply = 1.5f;
-	fontCfg.PixelSnapH = false;
+	fontCfg.PixelSnapH = true;
 	fontCfg.GlyphExtraSpacing.x = 0.0f;
 
 	ImFont* font = io.Fonts->AddFontFromFileTTF(m_fontPath.c_str(), UISettings::fontSize(), &fontCfg, ranges->Data);
