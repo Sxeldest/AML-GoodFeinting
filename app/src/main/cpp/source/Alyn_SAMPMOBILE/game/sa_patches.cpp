@@ -4,6 +4,9 @@
 void initializeSAPatches()
 {
 	CCamera::Init(g_saAddr);
+	
+	// CHID::GetInputType()
+	Memory::memWrite(SA_Addr(0x28CC04), (void*)"\x00\x20\x70\x47", 4);
 
 	// fix lock on
 	Memory::memWrite(SA_Addr(0x2AC214), "\x05\x48\x78\x44", 4); // MobileSettings::IsLockOnMode

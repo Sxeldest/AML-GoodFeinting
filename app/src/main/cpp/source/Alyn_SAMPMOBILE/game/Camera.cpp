@@ -7,7 +7,6 @@
 #define M_PI 3.14159265358979323846f
 #endif
 
-// Initialize static members
 CCamera* CCamera::s_TheCamera = nullptr;
 float* CCamera::s_TimeStep = nullptr;
 bool* CCamera::s_UserPause = nullptr;
@@ -17,6 +16,11 @@ CCamera::TouchState CCamera::s_TouchState = { 0.0f, 0.0f, 0.0f, 0.0f, false };
 int CCamera::s_ActiveFingerID = -1;
 float CCamera::s_SmoothDeltaX = 0.0f;
 float CCamera::s_SmoothDeltaY = 0.0f;
+float CCamera::s_MouseDeltaX = 0.0f;
+float CCamera::s_MouseDeltaY = 0.0f;
+float CCamera::s_LastMouseX = 0.0f;
+float CCamera::s_LastMouseY = 0.0f;
+bool CCamera::s_bCaptured = false;
 
 void CCamera::Init(uintptr_t saAddr) {
     s_TheCamera  = (CCamera*)SA_Symbol("TheCamera");
@@ -76,12 +80,30 @@ void CCamera::OnTouchEvent(int type, int fingerId, int x, int y) {
     }
 }
 
+void CCamera::OnMouseMove(float deltaX, float deltaY) {
+    s_MouseDeltaX += deltaX;
+    s_MouseDeltaY += deltaY;
+    s_LastMouseX = deltaX;
+    s_LastMouseY = deltaY;
+}
+
+void CCamera::SetCaptureStatus(bool captured) {
+    s_bCaptured = captured;
+}
+
 void CCamera::Process() {
     if (!s_TheCamera || !s_TimeStep || !s_UserPause || !s_MenuOpened) return;
     if (*s_UserPause || *s_MenuOpened != 0) {
         ResetTouchDeltas();
         s_ActiveFingerID = -1;
+        s_MouseDeltaX = 0.0f;
+        s_MouseDeltaY = 0.0f;
         return;
+    }
+
+    if (!s_bCaptured) {
+        s_MouseDeltaX = 0.0f;
+        s_MouseDeltaY = 0.0f;
     }
 
     uint8_t activeIdx = s_TheCamera->m_nActiveCam;
@@ -94,7 +116,18 @@ void CCamera::Process() {
     activeCam.AlphaSpeed = 0.0f;
     activeCam.BetaSpeed = 0.0f;
 
-    if (s_ActiveFingerID != -1) {
+    float finalDX = 0.0f;
+    float finalDY = 0.0f;
+
+    if (std::abs(s_MouseDeltaX) > 0.0001f || std::abs(s_MouseDeltaY) > 0.0001f) {
+        finalDX = s_MouseDeltaX;
+        finalDY = s_MouseDeltaY;
+
+        s_MouseDeltaX = 0.0f;
+        s_MouseDeltaY = 0.0f;
+    }
+
+    else if (s_ActiveFingerID != -1) {
         float dx = s_TouchState.deltaX;
         float dy = s_TouchState.deltaY;
         float dt = *s_TimeStep;
@@ -112,27 +145,29 @@ void CCamera::Process() {
         s_SmoothDeltaX = (dx * alpha) + (s_SmoothDeltaX * (1.0f - alpha));
         s_SmoothDeltaY = (dy * alpha) + (s_SmoothDeltaY * (1.0f - alpha));
 
-        if (std::abs(s_SmoothDeltaX) > 0.0001f || std::abs(s_SmoothDeltaY) > 0.0001f) {
-            float sensitivityX = 0.0025f;
-            float sensitivityY = 0.0025f;
-
-            if (IsAimMode(activeCam.m_nMode)) {
-                sensitivityX *= 0.6f;
-                sensitivityY *= 0.6f;
-            }
-
-            // Update angles
-            float horizontalAngle = activeCam.m_fHorizontalAngle - (s_SmoothDeltaX * sensitivityX);
-            while (horizontalAngle > M_PI) horizontalAngle -= (2.0f * M_PI);
-            while (horizontalAngle < -M_PI) horizontalAngle += (2.0f * M_PI);
-            activeCam.m_fHorizontalAngle = horizontalAngle;
-
-            activeCam.Alpha -= (s_SmoothDeltaY * sensitivityY);
-            activeCam.Alpha = std::clamp(activeCam.Alpha, -1.1f, 1.5f);
-        }
+        finalDX = s_SmoothDeltaX;
+        finalDY = s_SmoothDeltaY;
     } else {
         s_SmoothDeltaX = 0.0f;
         s_SmoothDeltaY = 0.0f;
+    }
+
+    if (std::abs(finalDX) > 0.0001f || std::abs(finalDY) > 0.0001f) {
+        float sensitivityX = 0.0025f;
+        float sensitivityY = 0.0025f;
+
+        if (IsAimMode(activeCam.m_nMode)) {
+            sensitivityX *= 0.6f;
+            sensitivityY *= 0.6f;
+        }
+
+        float horizontalAngle = activeCam.m_fHorizontalAngle - (finalDX * sensitivityX);
+        while (horizontalAngle > M_PI) horizontalAngle -= (2.0f * M_PI);
+        while (horizontalAngle < -M_PI) horizontalAngle += (2.0f * M_PI);
+        activeCam.m_fHorizontalAngle = horizontalAngle;
+
+        activeCam.Alpha -= (finalDY * sensitivityY);
+        activeCam.Alpha = std::clamp(activeCam.Alpha, -1.1f, 1.5f);
     }
 
     ResetTouchDeltas();
@@ -160,4 +195,16 @@ bool CCamera::IsAimMode(eCamMode mode) {
 void CCamera::ResetTouchDeltas() {
     s_TouchState.deltaX = 0.0f;
     s_TouchState.deltaY = 0.0f;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_nvidia_devtech_NvEventQueueActivity_mouseMoveEvent(JNIEnv* env, jobject thiz, jfloat dx, jfloat dy) {
+    CCamera::OnMouseMove(dx, dy);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_nvidia_devtech_NvEventQueueActivity_onCaptureStatusChanged(JNIEnv* env, jobject thiz, jboolean captured) {
+    CCamera::SetCaptureStatus(captured);
 }

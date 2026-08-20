@@ -142,10 +142,13 @@ public:
     float m_fStartingFOVForInterPol;
     CCam m_aCams[3];
 
-    // Mobile Porting Logic
     static void Init(uintptr_t saAddr);
     static void Process();
     static void OnTouchEvent(int type, int fingerId, int x, int y);
+    static void OnMouseMove(float deltaX, float deltaY);
+    static void SetCaptureStatus(bool captured);
+    static bool IsCaptured() { return s_bCaptured; }
+    static void GetMouseDeltas(float& x, float& y) { x = s_LastMouseX; y = s_LastMouseY; }
 
 private:
     static bool IsAimMode(eCamMode mode);
@@ -161,6 +164,11 @@ private:
     static int s_ActiveFingerID;
     static float s_SmoothDeltaX;
     static float s_SmoothDeltaY;
+    static float s_MouseDeltaX;
+    static float s_MouseDeltaY;
+    static float s_LastMouseX;
+    static float s_LastMouseY;
+    static bool s_bCaptured;
 
     static CCamera* s_TheCamera;
     static float* s_TimeStep;

@@ -38,6 +38,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.PointerIcon;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -153,6 +154,36 @@ public abstract class NvEventQueueActivity
          * The height of the texture.
          */
         public int height;
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        // Cek klik tombol tengah (Middle Mouse) saat kursor sedang terlihat
+        if (Build.VERSION.SDK_INT >= 23 && event.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+            if (event.getActionButton() == MotionEvent.BUTTON_TERTIARY) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && view != null) {
+                    if (!view.hasPointerCapture()) {
+                        view.requestPointerCapture();
+                        onCaptureStatusChanged(true);
+                    }
+                }
+                return true;
+            }
+        }
+
+        // Fallback: Jika captured tapi onCapturedPointer tidak mengirim data, coba ambil dari sini
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && view != null && view.hasPointerCapture()) {
+            if (event.getAction() == MotionEvent.ACTION_MOVE || event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
+                float dx = event.getAxisValue(MotionEvent.AXIS_RELATIVE_X);
+                float dy = event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y);
+                if (dx != 0 || dy != 0) {
+                    mouseMoveEvent(dx, dy);
+                    return true;
+                }
+            }
+        }
+
+        return super.onGenericMotionEvent(event);
     }
 
     protected class gSurfaceView extends SurfaceView {
@@ -329,6 +360,10 @@ public abstract class NvEventQueueActivity
     public native void resumeEvent();
 
     public native boolean touchEvent(int action, int x, int y, MotionEvent event);
+
+    public native void mouseMoveEvent(float dx, float dy);
+
+    public native void onCaptureStatusChanged(boolean captured);
 
     public native boolean multiTouchEvent(int action, int count,
                                           int x0, int y0, int x1, int y1, MotionEvent event);
@@ -548,6 +583,17 @@ public abstract class NvEventQueueActivity
      */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         boolean ret = false;
+
+        // ESC to release mouse capture
+        if (keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && view != null) {
+                if (view.hasPointerCapture()) {
+                    view.releasePointerCapture();
+                    onCaptureStatusChanged(false);
+                }
+            }
+        }
+
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             return super.onKeyDown(keyCode, event);
         }
@@ -698,6 +744,55 @@ public abstract class NvEventQueueActivity
 
         view = new gSurfaceView(this);
         ((gSurfaceView) view).myActivity = this;
+        view.setFocusable(true);
+        view.setFocusableInTouchMode(true);
+        view.requestFocus();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            view.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
+                @Override
+                public boolean onCapturedPointer(View v, MotionEvent event) {
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        v.requestUnbufferedDispatch(event);
+                    }
+
+                    int actionButton = (Build.VERSION.SDK_INT >= 23) ? event.getActionButton() : 0;
+                    int actionMasked = event.getActionMasked();
+
+                    // Cek klik tombol tengah (Middle Mouse) saat kursor tersembunyi
+                    if (actionMasked == MotionEvent.ACTION_BUTTON_PRESS) {
+                        if (actionButton == MotionEvent.BUTTON_TERTIARY) {
+                            view.releasePointerCapture();
+                            onCaptureStatusChanged(false);
+                            return true;
+                        }
+                    }
+
+                    if (actionMasked == MotionEvent.ACTION_MOVE) {
+                        float dx = event.getX();
+                        float dy = event.getY();
+                        
+                        // Jika 0, coba ambil dari Relative Axis (API 26+)
+                        if (dx == 0 && dy == 0) {
+                            dx = event.getAxisValue(MotionEvent.AXIS_RELATIVE_X);
+                            dy = event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y);
+                        }
+
+                        // Fallback ke Axis X/Y jika tetap 0
+                        if (dx == 0 && dy == 0) {
+                            dx = event.getAxisValue(MotionEvent.AXIS_X);
+                            dy = event.getAxisValue(MotionEvent.AXIS_Y);
+                        }
+
+                        if (dx != 0 || dy != 0) {
+                            mouseMoveEvent(dx, dy);
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
 
         holder = view.getHolder();
         holder.setKeepScreenOn(true);
