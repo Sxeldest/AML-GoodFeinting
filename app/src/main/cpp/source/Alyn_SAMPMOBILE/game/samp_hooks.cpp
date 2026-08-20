@@ -1,4 +1,5 @@
 #include <chrono>
+#include "Camera.h"
 #include "../main.h"
 #include "../samp.h"
 #include "../settings.h"
@@ -102,6 +103,7 @@ namespace FakeFPS {
 DECL_HOOK(void, MainLoop)
 {
 	MainLoop();
+	CCamera::Process();
 	SAMP::process();
 	FakeFPS::Process();
 }
@@ -111,6 +113,8 @@ DECL_HOOK(void, TouchEvent, int type, int num, int posX, int posY)
 	if (SAMP::paused()) {
 		return TouchEvent(type, num, posX, posY);
 	}
+
+	CCamera::OnTouchEvent(type, num, posX, posY);
 
 	if (pUI) {
 		switch (type) {

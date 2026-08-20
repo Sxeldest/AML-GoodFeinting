@@ -1,7 +1,7 @@
 #pragma once
 
 #include "imguirenderer.h"
-#include "../game/rw/rw.h"
+#include "../game/RW/rw.h"
 
 class ImGuiWrapper {
 public:

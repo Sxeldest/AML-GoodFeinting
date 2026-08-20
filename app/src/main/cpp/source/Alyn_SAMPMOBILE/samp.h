@@ -2,7 +2,7 @@
 
 #include "game/common.h"
 #include "game/scripting.h"
-#include "game/rw/rw.h"
+#include "game/RW/rw.h"
 #include "game/utils.h"
 #include "game/scripting.h"
 #include "game/cracked_classes.h"

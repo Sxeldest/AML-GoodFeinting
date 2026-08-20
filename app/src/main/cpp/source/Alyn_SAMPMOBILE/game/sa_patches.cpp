@@ -1,7 +1,9 @@
 #include "../main.h"
+#include "Camera.h"
 
 void initializeSAPatches()
 {
+	CCamera::Init(g_saAddr);
 
 	// fix lock on
 	Memory::memWrite(SA_Addr(0x2AC214), "\x05\x48\x78\x44", 4); // MobileSettings::IsLockOnMode
