@@ -210,10 +210,15 @@ public abstract class NvEventQueueActivity
             }
 
             if (isMouseButtonChanged(MotionEvent.BUTTON_PRIMARY)) {
-                touchEvent(mouseButtonDown(MotionEvent.BUTTON_PRIMARY) ? MotionEvent.ACTION_DOWN : MotionEvent.ACTION_UP, (int) event.getX(), (int) event.getY(), event);
+                boolean down = mouseButtonDown(MotionEvent.BUTTON_PRIMARY);
+                mouseButtonEvent(0, down);
+                touchEvent(down ? MotionEvent.ACTION_DOWN : MotionEvent.ACTION_UP, (int) event.getX(), (int) event.getY(), event);
             }
             if (isMouseButtonChanged(MotionEvent.BUTTON_SECONDARY)) {
-                keyEvent(mouseButtonDown(MotionEvent.BUTTON_SECONDARY) ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK, 0, 0, null);
+                mouseButtonEvent(1, mouseButtonDown(MotionEvent.BUTTON_SECONDARY));
+            }
+            if (isMouseButtonChanged(MotionEvent.BUTTON_TERTIARY)) {
+                mouseButtonEvent(2, mouseButtonDown(MotionEvent.BUTTON_TERTIARY));
             }
 
             savedBS = currentBS;
@@ -399,6 +404,8 @@ public abstract class NvEventQueueActivity
     public native boolean touchEvent(int action, int x, int y, MotionEvent event);
 
     public native void mouseMoveEvent(float dx, float dy);
+
+    public native void mouseButtonEvent(int button, boolean down);
 
     public native void onCaptureStatusChanged(boolean captured);
 
@@ -803,10 +810,15 @@ public abstract class NvEventQueueActivity
                         }
 
                         if (isMouseButtonChanged(MotionEvent.BUTTON_PRIMARY)) {
-                            touchEvent(mouseButtonDown(MotionEvent.BUTTON_PRIMARY) ? MotionEvent.ACTION_DOWN : MotionEvent.ACTION_UP, (int) event.getX(), (int) event.getY(), event);
+                            boolean down = mouseButtonDown(MotionEvent.BUTTON_PRIMARY);
+                            mouseButtonEvent(0, down);
+                            touchEvent(down ? MotionEvent.ACTION_DOWN : MotionEvent.ACTION_UP, (int) event.getX(), (int) event.getY(), event);
                         }
                         if (isMouseButtonChanged(MotionEvent.BUTTON_SECONDARY)) {
-                            keyEvent(mouseButtonDown(MotionEvent.BUTTON_SECONDARY) ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK, 0, 0, null);
+                            mouseButtonEvent(1, mouseButtonDown(MotionEvent.BUTTON_SECONDARY));
+                        }
+                        if (isMouseButtonChanged(MotionEvent.BUTTON_TERTIARY)) {
+                            mouseButtonEvent(2, mouseButtonDown(MotionEvent.BUTTON_TERTIARY));
                         }
 
                         savedBS = currentBS;

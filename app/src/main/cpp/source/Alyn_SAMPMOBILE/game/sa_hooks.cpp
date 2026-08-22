@@ -1,6 +1,7 @@
 #include "../main.h"
 #include "../samp.h"
 #include "common.h"
+#include "Camera.h"
 
 bool g_disableVehicleCollisions = false;
 
@@ -118,6 +119,11 @@ DECL_HOOK(void, CAEVehicleAudioEntity_ProcessVehicle, uintptr_t _this, VEHICLE_T
 	}
 }
 
+DECL_HOOK(uint32_t, CPad_GetWeapon_SA, uintptr_t pPad, uintptr_t pPed)
+{
+	if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0)) return true;
+	return CPad_GetWeapon_SA(pPad, pPed);
+}
 
 void initializeSAHooks()
 {
@@ -137,4 +143,6 @@ void initializeSAHooks()
 	HOOK(SA_Addr(0x5661D4), CBike_ProcessEntityCollision);
 	HOOK(SA_Addr(0x575600), CMonsterTruck_ProcessEntityCollision);
 	HOOK(SA_Addr(0x57C084), CTrailer_ProcessEntityCollision);
+
+	HOOK(SA_Addr(0x3FAB58), CPad_GetWeapon_SA);
 }

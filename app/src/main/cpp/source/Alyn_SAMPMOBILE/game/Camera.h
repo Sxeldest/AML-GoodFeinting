@@ -146,9 +146,13 @@ public:
     static void Process();
     static void OnTouchEvent(int type, int fingerId, int x, int y);
     static void OnMouseMove(float deltaX, float deltaY);
+    static void OnMouseButton(int button, bool down);
+    static bool IsMouseButtonDown(int button);
     static void SetCaptureStatus(bool captured);
     static bool IsCaptured() { return s_bCaptured; }
     static void GetMouseDeltas(float& x, float& y) { x = s_LastMouseX; y = s_LastMouseY; }
+
+    static bool s_bMouseButtons[3];
 
 private:
     static bool IsAimMode(eCamMode mode);
