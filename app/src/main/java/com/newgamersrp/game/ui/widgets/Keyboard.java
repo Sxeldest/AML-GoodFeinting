@@ -52,11 +52,29 @@ public class Keyboard {
         ImageButton keyboard_button_next = keyboard_layout.findViewById(R.id.keyboard_button_next);
 
         keyboard_input.setOnEditorActionListener((textView, i, keyEvent) -> {
-            if (i == EditorInfo.IME_ACTION_DONE || i == EditorInfo.IME_ACTION_NEXT ||
+            if (i == EditorInfo.IME_ACTION_DONE || i == EditorInfo.IME_ACTION_NEXT || i == EditorInfo.IME_ACTION_SEND ||
                     (keyEvent != null && (keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER || keyEvent.getKeyCode() == KeyEvent.KEYCODE_NUMPAD_ENTER) && keyEvent.getAction() == KeyEvent.ACTION_DOWN)) {
                 if (keyboard_input.getText() != null) {
-                    send(keyboard_input.getText().toString());
-                    keyboard_input.setText("");
+                    String text = keyboard_input.getText().toString();
+                    if (!text.isEmpty()) {
+                        send(text);
+                        keyboard_input.setText("");
+                    }
+                }
+                show(false);
+                return true;
+            }
+            return false;
+        });
+
+        keyboard_input.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER)) {
+                if (keyboard_input.getText() != null) {
+                    String text = keyboard_input.getText().toString();
+                    if (!text.isEmpty()) {
+                        send(text);
+                        keyboard_input.setText("");
+                    }
                 }
                 show(false);
                 return true;

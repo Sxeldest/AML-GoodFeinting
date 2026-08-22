@@ -443,6 +443,8 @@ public abstract class NvEventQueueActivity
         System.out.println("**** NvEventQueueActivity onCreate");
         NvUtil.getInstance().setActivity(this);
 
+        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+
         super.onCreate(savedInstanceState);
 
         if (wantsAccelerometer && mSensorManager == null) {
@@ -784,7 +786,7 @@ public abstract class NvEventQueueActivity
         ((gSurfaceView) view).myActivity = this;
         view.setFocusable(true);
         view.setFocusableInTouchMode(true);
-        view.setBackgroundResource(0);
+        view.setBackgroundColor(0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             view.setDefaultFocusHighlightEnabled(false);
         }

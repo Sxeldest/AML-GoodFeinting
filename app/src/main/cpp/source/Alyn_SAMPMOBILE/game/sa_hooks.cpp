@@ -27,6 +27,7 @@ DECL_HOOK(uint32_t, CHID_IsPressed, int mapping, float *pValue)
 			return true;
 		}
 	}
+
 	return CHID_IsPressed(mapping, pValue);
 }
 
@@ -179,6 +180,7 @@ DECL_HOOK(void, CPad_UpdateMouse, uintptr_t pPadThis) {
 	}
 
 	g_bPreviousRMBState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1);
+	g_bPreviousLMBState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0);
 }
 
 DECL_HOOK(uint32_t, CPad_GetWeapon, uintptr_t pPad, uintptr_t pPed)
