@@ -4,6 +4,46 @@
 #include "Camera.h"
 
 bool g_disableVehicleCollisions = false;
+bool g_bPreviousRMBState = false;
+
+#define HID_MAPPING_ENTER_EXIT_TARGETING 36
+
+DECL_HOOK(uint32_t, CHID_IsJustPressed, int mapping)
+{
+	if (mapping == HID_MAPPING_ENTER_EXIT_TARGETING)
+	{
+		bool bCurrentState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1);
+		if (bCurrentState && !g_bPreviousRMBState) return true;
+	}
+	return CHID_IsJustPressed(mapping);
+}
+
+DECL_HOOK(uint32_t, CHID_IsPressed, int mapping, float *pValue)
+{
+	if (mapping == HID_MAPPING_ENTER_EXIT_TARGETING)
+	{
+		if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1))
+		{
+			return true;
+		}
+	}
+	return CHID_IsPressed(mapping, pValue);
+}
+
+DECL_HOOK(uint32_t, CHID_IsReleased, int mapping)
+{
+	if (mapping == HID_MAPPING_ENTER_EXIT_TARGETING)
+	{
+		bool bCurrentState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1);
+		if (!bCurrentState && g_bPreviousRMBState) return true;
+	}
+	return CHID_IsReleased(mapping);
+}
+
+DECL_HOOK(void, CWeaponEffects_Render)
+{
+	// Do nothing to disable the body lock-on markers
+}
 
 DECL_HOOK(void, NvUtilInit)
 {
@@ -119,10 +159,32 @@ DECL_HOOK(void, CAEVehicleAudioEntity_ProcessVehicle, uintptr_t _this, VEHICLE_T
 	}
 }
 
-DECL_HOOK(uint32_t, CPad_GetWeapon_SA, uintptr_t pPad, uintptr_t pPed)
+DECL_HOOK(void, CPad_UpdateMouse, uintptr_t pPadThis) {
+	float *pfRawMouseDelta = (float *) SA_Addr(0x959AD0);
+	uintptr_t pNewMouseState = SA_Addr(0x959AF4);
+
+	if (pfRawMouseDelta) {
+		pfRawMouseDelta[0] = 0.0f; // X
+		pfRawMouseDelta[1] = 0.0f; // Y
+	}
+
+	CPad_UpdateMouse(pPadThis);
+	float fUnifiedDeltaX = 0.0f;
+	float fUnifiedDeltaY = 0.0f;
+	CCamera::GetDeltas(&fUnifiedDeltaX, &fUnifiedDeltaY);
+
+	if (pNewMouseState) {
+		*(float *) (pNewMouseState + 0xC) = fUnifiedDeltaX;
+		*(float *) (pNewMouseState + 0x10) = fUnifiedDeltaY;
+	}
+
+	g_bPreviousRMBState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1);
+}
+
+DECL_HOOK(uint32_t, CPad_GetWeapon, uintptr_t pPad, uintptr_t pPed)
 {
 	if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0)) return true;
-	return CPad_GetWeapon_SA(pPad, pPed);
+	return CPad_GetWeapon(pPad, pPed);
 }
 
 void initializeSAHooks()
@@ -144,5 +206,12 @@ void initializeSAHooks()
 	HOOK(SA_Addr(0x575600), CMonsterTruck_ProcessEntityCollision);
 	HOOK(SA_Addr(0x57C084), CTrailer_ProcessEntityCollision);
 
-	HOOK(SA_Addr(0x3FAB58), CPad_GetWeapon_SA);
+	HOOK(SA_Addr(0x3F83CC), CPad_UpdateMouse);
+	HOOK(SA_Addr(0x3FAB58), CPad_GetWeapon);
+
+	HOOK(SA_Addr(0x28C144), CHID_IsJustPressed);
+	HOOK(SA_Addr(0x28C180), CHID_IsPressed);
+	HOOK(SA_Addr(0x28C1BC), CHID_IsReleased);
+
+	HOOK(SA_Addr(0x5E3340), CWeaponEffects_Render);
 }

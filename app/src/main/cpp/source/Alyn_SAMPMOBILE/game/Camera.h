@@ -150,6 +150,7 @@ public:
     static bool IsMouseButtonDown(int button);
     static void SetCaptureStatus(bool captured);
     static bool IsCaptured() { return s_bCaptured; }
+    static void GetDeltas(float* x, float* y);
     static void GetMouseDeltas(float& x, float& y) { x = s_LastMouseX; y = s_LastMouseY; }
 
     static bool s_bMouseButtons[3];

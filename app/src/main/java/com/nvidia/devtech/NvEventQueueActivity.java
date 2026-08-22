@@ -784,6 +784,11 @@ public abstract class NvEventQueueActivity
         ((gSurfaceView) view).myActivity = this;
         view.setFocusable(true);
         view.setFocusableInTouchMode(true);
+        view.setBackgroundResource(0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            view.setDefaultFocusHighlightEnabled(false);
+        }
+
         view.requestFocus();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

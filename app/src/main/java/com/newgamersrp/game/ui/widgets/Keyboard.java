@@ -2,6 +2,7 @@ package com.newgamersrp.game.ui.widgets;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -51,7 +52,8 @@ public class Keyboard {
         ImageButton keyboard_button_next = keyboard_layout.findViewById(R.id.keyboard_button_next);
 
         keyboard_input.setOnEditorActionListener((textView, i, keyEvent) -> {
-            if (i == EditorInfo.IME_ACTION_DONE || i == EditorInfo.IME_ACTION_NEXT) {
+            if (i == EditorInfo.IME_ACTION_DONE || i == EditorInfo.IME_ACTION_NEXT ||
+                    (keyEvent != null && (keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER || keyEvent.getKeyCode() == KeyEvent.KEYCODE_NUMPAD_ENTER) && keyEvent.getAction() == KeyEvent.ACTION_DOWN)) {
                 if (keyboard_input.getText() != null) {
                     send(keyboard_input.getText().toString());
                     keyboard_input.setText("");
