@@ -46,6 +46,7 @@ DECL_HOOK(uint32_t, CHID_IsPressed, int mapping, float *pValue)
 	{
 		if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1))
 		{
+			if (pValue) *pValue = 1.0f;
 			return true;
 		}
 	}
@@ -54,6 +55,7 @@ DECL_HOOK(uint32_t, CHID_IsPressed, int mapping, float *pValue)
 	{
 		if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0))
 		{
+			if (pValue) *pValue = 1.0f;
 			return true;
 		}
 	}
