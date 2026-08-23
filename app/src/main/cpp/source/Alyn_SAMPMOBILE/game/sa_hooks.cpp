@@ -2,11 +2,26 @@
 #include "../samp.h"
 #include "common.h"
 #include "Camera.h"
+#include "utils.h"
+
+#define HID_MAPPING_ATTACK 1
+#define HID_MAPPING_ENTER_EXIT_TARGETING 36
 
 bool g_disableVehicleCollisions = false;
 bool g_bPreviousRMBState = false;
+bool g_bPreviousLMBState = false;
 
-#define HID_MAPPING_ENTER_EXIT_TARGETING 36
+bool IsMeleeWeapon()
+{
+	PED_TYPE* pPed = utils::GamePool_FindPlayerPed();
+	if (!pPed) return true;
+
+	uint32_t weaponID = pPed->WeaponSlots[pPed->byteCurWeaponSlot].dwType;
+	if (weaponID <= 21 || weaponID == WEAPON_SPRAYCAN || weaponID == WEAPON_FIREEXTINGUISHER || weaponID == WEAPON_CAMERA)
+		return true;
+
+	return false;
+}
 
 DECL_HOOK(uint32_t, CHID_IsJustPressed, int mapping)
 {
@@ -15,6 +30,13 @@ DECL_HOOK(uint32_t, CHID_IsJustPressed, int mapping)
 		bool bCurrentState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1);
 		if (bCurrentState && !g_bPreviousRMBState) return true;
 	}
+
+	if (mapping == HID_MAPPING_ATTACK && IsMeleeWeapon())
+	{
+		bool bCurrentState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0);
+		if (bCurrentState && !g_bPreviousLMBState) return true;
+	}
+
 	return CHID_IsJustPressed(mapping);
 }
 
@@ -23,6 +45,14 @@ DECL_HOOK(uint32_t, CHID_IsPressed, int mapping, float *pValue)
 	if (mapping == HID_MAPPING_ENTER_EXIT_TARGETING)
 	{
 		if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1))
+		{
+			return true;
+		}
+	}
+
+	if (mapping == HID_MAPPING_ATTACK && IsMeleeWeapon())
+	{
+		if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0))
 		{
 			return true;
 		}
@@ -38,6 +68,13 @@ DECL_HOOK(uint32_t, CHID_IsReleased, int mapping)
 		bool bCurrentState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1);
 		if (!bCurrentState && g_bPreviousRMBState) return true;
 	}
+
+	if (mapping == HID_MAPPING_ATTACK && IsMeleeWeapon())
+	{
+		bool bCurrentState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0);
+		if (!bCurrentState && g_bPreviousLMBState) return true;
+	}
+
 	return CHID_IsReleased(mapping);
 }
 
@@ -180,12 +217,13 @@ DECL_HOOK(void, CPad_UpdateMouse, uintptr_t pPadThis) {
 	}
 
 	g_bPreviousRMBState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1);
+	g_bPreviousLMBState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0);
 }
 
-DECL_HOOK(uint32_t, CPad_GetWeapon, uintptr_t pPad, uintptr_t pPed, bool bCheckTouch)
+DECL_HOOK(uint32_t, CPad_GetWeapon, uintptr_t pPad, uintptr_t pPed, bool a3)
 {
-    if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0)) return true;
-    return CPad_GetWeapon(pPad, pPed, bCheckTouch);
+    if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0) && !IsMeleeWeapon()) return true;
+    return CPad_GetWeapon(pPad, pPed, a3);
 }
 
 void initializeSAHooks()
