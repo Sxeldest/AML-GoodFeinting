@@ -180,13 +180,12 @@ DECL_HOOK(void, CPad_UpdateMouse, uintptr_t pPadThis) {
 	}
 
 	g_bPreviousRMBState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(1);
-	g_bPreviousLMBState = CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0);
 }
 
-DECL_HOOK(uint32_t, CPad_GetWeapon, uintptr_t pPad, uintptr_t pPed)
+DECL_HOOK(uint32_t, CPad_GetWeapon, uintptr_t pPad, uintptr_t pPed, bool bCheckTouch)
 {
-	if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0)) return true;
-	return CPad_GetWeapon(pPad, pPed);
+    if (CCamera::IsCaptured() && CCamera::IsMouseButtonDown(0)) return true;
+    return CPad_GetWeapon(pPad, pPed, bCheckTouch);
 }
 
 void initializeSAHooks()
