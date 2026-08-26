@@ -144,31 +144,15 @@ public:
 
     static void Init(uintptr_t saAddr);
     static void Process();
-    static void OnTouchEvent(int type, int fingerId, int x, int y);
     static void OnMouseMove(float deltaX, float deltaY);
     static void OnMouseButton(int button, bool down);
     static bool IsMouseButtonDown(int button);
     static void SetCaptureStatus(bool captured);
     static bool IsCaptured() { return s_bCaptured; }
     static void GetDeltas(float* x, float* y);
-    static void GetMouseDeltas(float& x, float& y) { x = s_LastMouseX; y = s_LastMouseY; }
-
     static bool s_bMouseButtons[3];
 
 private:
-    static bool IsAimMode(eCamMode mode);
-    static void ResetTouchDeltas();
-
-    struct TouchState {
-        float lastX, lastY;
-        float deltaX, deltaY;
-        bool isTouched;
-    };
-
-    static TouchState s_TouchState;
-    static int s_ActiveFingerID;
-    static float s_SmoothDeltaX;
-    static float s_SmoothDeltaY;
     static float s_MouseDeltaX;
     static float s_MouseDeltaY;
     static float s_LastMouseX;
@@ -176,8 +160,5 @@ private:
     static bool s_bCaptured;
 
     static CCamera* s_TheCamera;
-    static float* s_TimeStep;
-    static bool* s_UserPause;
-    static int* s_MenuOpened;
 };
 #pragma pack(pop)

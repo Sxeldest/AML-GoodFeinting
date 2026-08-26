@@ -1,4 +1,4 @@
-project(Nezuko_SA-MP)
+project(Nezuko_SAMP)
 
 file(GLOB INCLUDE_FILES
         *.h
@@ -49,4 +49,4 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/../../../../libs/${ANDROID_ABI}"
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "${CMAKE_SOURCE_DIR}/../../../../libs/${ANDROID_ABI}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
         COMMAND ${CMAKE_STRIP} --strip-unneeded "${CMAKE_SOURCE_DIR}/../../../../libs/${ANDROID_ABI}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
-        COMMENT "Copying and stripping libNezuko_SA-MP.so to output folder")
+        COMMENT "Copying and stripping libNezuko_SAMP.so to output folder")

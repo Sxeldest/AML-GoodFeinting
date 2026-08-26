@@ -114,8 +114,6 @@ DECL_HOOK(void, TouchEvent, int type, int num, int posX, int posY)
 		return TouchEvent(type, num, posX, posY);
 	}
 
-	CCamera::OnTouchEvent(type, num, posX, posY);
-
 	if (pUI) {
 		switch (type) {
 			case 2: // push
@@ -472,6 +470,11 @@ DECL_HOOK(void, TextLabel_Render, uintptr_t a1, uintptr_t a2)
 	return;
 }
 
+DECL_HOOK(void, PlayerTags_Render, uintptr_t a1, uintptr_t a2)
+{
+	return;
+}
+
 void initializeSAMPHooks()
 {
 	LOGI("initializeSAMPHooks()");
@@ -532,6 +535,9 @@ void initializeSAMPHooks()
 
 	// TextLabel_Render
 	HOOK(SAMP_Addr(0x14F958), TextLabel_Render);
+
+	// RenderNametag
+	HOOK(SAMP_Addr(0xF18C8), PlayerTags_Render);
 
 	initializeRPC_hooks();
 }

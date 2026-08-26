@@ -4,4 +4,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_minimum_required(VERSION 3.22.1)
 
-add_subdirectory(Nezuko_SA-MP)
+add_subdirectory(Nezuko_SAMP)

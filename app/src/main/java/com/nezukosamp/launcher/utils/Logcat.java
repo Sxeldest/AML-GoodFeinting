@@ -8,7 +8,7 @@ import java.io.IOException;
 @Obfuscate
 public class Logcat {
     public static void save() {
-        File log_file = new File(Utils.EXTERNAL_DIR, "Nezuko_SA-MP_log.txt");
+        File log_file = new File(Utils.EXTERNAL_DIR, "Nezuko_SAMP_log.txt");
 
         if (log_file.exists()) {
             log_file.delete();

@@ -28,7 +28,7 @@ public class SAMP extends GTASA {
 
     static {
         try {
-            System.loadLibrary("Nezuko_SA-MP");
+            System.loadLibrary("Nezuko_SAMP");
             System.loadLibrary("samp");
         } catch (ExceptionInInitializerError | UnsatisfiedLinkError e) {
             Log.e(TAG, Objects.requireNonNull(e.getMessage()));

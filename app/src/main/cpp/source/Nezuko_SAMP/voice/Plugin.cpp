@@ -39,7 +39,7 @@ void LogVoice(const char* fmt, ...)
 	vsnprintf(buffer, sizeof(buffer), fmt, arg);
 	va_end(arg);
 
-	__android_log_write(ANDROID_LOG_INFO, "Nezuko_SA-MP", buffer);
+	__android_log_write(ANDROID_LOG_INFO, "Nezuko_SAMP", buffer);
 
 	if (flLog == nullptr) {
 		return;

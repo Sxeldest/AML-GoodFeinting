@@ -1,10 +1,7 @@
 #include "../main.h"
-#include "Camera.h"
 
 void initializeSAPatches()
 {
-	CCamera::Init(g_saAddr);
-
 	// remove smoothing camera
 	Memory::memWrite(SA_Addr(0x3C405A), "\xB7\xEE\x00\x1A", 4);
 	Memory::memWrite(SA_Addr(0x3C438A), "\xB7\xEE\x00\x1A", 4);
