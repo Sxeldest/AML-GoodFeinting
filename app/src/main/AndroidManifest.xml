@@ -40,7 +40,7 @@
     <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE" />
 
     <permission
-        android:name="com.newgamersrp.launcher.MY_PERMISSION"
+        android:name="com.nezukosamp.launcher.MY_PERMISSION"
         android:protectionLevel="normal" />
 
     <application
@@ -67,22 +67,22 @@
         </provider>
 
         <service
-            android:name="com.newgamersrp.launcher.UpdateService"
+            android:name="com.nezukosamp.launcher.UpdateService"
             android:enabled="true"
             android:exported="true"
-            android:permission="com.newgamersrp.launcher.MY_PERMISSION"
+            android:permission="com.nezukosamp.launcher.MY_PERMISSION"
             android:stopWithTask="false" />
 
         <activity
-            android:name="com.newgamersrp.launcher.MainActivity"
+            android:name="com.nezukosamp.launcher.MainActivity"
             android:screenOrientation="portrait" />
 
         <activity
-            android:name="com.newgamersrp.launcher.UpdateActivity"
+            android:name="com.nezukosamp.launcher.UpdateActivity"
             android:screenOrientation="portrait" />
 
         <activity
-            android:name="com.newgamersrp.launcher.SplashActivity"
+            android:name="com.nezukosamp.launcher.SplashActivity"
             android:exported="true"
             android:screenOrientation="portrait">
 

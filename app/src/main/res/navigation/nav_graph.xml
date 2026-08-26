@@ -6,17 +6,17 @@
 
     <fragment
         android:id="@+id/information_page_fragment"
-        android:name="com.newgamersrp.launcher.ui.fragment.InformationPageFragment"
+        android:name="com.nezukosamp.launcher.ui.fragment.InformationPageFragment"
         android:label="InformationPageFragment" />
 
     <fragment
         android:id="@+id/servers_page_fragment"
-        android:name="com.newgamersrp.launcher.ui.fragment.ServersPageFragment"
+        android:name="com.nezukosamp.launcher.ui.fragment.ServersPageFragment"
         android:label="ServersPageFragment" />
 
     <fragment
         android:id="@+id/settings_page_fragment"
-        android:name="com.newgamersrp.launcher.ui.fragment.SettingsPageFragment"
+        android:name="com.nezukosamp.launcher.ui.fragment.SettingsPageFragment"
         android:label="SettingsPageFragment" />
 
 </navigation>

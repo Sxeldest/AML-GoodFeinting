@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace "com.newgamersrp.game"
+    namespace "com.nezukosamp.game"
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.newgamersrp.game"
+        applicationId "com.nezukosamp.game"
         minSdk 21
         targetSdk 33
         versionCode 100

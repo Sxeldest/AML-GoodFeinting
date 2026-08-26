@@ -117,8 +117,8 @@ public class WarMedia extends WarGamepad {
          hasTouchScreen = true;
          isPhone = false;
          currentTempID = 100000;
-         baseDirectory = Environment.getExternalStorageDirectory().getAbsolutePath().concat("/Android/data/com.newgamersrp.game/files/");
-         baseDirectoryRoot = Environment.getExternalStorageDirectory().getAbsolutePath().concat("/Android/data/com.newgamersrp.game/files/");
+         baseDirectory = Environment.getExternalStorageDirectory().getAbsolutePath().concat("/Android/data/com.nezukosamp.game/files/");
+         baseDirectoryRoot = Environment.getExternalStorageDirectory().getAbsolutePath().concat("/Android/data/com.nezukosamp.game/files/");
          IsShowingBackMessage = 0;
          exitDialog = null;
          cachedSizeRead = 0;
@@ -372,7 +372,7 @@ public class WarMedia extends WarGamepad {
     }
 
     public String GetGameBaseDirectory() {
-        return Environment.getExternalStorageDirectory().getAbsolutePath().concat("/Android/data/com.newgamersrp.game/files/");
+        return Environment.getExternalStorageDirectory().getAbsolutePath().concat("/Android/data/com.nezukosamp.game/files/");
     }
 
     void ShowSDErrorDialog() {

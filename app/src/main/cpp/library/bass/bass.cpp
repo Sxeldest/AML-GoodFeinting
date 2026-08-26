@@ -46,7 +46,7 @@ void loadBassLibrary()
 {
 	__android_log_print(ANDROID_LOG_DEBUG, "BASS", "Loading BASS library..");
 
-	void* v0 = dlopen("/data/data/com.newgamersrp.game/lib/libBASS.so", RTLD_LAZY);
+	void* v0 = dlopen("/data/data/com.nezukosamp.game/lib/libBASS.so", RTLD_LAZY);
 	if (!v0) {
 		__android_log_print(ANDROID_LOG_DEBUG, "BASS", "%s", dlerror());
 	}

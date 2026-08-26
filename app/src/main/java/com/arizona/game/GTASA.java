@@ -7,8 +7,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 
-import com.newgamersrp.game.SAMP;
-import com.newgamersrp.game.ui.UI;
+import com.nezukosamp.game.SAMP;
+import com.nezukosamp.game.ui.UI;
 
 import java.nio.charset.StandardCharsets;
 

@@ -24,8 +24,8 @@
 -keep class com.rockstargames.gtasa.* { *; }
 -keep class com.wardrumstudios.utils.* { *; }
 -keep class com.arizona.game.* { *; }
--keep class com.newgamersrp.game.* { *; }
--keep class com.newgamersrp.game.** { *; }
+-keep class com.nezukosamp.game.* { *; }
+-keep class com.nezukosamp.game.** { *; }
 
 # for minify
 -dontwarn javax.servlet.**
