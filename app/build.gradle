@@ -11,7 +11,7 @@ android {
     defaultConfig {
         applicationId "com.newgamersrp.game"
         minSdk 21
-        targetSdk 28
+        targetSdk 33
         versionCode 100
         versionName "1.0.0"
         multiDexEnabled true
