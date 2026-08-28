@@ -3,85 +3,93 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/server_item"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/server_layout"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="#1E1E1E"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:strokeColor="#404040"
+        app:strokeWidth="1dp">
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/server_password"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_5sdp"
-            android:layout_marginTop="@dimen/_5sdp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_unlocked" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/server_name"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/server_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_30sdp"
-            android:layout_marginTop="@dimen/_5sdp"
-            android:fontFamily="@font/gotham"
-            android:maxLines="1"
-            android:text="Loading..."
-            android:textSize="@dimen/_12ssp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:padding="16dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/server_address"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_30sdp"
-            android:fontFamily="@font/gotham"
-            android:maxLines="1"
-            android:text="Address: 127.0.0.1:7777"
-            android:textColor="#909090"
-            android:textSize="@dimen/_10ssp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/server_name" />
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/server_password"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_unlocked"
+                app:tint="@color/md_theme_primary" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/server_gamemode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_30sdp"
-            android:fontFamily="@font/gotham"
-            android:maxLines="1"
-            android:text="Gamemode: Mobile/PC"
-            android:textColor="#909090"
-            android:textSize="@dimen/_10ssp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/server_address" />
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/server_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:fontFamily="@font/gotham"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="Loading Server Name..."
+                android:textColor="@color/md_theme_onSurface"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@+id/server_players"
+                app:layout_constraintStart_toEndOf="@id/server_password"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/server_players"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_30sdp"
-            android:fontFamily="@font/gotham"
-            android:maxLines="1"
-            android:text="Players: 0 / 0"
-            android:textColor="#909090"
-            android:textSize="@dimen/_10ssp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/server_gamemode" />
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/server_address"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/gotham"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="127.0.0.1:7777"
+                android:textColor="@color/md_theme_onSurfaceVariant"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="@+id/server_name"
+                app:layout_constraintStart_toStartOf="@+id/server_name"
+                app:layout_constraintTop_toBottomOf="@id/server_name" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/server_players"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/gotham"
+                android:text="0/0"
+                android:textColor="@color/md_theme_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- Hidden placeholder for gamemode to avoid crash in Adapter -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/server_gamemode"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

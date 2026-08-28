@@ -3,29 +3,29 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
-    android:background="@color/colorPrimaryDark">
+    android:layout_margin="16dp"
+    android:background="@drawable/nav_bg"
+    android:padding="24dp">
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/server_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_5sdp"
         android:fontFamily="@font/gotham"
         android:gravity="center"
         android:maxLines="1"
         android:text="Loading..."
+        android:textColor="@color/md_theme_primary"
+        android:textSize="20sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.divider.MaterialDivider
         android:id="@+id/divider"
-        android:layout_width="@dimen/_150sdp"
-        android:layout_height="@dimen/_2sdp"
-        android:layout_margin="@dimen/_5sdp"
-        app:dividerColor="@color/colorPrimary"
+        android:layout_width="60dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="12dp"
+        app:dividerColor="@color/md_theme_primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/server_name" />
@@ -34,67 +34,57 @@
         android:id="@+id/server_address"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        android:layout_marginTop="20dp"
         android:fontFamily="@font/gotham"
         android:gravity="center"
-        android:maxLines="1"
         android:text="Address: 127.0.0.1"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/md_theme_onSurface"
+        android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/divider" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/server_players"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_5sdp"
+        android:layout_marginTop="8dp"
         android:fontFamily="@font/gotham"
         android:gravity="center"
-        android:maxLines="1"
         android:text="Players: 0 / 0"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/server_address" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/server_gamemode"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_5sdp"
+        android:layout_marginTop="8dp"
         android:fontFamily="@font/gotham"
         android:gravity="center"
-        android:maxLines="1"
         android:text="Gamemode: Mobile/PC"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/server_players" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/server_language"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_5sdp"
+        android:layout_marginTop="8dp"
         android:fontFamily="@font/gotham"
         android:gravity="center"
-        android:maxLines="1"
         android:text="Language: English"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/server_gamemode" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/nickname_input"
-        android:layout_width="@dimen/_200sdp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_5sdp"
-        android:hint="Nickname..."
-        app:boxBackgroundColor="@color/colorPrimaryDark"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="24dp"
+        android:hint="Nickname"
         app:layout_constraintTop_toBottomOf="@id/server_language">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -102,19 +92,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/gotham"
+            android:inputType="text"
             android:maxLines="1" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/password_input"
-        android:layout_width="@dimen/_200sdp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_5sdp"
-        android:hint="Password..."
-        app:boxBackgroundColor="@color/colorPrimaryDark"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="12dp"
+        android:hint="Password (Optional)"
         app:layout_constraintTop_toBottomOf="@id/nickname_input">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -122,20 +111,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/gotham"
+            android:inputType="textPassword"
             android:maxLines="1" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/delete_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:fontFamily="@font/gotham"
-        android:maxLines="1"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
         android:text="Delete"
-        android:textSize="@dimen/_10ssp"
-        android:textStyle="bold"
         app:icon="@drawable/ic_delete"
         app:layout_constraintEnd_toStartOf="@id/connect_button"
         app:layout_constraintStart_toStartOf="parent"
@@ -143,17 +131,14 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/connect_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:fontFamily="@font/gotham"
-        android:maxLines="1"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="8dp"
         android:text="Connect"
-        android:textSize="@dimen/_10ssp"
-        android:textStyle="bold"
         app:icon="@drawable/ic_play"
+        app:layout_constraintBottom_toBottomOf="@id/delete_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/delete_button"
-        app:layout_constraintTop_toBottomOf="@id/password_input" />
+        app:layout_constraintTop_toTopOf="@id/delete_button" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

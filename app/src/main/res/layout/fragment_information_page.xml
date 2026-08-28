@@ -4,56 +4,31 @@
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/start_line"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.3" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/end_line"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.7" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/icon_top_line"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.2" />
+    android:background="@color/md_theme_background">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/icon"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:scaleType="fitXY"
-        app:layout_constraintBottom_toTopOf="@+id/title_text"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintEnd_toStartOf="@+id/end_line"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintStart_toStartOf="@+id/start_line"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="64dp"
+        android:scaleType="fitCenter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.77"
-        app:layout_constraintVertical_chainStyle="packed"
         app:srcCompat="@drawable/samp_logo" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_8sdp"
+        android:layout_marginTop="0dp"
         android:fontFamily="@font/gotham"
         android:text="Nezuko SA-MP"
-        android:textColor="#FFFFFF"
-        android:textSize="@dimen/_15ssp"
-        app:layout_constraintBottom_toTopOf="@+id/second_title_text"
-        app:layout_constraintEnd_toStartOf="@+id/end_line"
-        app:layout_constraintStart_toStartOf="@+id/start_line"
+        android:textColor="@color/md_theme_primary"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/icon" />
 
     <com.google.android.material.textview.MaterialTextView
@@ -61,40 +36,33 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/gotham"
-        android:text="Mobile"
-        android:textColor="#AFAFAF"
-        android:textSize="@dimen/_10ssp"
-        app:layout_constraintBottom_toTopOf="@+id/mid_guideline"
+        android:text="Mobile Edition"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:textSize="11sp"
+        android:letterSpacing="0.2"
         app:layout_constraintEnd_toEndOf="@+id/title_text"
         app:layout_constraintStart_toStartOf="@+id/title_text"
         app:layout_constraintTop_toBottomOf="@+id/title_text" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/mid_guideline"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.6" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/community"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
         android:fontFamily="@font/gotham"
         android:gravity="center"
         android:text="Community"
-        android:textSize="@dimen/_15ssp"
+        android:textColor="@color/md_theme_onSurface"
+        android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/mid_guideline" />
+        app:layout_constraintTop_toBottomOf="@id/second_title_text" />
 
     <com.google.android.material.divider.MaterialDivider
         android:id="@+id/divider"
-        android:layout_width="@dimen/_150sdp"
-        android:layout_height="@dimen/_2sdp"
-        android:layout_marginTop="@dimen/_5sdp"
-        app:dividerColor="@color/colorPrimary"
+        android:layout_width="86dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="8dp"
+        app:dividerColor="@color/md_theme_primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/community" />
@@ -102,13 +70,16 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/discord_button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_2sdp"
+        android:layout_height="56dp"
+        android:minWidth="220dp"
+        android:layout_marginTop="32dp"
         android:fontFamily="@font/gotham"
         android:text="DISCORD"
+        android:textColor="@color/md_theme_onPrimary"
         android:textStyle="bold"
+        app:backgroundTint="@color/md_theme_primary"
         app:icon="@drawable/discord"
-        app:iconSize="@dimen/_20sdp"
+        app:iconTint="@color/md_theme_onPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/divider" />
@@ -116,13 +87,16 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/web_button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_2sdp"
+        android:layout_height="56dp"
+        android:minWidth="220dp"
+        android:layout_marginTop="12dp"
         android:fontFamily="@font/gotham"
         android:text="WEBSITE"
+        android:textColor="@color/md_theme_onPrimary"
         android:textStyle="bold"
+        app:backgroundTint="@color/md_theme_primary"
         app:icon="@drawable/ic_star"
-        app:iconSize="@dimen/_20sdp"
+        app:iconTint="@color/md_theme_onPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/discord_button" />

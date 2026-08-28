@@ -7,36 +7,50 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@color/md_theme_background">
 
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/servers_toggle_group"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_margin="@dimen/_5sdp"
-            android:visibility="visible"
-            app:checkedButton="@+id/favorite_servers"
-            app:selectionRequired="true"
-            app:singleSelection="true">
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#1E1E1E"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#404040"
+            app:strokeWidth="1dp">
 
-            <Button
-                android:id="@+id/favorite_servers"
-                style="?attr/materialButtonOutlinedStyle"
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/servers_toggle_group"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:width="@dimen/_80sdp"
-                android:text="Favorites" />
+                app:checkedButton="@+id/favorite_servers"
+                app:selectionRequired="true"
+                app:singleSelection="true"
+                app:strokeWidth="0dp">
 
-            <Button
-                android:id="@+id/hosted_servers"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:width="@dimen/_80sdp"
-                android:text="Hosted" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/favorite_servers"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="120dp"
+                    android:text="Favorites"
+                    android:textColor="@color/md_theme_onSurface" />
 
-        </com.google.android.material.button.MaterialButtonToggleGroup>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/hosted_servers"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="120dp"
+                    android:text="Hosted"
+                    android:textColor="@color/md_theme_onSurface" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+        </com.google.android.material.card.MaterialCardView>
 
         <fragment
             android:id="@+id/servers_nav_host_fragment"
