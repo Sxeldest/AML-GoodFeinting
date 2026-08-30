@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <dirent.h>
 
-#define LOG_TAG "Nezuko_SAMP"
+#define LOG_TAG "NezukoSA-MP"
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)

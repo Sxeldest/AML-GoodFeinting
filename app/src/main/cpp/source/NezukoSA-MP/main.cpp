@@ -14,7 +14,7 @@ void* g_sampHandle = nullptr;
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
-	LOGI("Initializing Nezuko_SAMP library... Build time: " __DATE__ " " __TIME__);
+	LOGI("Initializing NezukoSA-MP library... Build time: " __DATE__ " " __TIME__);
 	g_VM = vm;
 	return JNI_VERSION_1_4;
 }

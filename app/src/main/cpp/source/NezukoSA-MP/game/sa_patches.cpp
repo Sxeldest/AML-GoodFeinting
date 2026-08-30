@@ -2,6 +2,15 @@
 
 void initializeSAPatches()
 {
+	// --- RealTimeShadow Fix ---
+
+	// CRealTimeShadowManager::Update - restore prologue (PUSH {R4-R7, LR}; ADD R7, SP, #12)
+	Memory::memWrite(SA_Addr(0x5B83FC), "\xF0\xB5\x03\xAF", 4);
+	// CPhysical::destructor (D2) - restore BL ReturnRealTimeShadow (0x5B85F8)
+	Memory::memWrite(SA_Addr(0x3FCD34), "\xBB\xF1\x60\xFE", 4);
+	// CPhysical::destructor (D0) - restore BL ReturnRealTimeShadow (0x5B85F8)
+	Memory::memWrite(SA_Addr(0x3FCD74), "\xBB\xF1\x40\xFE", 4);
+
 	// remove smoothing camera
 	Memory::memWrite(SA_Addr(0x3C405A), "\xB7\xEE\x00\x1A", 4);
 	Memory::memWrite(SA_Addr(0x3C438A), "\xB7\xEE\x00\x1A", 4);
