@@ -219,12 +219,77 @@ void Java::setWantedLevel(int level)
 
 bool g_scoreboardVisible = false;
 
+#include <sys/ptrace.h>
+#include <unistd.h>
+
+void verifySignature(JNIEnv* env, jobject activity)
+{
+	if (ptrace(PTRACE_TRACEME, 0, 1, 0) == -1) {
+		LOGE("Debugger detected! exiting...");
+		exit(0);
+	}
+
+	jclass contextClass = env->FindClass("android/content/Context");
+	jclass appInfoClass = env->FindClass("android/content/pm/ApplicationInfo");
+	jmethodID getAppInfo = env->GetMethodID(contextClass, "getApplicationInfo", "()Landroid/content/pm/ApplicationInfo;");
+	jobject appInfo = env->CallObjectMethod(activity, getAppInfo);
+	jfieldID flagsField = env->GetFieldID(appInfoClass, "flags", "I");
+	int flags = env->GetIntField(appInfo, flagsField);
+	if ((flags & 2) != 0) {
+		LOGE("App is debuggable! exiting...");
+		exit(0);
+	}
+
+	const char* expectedHash = OBFUSCATE("49e194660dc709d044d11048a55825366ac1e5b2c6a07958eea2b4a845712a93");
+
+	jmethodID getPM = env->GetMethodID(contextClass, "getPackageManager", "()Landroid/content/pm/PackageManager;");
+	jobject pm = env->CallObjectMethod(activity, getPM);
+	jmethodID getPkgName = env->GetMethodID(contextClass, "getPackageName", "()Ljava/lang/String;");
+	jstring pkgName = (jstring)env->CallObjectMethod(activity, getPkgName);
+
+	jclass pmClass = env->FindClass("android/content/pm/PackageManager");
+	jmethodID getPkgInfo = env->GetMethodID(pmClass, "getPackageInfo", "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
+
+	jobject pkgInfo = env->CallObjectMethod(pm, getPkgInfo, pkgName, 64);
+	jclass pkgInfoClass = env->FindClass("android/content/pm/PackageInfo");
+	jfieldID sigsField = env->GetFieldID(pkgInfoClass, "signatures", "[Landroid/content/pm/Signature;");
+	jobjectArray sigs = (jobjectArray)env->GetObjectField(pkgInfo, sigsField);
+
+	if (!sigs || env->GetArrayLength(sigs) == 0) exit(0);
+
+	jobject sig = env->GetObjectArrayElement(sigs, 0);
+	jclass sigClass = env->FindClass("android/content/pm/Signature");
+	jmethodID toByteArr = env->GetMethodID(sigClass, "toByteArray", "()[B");
+	jbyteArray sigBytes = (jbyteArray)env->CallObjectMethod(sig, toByteArr);
+
+	jclass mdClass = env->FindClass("java/security/MessageDigest");
+	jmethodID getInstance = env->GetStaticMethodID(mdClass, "getInstance", "(Ljava/lang/String;)Ljava/security/MessageDigest;");
+	jobject md = env->CallStaticObjectMethod(mdClass, getInstance, env->NewStringUTF("SHA-256"));
+	jmethodID digestMethod = env->GetMethodID(mdClass, "digest", "([B)[B");
+	jbyteArray hashBytes = (jbyteArray)env->CallObjectMethod(md, digestMethod, sigBytes);
+
+	jsize len = env->GetArrayLength(hashBytes);
+	jbyte* bytes = env->GetByteArrayElements(hashBytes, nullptr);
+	char hex[65];
+	for (int i = 0; i < len; i++) {
+		sprintf(hex + (i * 2), "%02x", (unsigned char)bytes[i]);
+	}
+	hex[64] = 0;
+	env->ReleaseByteArrayElements(hashBytes, bytes, JNI_ABORT);
+
+	if (strcmp(hex, expectedHash) != 0) {
+		LOGE("Signature mismatch in Native layer!");
+		exit(0);
+	}
+}
+
 extern "C"
 {
 JNIEXPORT void JNICALL Java_com_nezukosamp_game_SAMP_initializeSAMP(JNIEnv* env,
 		jobject sampObj, jobject uiObj, jobject asset_manager)
 {
 	LOGI("Java_com_nezukosamp_game_SAMP_initializeSAMP");
+	verifySignature(env, sampObj);
 	g_java = new Java(env, sampObj, uiObj, asset_manager);
 }
 

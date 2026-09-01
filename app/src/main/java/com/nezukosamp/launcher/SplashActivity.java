@@ -67,13 +67,10 @@ public class SplashActivity extends AppCompatActivity implements GLSurfaceView.R
     protected void onCreate(Bundle savedInstanceState) {
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
-        /*if (!SignatureChecker.isSignatureValid(this, getPackageName())) {
-            Log.e("SplashActivity", "No remake idiot!");
-            finish();
+        if (!SignatureChecker.check(this)) {
+            finishAffinity();
             return;
-        } else {
-            Log.i("SplashActivity", "Using original client!");
-        }*/
+        }
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);

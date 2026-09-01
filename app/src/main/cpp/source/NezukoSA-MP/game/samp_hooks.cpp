@@ -105,7 +105,7 @@ DECL_HOOK(void, MainLoop)
 	MainLoop();
 	CCamera::Process();
 	SAMP::process();
-	FakeFPS::Process();
+	//FakeFPS::Process();
 }
 
 DECL_HOOK(void, TouchEvent, int type, int num, int posX, int posY)

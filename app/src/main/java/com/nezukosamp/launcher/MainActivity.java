@@ -28,13 +28,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        /*if (!SignatureChecker.isSignatureValid(this, getPackageName())) {
-            Log.e("SplashActivity", "No remake idiot!");
-            finish();
+        if (!SignatureChecker.check(this)) {
+            finishAffinity();
             return;
-        } else {
-            Log.i("SplashActivity", "Using original client!");
-        }*/
+        }
 
         if (!Utils.isOnline(this)) {
             Toast.makeText(this, "No internet connection!", Toast.LENGTH_LONG).show();
