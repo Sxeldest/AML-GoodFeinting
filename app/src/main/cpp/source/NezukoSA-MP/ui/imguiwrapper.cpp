@@ -7,6 +7,7 @@
 #include "../voice/include/util/Render.h"
 #include "../voice/SpeakerList.h"
 #include "../voice/MicroIcon.h"
+#include "../../NezukoFont/NF_RW_Bridge.hpp"
 
 extern UI* pUI;
 
@@ -17,13 +18,19 @@ ImGuiWrapper::ImGuiWrapper(const ImVec2& display_size, const std::string& font_p
 	m_fontRaster = nullptr;
 	m_fontPath = font_path;
 
+	m_mainFont = nullptr;
+	m_weapFont = nullptr;
+
 	m_vertexBuffer = nullptr;
 	m_vertexBufferSize = 10000;
+
+	NezukoFont::Initialize();
 }
 
 ImGuiWrapper::~ImGuiWrapper()
 {
 	shutdown();
+	NezukoFont::Shutdown();
 }
 
 bool ImGuiWrapper::initialize()
@@ -32,6 +39,8 @@ bool ImGuiWrapper::initialize()
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
+
+	m_mainFont = NezukoFont::Load(m_fontPath);
 
 	UISettings::ApplyStyle();
 
@@ -64,16 +73,16 @@ bool ImGuiWrapper::initialize()
 	}
 
 	std::string weap_font_path = std::string((char*) (SA_Addr(0x6D687C))) + "fonts/gtaweap3.ttf";
-	m_weapFont = io.Fonts->AddFontFromFileTTF(weap_font_path.c_str(), UISettings::fontSize(), &fontCfg, ranges->Data);
+	m_weapFont = NezukoFont::Load(weap_font_path);
 
 	if (m_weapFont == nullptr) {
-		LOGE("Failed to load font %s", weap_font_path.c_str());
-		return false;
+		LOGE("Failed to load weapon font %s", weap_font_path.c_str());
+		// We can continue if weapon font fails, but main font is critical
 	}
 
 	createFontTexture();
 
-	m_renderer = new ImGuiRenderer(ImGui::GetBackgroundDrawList(), font);
+	m_renderer = new ImGuiRenderer(ImGui::GetBackgroundDrawList(), m_mainFont);
 
 	for (const auto& deviceInitCallback : Render::deviceInitCallbacks) {
 		if (deviceInitCallback != nullptr) {

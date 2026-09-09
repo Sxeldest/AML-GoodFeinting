@@ -31,6 +31,8 @@ add_library(${PROJECT_NAME} SHARED
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         Library
+        NezukoFont
+        freetype
         log
         z
         android

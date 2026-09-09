@@ -3,12 +3,13 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include "../../NezukoFont/NF_Public.h"
 
 #include <string>
 
 class ImGuiRenderer {
 public:
-    ImGuiRenderer(ImDrawList* draw_list, ImFont* font);
+    ImGuiRenderer(ImDrawList* draw_list, NF_Font* font);
     virtual ~ImGuiRenderer() { };
 
     void drawLine(const ImVec2& a, const ImVec2& b, const ImColor& color, float thickness = 1.0f);
@@ -21,22 +22,22 @@ public:
                       bool fill = false, float thickness = 1.0f);
     void drawConvexPolyFilled(ImVec2* points, int num_points, const ImColor& color);
     void drawText(const ImVec2& pos, const ImColor& color, const std::string& text,
-                  bool outlined = false, float font_size = 0.0f, ImFont* font = NULL, bool bold_outline = false);
+                  bool outlined = false, float font_size = 0.0f, NF_Font* font = NULL, bool bold_outline = false);
     void drawImage(const ImVec2& a, const ImVec2& b, ImTextureID texture);
 
     void pushClipRect(const ImVec2& min, const ImVec2& max, bool intersect = false);
     void popClipRect();
 
-    ImVec2 calculateTextSize(const std::string& text, float font_size = 0.0f);
+    ImVec2 calculateTextSize(const std::string& text, float font_size = 0.0f, NF_Font* font = nullptr);
 
 private:
-    ImVec2 calculateTextSize(const char* begin, const char* end, float font_size = 0.0f);
+    ImVec2 calculateTextSize(const char* begin, const char* end, float font_size = 0.0f, NF_Font* font = nullptr);
     void drawText(const ImVec2& pos, const ImColor& color, const char* begin,
                   const char* end = nullptr, bool outlined = false, float font_size = 0.0f,
-                  ImFont* font = NULL, bool bold_outline = false);
+                  NF_Font* font = NULL, bool bold_outline = false);
     bool processInlineHexColor(const char* start, const char* end, ImVec4& color);
 
 private:
     ImDrawList* m_drawList;
-    ImFont* m_font;
+    NF_Font* m_font;
 };

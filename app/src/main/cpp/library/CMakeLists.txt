@@ -49,3 +49,4 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 add_subdirectory(memory/Dobby)
 add_subdirectory(memory/KittyMemory)
 add_subdirectory(ttmath)
+add_subdirectory(freetype)

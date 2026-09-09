@@ -39,7 +39,7 @@ void DeathWindow::render(ImGuiRenderer* renderer)
 		float backgroundFontSize = nameFontSize + 12.0f;
 		float m_iLongestNickLength = renderer->calculateTextSize("LONGESTNICKNICK_NICKNICK", nameFontSize).x;
 
-		ImVec2 bgSize = pUI->weapFont()->CalcTextSizeA(backgroundFontSize, FLT_MAX, 0.0f, "G");
+		ImVec2 bgSize = renderer->calculateTextSize("G", backgroundFontSize, pUI->weapFont());
 		float field_12F = bgSize.x;
 		float field_133 = bgSize.y;
 
@@ -71,7 +71,7 @@ void DeathWindow::render(ImGuiRenderer* renderer)
 					renderer->drawText(ImVec2(weaponX, weaponY), 0xFF000000, "G", false, backgroundFontSize, pUI->weapFont());
 
 					const char* weaponChar = spriteIDForWeapon(playerkill->reason);
-					ImVec2 wSize = pUI->weapFont()->CalcTextSizeA(weaponFontSize, FLT_MAX, 0.0f, weaponChar);
+					ImVec2 wSize = renderer->calculateTextSize(weaponChar, weaponFontSize, pUI->weapFont());
 					ImVec2 wPos = ImVec2(weaponX, weaponY);
 					wPos.x += (bgSize.x - wSize.x) * 0.5f;
 					wPos.y += (bgSize.y - wSize.y) * 0.5f;
@@ -94,7 +94,7 @@ void DeathWindow::render(ImGuiRenderer* renderer)
 					renderer->drawText(ImVec2(weaponX, weaponY), 0xFF000000, "G", false, backgroundFontSize, pUI->weapFont());
 
 					const char* weaponChar = spriteIDForWeapon(playerkill->reason);
-					ImVec2 wSize = pUI->weapFont()->CalcTextSizeA(weaponFontSize, FLT_MAX, 0.0f, weaponChar);
+					ImVec2 wSize = renderer->calculateTextSize(weaponChar, weaponFontSize, pUI->weapFont());
 					ImVec2 wPos = ImVec2(weaponX, weaponY);
 					wPos.x += (bgSize.x - wSize.x) * 0.5f;
 					wPos.y += (bgSize.y - wSize.y) * 0.5f;
