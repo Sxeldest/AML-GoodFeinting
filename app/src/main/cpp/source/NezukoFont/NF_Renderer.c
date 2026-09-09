@@ -4,9 +4,20 @@
 
 int NF_DrawText(NF_Font* font, const char* text, float x, float y, uint32_t color, NF_Vertex* vbo, int max_verts, float size, bool bold, bool italic) {
     if (!font || !text || !vbo) return 0;
+
+    // Cari cache untuk mendapatkan nilai ascender
+    NF_Glyph* first = NF_GetGlyph(font, 'A', size, bold, italic);
+    if (!first) return 0;
+
+    // Cari cache yang aktif
+    int ascender = 16;
+    for(int i=0; i<font->cache_count; i++) {
+        if(font->caches[i]->size == size) { ascender = font->caches[i]->ascender; break; }
+    }
+
     int v_idx = 0;
     int32_t pen_x = (int32_t)(x * 64.0f);
-    int32_t pen_y = (int32_t)(y * 64.0f);
+    int32_t pen_y = (int32_t)((y + (float)ascender) * 64.0f); // Tambahkan offset ascender
     uint32_t last_idx = 0;
 
     for (const char* p = text; *p && v_idx + 6 <= max_verts; p++) {

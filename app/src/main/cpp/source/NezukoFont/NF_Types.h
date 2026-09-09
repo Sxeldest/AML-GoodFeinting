@@ -22,6 +22,7 @@ typedef struct {
 typedef struct {
     float size;
     bool bold, italic;
+    int ascender; // Blender Logic: Jarak dari baseline ke puncak tertinggi
     NF_Glyph glyphs[NF_MAX_GLYPHS];
     void* texture;
     unsigned char* buffer;

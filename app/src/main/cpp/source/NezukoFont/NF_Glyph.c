@@ -11,6 +11,11 @@ NF_Cache* NF_GetCache(NF_Font* font, float size, bool bold, bool italic) {
     if (font->cache_count >= NF_MAX_CACHES) return font->caches[0];
     NF_Cache* cache = (NF_Cache*)calloc(1, sizeof(NF_Cache));
     cache->size = size; cache->bold = bold; cache->italic = italic;
+
+    // Ambil metrics dasar untuk baseline alignment
+    FT_Set_Pixel_Sizes(font->face, 0, (FT_UInt)size);
+    cache->ascender = (int)(font->face->size->metrics.ascender >> 6);
+
     font->caches[font->cache_count++] = cache;
     return cache;
 }
