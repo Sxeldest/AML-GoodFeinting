@@ -137,7 +137,7 @@ NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool b
         }
         if (cache->glyphs[i].charcode == 0) {
             NZF_SetSize(AS_FACE(font), size);
-            if (FT_Load_Char(AS_FACE(font), charcode, FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_BITMAP)) return NULL;
+            if (FT_Load_Char(AS_FACE(font), charcode, FT_LOAD_TARGET_NORMAL)) return NULL;
             FT_GlyphSlot slot = AS_FACE(font)->glyph;
 
             if (bold && !(AS_FACE(font)->style_flags & FT_STYLE_FLAG_BOLD))
