@@ -7,7 +7,7 @@
 #include "../voice/include/util/Render.h"
 #include "../voice/SpeakerList.h"
 #include "../voice/MicroIcon.h"
-#include "../../nzkfont/NF_RW_Bridge.hpp"
+#include "../../../library/NzFont/NZF_RW_Bridge.hpp"
 
 extern UI* pUI;
 
@@ -24,13 +24,13 @@ ImGuiWrapper::ImGuiWrapper(const ImVec2& display_size, const std::string& font_p
 	m_vertexBuffer = nullptr;
 	m_vertexBufferSize = 10000;
 
-	NF::Initialize();
+	NzFont::Initialize();
 }
 
 ImGuiWrapper::~ImGuiWrapper()
 {
 	shutdown();
-	NF::Shutdown();
+	NzFont::Shutdown();
 }
 
 bool ImGuiWrapper::initialize()
@@ -40,7 +40,7 @@ bool ImGuiWrapper::initialize()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 
-	m_mainFont = NF::Load(m_fontPath);
+	m_mainFont = NzFont::Load(m_fontPath);
 
 	UISettings::ApplyStyle();
 

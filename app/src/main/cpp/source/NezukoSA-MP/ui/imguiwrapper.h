@@ -2,6 +2,7 @@
 
 #include "imguirenderer.h"
 #include "../game/RW/rw.h"
+#include "../../../library/NzFont/NZF_Public.h"
 
 class ImGuiWrapper {
 public:
@@ -14,7 +15,7 @@ public:
 	const ImVec2& displaySize() { return m_displaySize; }
 	ImGuiRenderer* renderer() const { return m_renderer; }
 
-	NF_Font* mainFont() const { return m_mainFont; }
+	NZF_Font* mainFont() const { return m_mainFont; }
 	ImFont* weapFont() const { return m_weapFont; }
 
 	void renderDrawData(ImDrawData* draw_data);
@@ -33,7 +34,7 @@ private:
 	ImVec2 m_displaySize;
 	std::string m_fontPath;
 
-	NF_Font* m_mainFont;
+	NZF_Font* m_mainFont;
 	ImFont* m_weapFont;
 
 	ImGuiRenderer* m_renderer;

@@ -50,3 +50,5 @@ add_subdirectory(memory/Dobby)
 add_subdirectory(memory/KittyMemory)
 add_subdirectory(ttmath)
 add_subdirectory(freetype)
+
+add_subdirectory(NzFont)

@@ -63,7 +63,7 @@ void DeathWindow::render(ImGuiRenderer* renderer)
 					std::string killerName = Encoding::cp2utf(playerkill->killerName.c_str());
 					float killerNameWidth = renderer->calculateTextSize(killerName, nameFontSize).x;
 
-					renderer->drawText(ImVec2(iHorizontalBase + (m_iLongestNickLength - killerNameWidth), vecPos.y), killerColor, killerName, true, nameFontSize);
+					renderer->drawText(ImVec2(iHorizontalBase + (m_iLongestNickLength - killerNameWidth), vecPos.y + 2.0f), killerColor, killerName, true, nameFontSize);
 
 					float weaponX = iHorizontalBase + m_iLongestNickLength + 3.0f;
 					float weaponY = vecPos.y - 5.0f;
@@ -78,13 +78,13 @@ void DeathWindow::render(ImGuiRenderer* renderer)
 					renderer->drawTextIm(wPos, 0xFFFFFFFF, weaponChar, false, weaponFontSize, pUI->weapFont());
 
 					float killeeX = weaponX + field_12F - 2.0f;
-					renderer->drawText(ImVec2(killeeX, vecPos.y), playerColor, Encoding::cp2utf(playerkill->playerName.c_str()), true, nameFontSize);
+					renderer->drawText(ImVec2(killeeX, vecPos.y + 2.0f), playerColor, Encoding::cp2utf(playerkill->playerName.c_str()), true, nameFontSize);
 				}
 				else if (playerkill->killerName.empty() && !playerkill->playerName.empty()) {
 					std::string playerName = Encoding::cp2utf(playerkill->playerName.c_str());
 					float playerNameWidth = renderer->calculateTextSize(playerName, nameFontSize).x;
 
-					renderer->drawText(ImVec2(iHorizontalBase + (m_iLongestNickLength - playerNameWidth), vecPos.y), playerColor, playerName, true, nameFontSize);
+					renderer->drawText(ImVec2(iHorizontalBase + (m_iLongestNickLength - playerNameWidth), vecPos.y + 2.0f), playerColor, playerName, true, nameFontSize);
 
 					uint32_t dwColor = 0xFFFFFFFF;
 					if (playerkill->reason == 201) { dwColor = 0xFFAA1111; }

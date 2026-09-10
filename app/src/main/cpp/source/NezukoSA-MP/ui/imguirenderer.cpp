@@ -1,10 +1,10 @@
 #include <string>
 #include "imguirenderer.h"
 #include "uisettings.h"
-#include "../../nzkfont/NF_Public.h"
-#include "../../nzkfont/NF_RW_Bridge.hpp"
+#include "../../../library/NzFont/NZF_Public.h"
+#include "../../../library/NzFont/NZF_RW_Bridge.hpp"
 
-ImGuiRenderer::ImGuiRenderer(ImDrawList* draw_list, NF_Font* font) {
+ImGuiRenderer::ImGuiRenderer(ImDrawList* draw_list, NZF_Font* font) {
     m_drawList = draw_list;
     m_font = font;
 }
@@ -29,13 +29,13 @@ void ImGuiRenderer::drawConvexPolyFilled(ImVec2* points, int num_points, const I
     m_drawList->AddConvexPolyFilled(points, num_points, color);
 }
 
-void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char* begin, const char* end, bool outline, float font_size, NF_Font* font, bool bold_outline) {
-    NF_Font* f = font ? font : m_font;
+void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char* begin, const char* end, bool outline, float font_size, NZF_Font* font, bool bold_outline) {
+    NZF_Font* f = font ? font : m_font;
     if (!f || !begin) return;
     float sz = (font_size == 0.0f) ? 16.0f : font_size;
-    NF::UpdateTexture(f);
+    NzFont::UpdateTexture(f);
 
-    static NF_Vertex vbo[4096];
+    static NZF_Vertex vbo[4096];
     auto render = [&](float ox, float oy, ImU32 c) {
         float cx = pos.x + ox, cy = pos.y + oy;
         ImU32 cur_col = c;
@@ -52,9 +52,9 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
             const char* bs = p;
             while (p < text_end && *p != '{') p++;
             std::string batch(bs, p - bs);
-            int vc = NF_DrawText(f, batch.c_str(), cx, cy, cur_col, vbo, 4096, sz, false, false);
+            int vc = NzFont_DrawText(f, batch.c_str(), cx, cy, cur_col, vbo, 4096, sz, false, false);
             if (vc > 0) {
-                NF_Cache* cache = f->caches[0];
+                NZF_Cache* cache = f->caches[0];
                 for (int i = 0; i < f->cache_count; i++) if (f->caches[i]->size == sz) { cache = f->caches[i]; break; }
                 m_drawList->PushTextureID((ImTextureID)cache->texture);
                 for (int i = 0; i < vc; i += 3) {
@@ -66,7 +66,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
                     m_drawList->PrimWriteIdx(idx-3); m_drawList->PrimWriteIdx(idx-2); m_drawList->PrimWriteIdx(idx-1);
                 }
                 m_drawList->PopTextureID();
-                cx += NF_CalculateWidth(f, batch.c_str(), sz, false, false);
+                cx += NzFont_CalculateWidth(f, batch.c_str(), sz, false, false);
             }
         }
     };
@@ -82,7 +82,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
     render(0, 0, color);
 }
 
-void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const std::string& text, bool outlined, float font_size, NF_Font* font, bool bold_outline) {
+void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const std::string& text, bool outlined, float font_size, NZF_Font* font, bool bold_outline) {
     if (text.empty()) return;
     drawText(pos, color, text.c_str(), nullptr, outlined, font_size, font, bold_outline);
 }
@@ -121,21 +121,27 @@ void ImGuiRenderer::drawTextIm(const ImVec2& pos, const ImColor& color, const ch
     m_drawList->AddText(font, sz_font, p, color, begin, end);
 }
 
-ImVec2 ImGuiRenderer::calculateTextSize(const std::string& text, float font_size, NF_Font* font) {
+ImVec2 ImGuiRenderer::calculateTextSize(const std::string& text, float font_size, NZF_Font* font) {
     if (text.empty()) return ImVec2(0, 0);
-    NF_Font* f = font ? font : m_font;
+    NZF_Font* f = font ? font : m_font;
     if (!f) return ImVec2(0, 0);
     float sz = (font_size == 0.0f) ? 16.0f : font_size;
-    float w = 0;
+    float max_w = 0, cur_w = 0, cur_h = sz;
     const char* p = text.c_str();
     const char* te = p + text.length();
     while (p < te) {
         if (*p == '{' && (p + 7 < te) && p[7] == '}') { p += 8; continue; }
+        if (*p == '\n') {
+            max_w = ImMax(max_w, cur_w);
+            cur_w = 0;
+            cur_h += sz;
+            p++; continue;
+        }
         const char* bs = p;
-        while (p < te && *p != '{') p++;
-        w += NF_CalculateWidth(f, std::string(bs, p - bs).c_str(), sz, false, false);
+        while (p < te && *p != '{' && *p != '\n') p++;
+        cur_w += NzFont_CalculateWidth(f, std::string(bs, p - bs).c_str(), sz, false, false);
     }
-    return ImVec2(w, sz);
+    return ImVec2(ImMax(max_w, cur_w), cur_h);
 }
 
 ImVec2 ImGuiRenderer::calculateTextSizeIm(const std::string& text, float font_size, ImFont* font) {
@@ -145,7 +151,7 @@ ImVec2 ImGuiRenderer::calculateTextSizeIm(const std::string& text, float font_si
     return calculateTextSizeIm(text.c_str(), nullptr, sz, font);
 }
 
-ImVec2 ImGuiRenderer::calculateTextSize(const char* begin, const char* end, float font_size, NF_Font* font) {
+ImVec2 ImGuiRenderer::calculateTextSize(const char* begin, const char* end, float font_size, NZF_Font* font) {
     return calculateTextSize(end ? std::string(begin, end - begin) : std::string(begin), font_size, font);
 }
 
