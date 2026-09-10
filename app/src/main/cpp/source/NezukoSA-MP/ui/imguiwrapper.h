@@ -15,7 +15,7 @@ public:
 	ImGuiRenderer* renderer() const { return m_renderer; }
 
 	NF_Font* mainFont() const { return m_mainFont; }
-	NF_Font* weapFont() const { return m_weapFont; }
+	ImFont* weapFont() const { return m_weapFont; }
 
 	void renderDrawData(ImDrawData* draw_data);
 
@@ -34,7 +34,7 @@ private:
 	std::string m_fontPath;
 
 	NF_Font* m_mainFont;
-	NF_Font* m_weapFont;
+	ImFont* m_weapFont;
 
 	ImGuiRenderer* m_renderer;
 	RwRaster* m_fontRaster;

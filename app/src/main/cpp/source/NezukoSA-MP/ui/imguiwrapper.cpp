@@ -7,7 +7,7 @@
 #include "../voice/include/util/Render.h"
 #include "../voice/SpeakerList.h"
 #include "../voice/MicroIcon.h"
-#include "../../NezukoFont/NF_RW_Bridge.hpp"
+#include "../../nzkfont/NF_RW_Bridge.hpp"
 
 extern UI* pUI;
 
@@ -24,13 +24,13 @@ ImGuiWrapper::ImGuiWrapper(const ImVec2& display_size, const std::string& font_p
 	m_vertexBuffer = nullptr;
 	m_vertexBufferSize = 10000;
 
-	NezukoFont::Initialize();
+	NF::Initialize();
 }
 
 ImGuiWrapper::~ImGuiWrapper()
 {
 	shutdown();
-	NezukoFont::Shutdown();
+	NF::Shutdown();
 }
 
 bool ImGuiWrapper::initialize()
@@ -40,7 +40,7 @@ bool ImGuiWrapper::initialize()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 
-	m_mainFont = NezukoFont::Load(m_fontPath);
+	m_mainFont = NF::Load(m_fontPath);
 
 	UISettings::ApplyStyle();
 
@@ -61,9 +61,6 @@ bool ImGuiWrapper::initialize()
 	builder.BuildRanges(ranges);
 
 	ImFontConfig fontCfg;
-	fontCfg.OversampleV = 3;
-	fontCfg.OversampleH = 3;
-    fontCfg.RasterizerMultiply = 1.5f;
 
 	ImFont* font = io.Fonts->AddFontFromFileTTF(m_fontPath.c_str(), UISettings::fontSize(), &fontCfg, ranges->Data);
 
@@ -73,11 +70,16 @@ bool ImGuiWrapper::initialize()
 	}
 
 	std::string weap_font_path = std::string((char*) (SA_Addr(0x6D687C))) + "fonts/gtaweap3.ttf";
-	m_weapFont = NezukoFont::Load(weap_font_path);
+
+	ImFontConfig weapFontCfg;
+	weapFontCfg.OversampleV = 3;
+	weapFontCfg.OversampleH = 3;
+	weapFontCfg.RasterizerMultiply = 1.5f;
+
+	m_weapFont = io.Fonts->AddFontFromFileTTF(weap_font_path.c_str(), UISettings::fontSize(), &weapFontCfg, ranges->Data);
 
 	if (m_weapFont == nullptr) {
 		LOGE("Failed to load weapon font %s", weap_font_path.c_str());
-		// We can continue if weapon font fails, but main font is critical
 	}
 
 	createFontTexture();

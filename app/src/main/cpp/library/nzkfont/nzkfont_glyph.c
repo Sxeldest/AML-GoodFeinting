@@ -1,4 +1,4 @@
-#include "NezukoFont_internal.h"
+#include "nzkfont_internal.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -44,14 +44,14 @@ static void nezuko_glyph_cache_free(GlyphCache *gc) {
     free(gc);
 }
 
-void nezuko_glyph_cache_clear(NezukoFont *font) {
+void nezuko_glyph_cache_clear(nzkfont *font) {
     GlyphCache *gc;
     while ((gc = (GlyphCache*)NezukoList_PopHead(&font->cache))) {
         nezuko_glyph_cache_free(gc);
     }
 }
 
-static GlyphCache* nezuko_glyph_cache_new(NezukoFont *font) {
+static GlyphCache* nezuko_glyph_cache_new(nzkfont *font) {
     GlyphCache *gc = (GlyphCache*)calloc(1, sizeof(GlyphCache));
     gc->size = font->size;
 
@@ -62,7 +62,7 @@ static GlyphCache* nezuko_glyph_cache_new(NezukoFont *font) {
     return gc;
 }
 
-GlyphCache* nezuko_glyph_cache_acquire(NezukoFont *font) {
+GlyphCache* nezuko_glyph_cache_acquire(nzkfont *font) {
     GlyphCache *gc = (GlyphCache*)font->cache.first;
     while (gc) {
         if (gc->size == font->size) return gc;
@@ -71,11 +71,11 @@ GlyphCache* nezuko_glyph_cache_acquire(NezukoFont *font) {
     return nezuko_glyph_cache_new(font);
 }
 
-void nezuko_glyph_cache_release(NezukoFont *font) {
+void nezuko_glyph_cache_release(nzkfont *font) {
     /* No-op in this simple version, but could unlock a mutex */
 }
 
-Glyph* nezuko_glyph_ensure(NezukoFont *font, GlyphCache *gc, unsigned int charcode) {
+Glyph* nezuko_glyph_ensure(nzkfont *font, GlyphCache *gc, unsigned int charcode) {
     if (charcode < GLYPH_ASCII_TABLE_SIZE && gc->glyph_ascii_table[charcode]) {
         return gc->glyph_ascii_table[charcode];
     }

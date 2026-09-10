@@ -34,12 +34,12 @@ void DeathWindow::render(ImGuiRenderer* renderer)
 	if (!m_visible || !renderer || !pUI->weapFont()) return;
 
 	if (!m_pDeathWindow.empty()) {
-		float nameFontSize = UISettings::fontSize() * 0.75f;
+		float nameFontSize = UISettings::fontSize() * 0.875f;
 		float weaponFontSize = nameFontSize + 8.0f;
 		float backgroundFontSize = nameFontSize + 12.0f;
 		float m_iLongestNickLength = renderer->calculateTextSize("LONGESTNICKNICK_NICKNICK", nameFontSize).x;
 
-		ImVec2 bgSize = renderer->calculateTextSize("G", backgroundFontSize, pUI->weapFont());
+		ImVec2 bgSize = renderer->calculateTextSizeIm("G", backgroundFontSize, pUI->weapFont());
 		float field_12F = bgSize.x;
 		float field_133 = bgSize.y;
 
@@ -68,14 +68,14 @@ void DeathWindow::render(ImGuiRenderer* renderer)
 					float weaponX = iHorizontalBase + m_iLongestNickLength + 3.0f;
 					float weaponY = vecPos.y - 5.0f;
 
-					renderer->drawText(ImVec2(weaponX, weaponY), 0xFF000000, "G", false, backgroundFontSize, pUI->weapFont());
+					renderer->drawTextIm(ImVec2(weaponX, weaponY), 0xFF000000, "G", false, backgroundFontSize, pUI->weapFont());
 
 					const char* weaponChar = spriteIDForWeapon(playerkill->reason);
-					ImVec2 wSize = renderer->calculateTextSize(weaponChar, weaponFontSize, pUI->weapFont());
+					ImVec2 wSize = renderer->calculateTextSizeIm(weaponChar, weaponFontSize, pUI->weapFont());
 					ImVec2 wPos = ImVec2(weaponX, weaponY);
 					wPos.x += (bgSize.x - wSize.x) * 0.5f;
 					wPos.y += (bgSize.y - wSize.y) * 0.5f;
-					renderer->drawText(wPos, 0xFFFFFFFF, weaponChar, false, weaponFontSize, pUI->weapFont());
+					renderer->drawTextIm(wPos, 0xFFFFFFFF, weaponChar, false, weaponFontSize, pUI->weapFont());
 
 					float killeeX = weaponX + field_12F - 2.0f;
 					renderer->drawText(ImVec2(killeeX, vecPos.y), playerColor, Encoding::cp2utf(playerkill->playerName.c_str()), true, nameFontSize);
@@ -91,14 +91,14 @@ void DeathWindow::render(ImGuiRenderer* renderer)
 					else if (playerkill->reason == 200) dwColor = 0xFF1111AA;
 					float weaponX = iHorizontalBase + m_iLongestNickLength + 3.0f;
 					float weaponY = vecPos.y - 5.0f;
-					renderer->drawText(ImVec2(weaponX, weaponY), 0xFF000000, "G", false, backgroundFontSize, pUI->weapFont());
+					renderer->drawTextIm(ImVec2(weaponX, weaponY), 0xFF000000, "G", false, backgroundFontSize, pUI->weapFont());
 
 					const char* weaponChar = spriteIDForWeapon(playerkill->reason);
-					ImVec2 wSize = renderer->calculateTextSize(weaponChar, weaponFontSize, pUI->weapFont());
+					ImVec2 wSize = renderer->calculateTextSizeIm(weaponChar, weaponFontSize, pUI->weapFont());
 					ImVec2 wPos = ImVec2(weaponX, weaponY);
 					wPos.x += (bgSize.x - wSize.x) * 0.5f;
 					wPos.y += (bgSize.y - wSize.y) * 0.5f;
-					renderer->drawText(wPos, dwColor, weaponChar, false, weaponFontSize, pUI->weapFont());
+					renderer->drawTextIm(wPos, dwColor, weaponChar, false, weaponFontSize, pUI->weapFont());
 				}
 				vecPos.y += field_133 + 5.0f;
 			}

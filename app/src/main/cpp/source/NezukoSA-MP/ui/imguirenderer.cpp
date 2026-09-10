@@ -1,8 +1,8 @@
 #include <string>
 #include "imguirenderer.h"
 #include "uisettings.h"
-#include "../../NezukoFont/NF_Public.h"
-#include "../../NezukoFont/NF_RW_Bridge.hpp"
+#include "../../nzkfont/NF_Public.h"
+#include "../../nzkfont/NF_RW_Bridge.hpp"
 
 ImGuiRenderer::ImGuiRenderer(ImDrawList* draw_list, NF_Font* font) {
     m_drawList = draw_list;
@@ -33,7 +33,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
     NF_Font* f = font ? font : m_font;
     if (!f || !begin) return;
     float sz = (font_size == 0.0f) ? 16.0f : font_size;
-    NezukoFont::UpdateTexture(f);
+    NF::UpdateTexture(f);
 
     static NF_Vertex vbo[4096];
     auto render = [&](float ox, float oy, ImU32 c) {
@@ -73,7 +73,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
     if (outline) {
         ImU32 oc = ImColor(0.0f, 0.0f, 0.0f, color.Value.w);
         if (bold_outline) {
-            render(-1, 0, oc); render(1, 0, oc); render(0, -1, oc); render(0, 1, oc);
+            render(-2, 0, oc); render(2, 0, oc); render(0, -2, oc); render(0, 2, oc);
             render(-1, -1, oc); render(1, -1, oc); render(-1, 1, oc); render(1, 1, oc);
         } else {
             render(-1, 0, oc); render(1, 0, oc); render(0, -1, oc); render(0, 1, oc);
@@ -85,6 +85,40 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
 void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const std::string& text, bool outlined, float font_size, NF_Font* font, bool bold_outline) {
     if (text.empty()) return;
     drawText(pos, color, text.c_str(), nullptr, outlined, font_size, font, bold_outline);
+}
+
+void ImGuiRenderer::drawTextIm(const ImVec2& pos, const ImColor& color, const std::string& text, bool outlined, float font_size, ImFont* font, bool bold_outline) {
+    if (text.empty()) return;
+    drawTextIm(pos, color, text.c_str(), nullptr, outlined, font_size, font, bold_outline);
+}
+
+void ImGuiRenderer::drawTextIm(const ImVec2& pos, const ImColor& color, const char* begin, const char* end, bool outline, float font_size, ImFont* font, bool bold_outline) {
+    if(!font) return;
+    float sz_font = font_size == 0.0f ? font->FontSize : font_size;
+
+    ImVec2 p = ImVec2(floorf(pos.x + 0.5f), floorf(pos.y + 0.5f));
+
+    if (outline) {
+        ImColor outlineColor(0.0f, 0.0f, 0.0f, color.Value.w);
+
+        if (bold_outline) {
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - 2.0f, p.y), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + 2.0f, p.y), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - 2.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + 2.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - 1.0f, p.y - 1.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + 1.0f, p.y - 1.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - 1.0f, p.y + 1.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + 1.0f, p.y + 1.0f), outlineColor, begin, end);
+        } else {
+            m_drawList->AddText(font, sz_font, ImVec2(p.x - 1.0f, p.y), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x + 1.0f, p.y), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y - 1.0f), outlineColor, begin, end);
+            m_drawList->AddText(font, sz_font, ImVec2(p.x, p.y + 1.0f), outlineColor, begin, end);
+        }
+    }
+
+    m_drawList->AddText(font, sz_font, p, color, begin, end);
 }
 
 ImVec2 ImGuiRenderer::calculateTextSize(const std::string& text, float font_size, NF_Font* font) {
@@ -104,8 +138,20 @@ ImVec2 ImGuiRenderer::calculateTextSize(const std::string& text, float font_size
     return ImVec2(w, sz);
 }
 
+ImVec2 ImGuiRenderer::calculateTextSizeIm(const std::string& text, float font_size, ImFont* font) {
+    if (text.empty()) return ImVec2(0, 0);
+    if (!font) return ImVec2(0, 0);
+    float sz = (font_size == 0.0f) ? font->FontSize : font_size;
+    return calculateTextSizeIm(text.c_str(), nullptr, sz, font);
+}
+
 ImVec2 ImGuiRenderer::calculateTextSize(const char* begin, const char* end, float font_size, NF_Font* font) {
     return calculateTextSize(end ? std::string(begin, end - begin) : std::string(begin), font_size, font);
+}
+
+ImVec2 ImGuiRenderer::calculateTextSizeIm(const char* begin, const char* end, float font_size, ImFont* font) {
+    if(!font) return ImVec2(0, 0);
+    return font->CalcTextSizeA(font_size == 0.0f ? font->FontSize : font_size, FLT_MAX, 0.0f, begin, end);
 }
 
 bool ImGuiRenderer::processInlineHexColor(const char* start, const char* end, ImVec4& color) {

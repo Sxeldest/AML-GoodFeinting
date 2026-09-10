@@ -1,8 +1,51 @@
-#ifndef NEZUKO_FONT_GAMMA_H
-#define NEZUKO_FONT_GAMMA_H
+#ifndef NZKFONT_INTERNAL_H
+#define NZKFONT_INTERNAL_H
 
-// Perceptually improved gamma table (1.43) from Blender source
-// Helps font look fuller and prevents thinning due to anti-aliasing
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_OUTLINE_H
+#include FT_BITMAP_H
+#include FT_ADVANCES_H
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include "NF_Public.h"
+
+// --- Blender Logic (Ported from blenfont) ---
+typedef int32_t ft_pix;
+#define USE_LEGACY_SPACING
+#define FT_PIX_FLOOR(x) ((x) & ~63)
+#define FT_PIX_ROUND(x) (((x) + 32) & ~63)
+#define FT_PIX_CEIL(x) ((x) + 63)
+
+#ifdef USE_LEGACY_SPACING
+#  define FT_PIX_DEFAULT_ROUNDING(x) FT_PIX_FLOOR(x)
+#else
+#  define FT_PIX_DEFAULT_ROUNDING(x) FT_PIX_ROUND(x)
+#endif
+
+static inline int ft_pix_to_int(ft_pix v) {
+#ifdef USE_LEGACY_SPACING
+    return (int)(v >> 6);
+#else
+    return (int)(FT_PIX_DEFAULT_ROUNDING(v) >> 6);
+#endif
+}
+
+static inline int ft_pix_to_int_floor(ft_pix v) { return (int)(v >> 6); }
+static inline int ft_pix_to_int_ceil(ft_pix v) { return (int)(FT_PIX_CEIL(v) >> 6); }
+static inline ft_pix ft_pix_from_int(int v) { return v * 64; }
+
+// Internal Cast helpers
+#define AS_FACE(f) ((FT_Face)(f)->face)
+#define GET_SIZE(f, s) ((s) == 0.0f ? (f ? f->default_size : 16.0f) : (s))
+
+// --- Internal Prototypes ---
+FT_Library NF_GetFTLib();
+void NF_Atlas_InsertGlyph(NF_Cache* cache, NF_Glyph* glyph, unsigned char* buffer);
+NF_Cache* NF_GetCache(NF_Font* font, float size, bool bold, bool italic);
+
+// --- Gamma Table (Perceptually improved 1.43) ---
 static const unsigned char NF_GammaTable[256] = {
       0,   5,   9,   11,  14,  16,  19,  21,  23,  25,  26,  28,  30,  32,  34,  35,  37,  38,
       40,  41,  43,  44,  46,  47,  49,  50,  52,  53,  54,  56,  57,  58,  60,  61,  62,  64,
@@ -20,4 +63,4 @@ static const unsigned char NF_GammaTable[256] = {
       240, 241, 242, 242, 243, 244, 244, 245, 246, 247, 247, 248, 249, 249, 250, 251, 251, 252,
       253, 254, 254, 255};
 
-#endif // NEZUKO_FONT_GAMMA_H
+#endif

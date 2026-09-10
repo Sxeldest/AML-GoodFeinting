@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-typedef struct NezukoFont NezukoFont;
+typedef struct nzkfont NezukoFont;
 
 typedef struct NezukoResult {
     int lines;
@@ -23,17 +23,17 @@ int NezukoFont_Init(void);
 void NezukoFont_Exit(void);
 
 /* Load fonts */
-NezukoFont* NezukoFont_Load(const char* filepath);
-NezukoFont* NezukoFont_LoadMem(const char* name, const unsigned char* mem, size_t mem_size);
-void NezukoFont_Free(NezukoFont* font);
+nzkfont* NezukoFont_Load(const char* filepath);
+nzkfont* NezukoFont_LoadMem(const char* name, const unsigned char* mem, size_t mem_size);
+void NezukoFont_Free(nzkfont* font);
 
 /* Font settings */
-void NezukoFont_Size(NezukoFont* font, float size);
-void NezukoFont_Color4ub(NezukoFont* font, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-void NezukoFont_Position(NezukoFont* font, float x, float y, float z);
+void NezukoFont_Size(nzkfont* font, float size);
+void NezukoFont_Color4ub(nzkfont* font, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void NezukoFont_Position(nzkfont* font, float x, float y, float z);
 
 /* Drawing to buffer */
-void NezukoFont_DrawBuffer(NezukoFont* font,
+void NezukoFont_DrawBuffer(nzkfont* font,
                            const char* str,
                            size_t str_len,
                            unsigned char* buf,
@@ -43,9 +43,9 @@ void NezukoFont_DrawBuffer(NezukoFont* font,
                            NezukoResult* r_info);
 
 /* Metrics */
-float NezukoFont_Width(NezukoFont* font, const char* str, size_t str_len);
-float NezukoFont_Height(NezukoFont* font, const char* str, size_t str_len);
-void NezukoFont_BoundBox(NezukoFont* font, const char* str, size_t str_len, NezukoRect* r_box, NezukoResult* r_info);
+float NezukoFont_Width(nzkfont* font, const char* str, size_t str_len);
+float NezukoFont_Height(nzkfont* font, const char* str, size_t str_len);
+void NezukoFont_BoundBox(nzkfont* font, const char* str, size_t str_len, NezukoRect* r_box, NezukoResult* r_info);
 
 #ifdef __cplusplus
 }

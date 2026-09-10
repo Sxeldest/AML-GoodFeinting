@@ -104,7 +104,7 @@ typedef struct Glyph {
     int pos[2];
 } Glyph;
 
-struct NezukoFont {
+struct nzkfont {
     char *filepath;
     void *mem;
     size_t mem_size;
@@ -122,9 +122,9 @@ struct NezukoFont {
 };
 
 /* Internal functions */
-GlyphCache* nezuko_glyph_cache_acquire(NezukoFont *font);
-void nezuko_glyph_cache_release(NezukoFont *font);
-Glyph* nezuko_glyph_ensure(NezukoFont *font, GlyphCache *gc, unsigned int charcode);
+GlyphCache* nezuko_glyph_cache_acquire(nzkfont *font);
+void nezuko_glyph_cache_release(nzkfont *font);
+Glyph* nezuko_glyph_ensure(nzkfont *font, GlyphCache *gc, unsigned int charcode);
 void nezuko_glyph_free(Glyph *g);
 unsigned int nezuko_hash(unsigned int c);
 

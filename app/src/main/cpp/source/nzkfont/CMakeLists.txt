@@ -1,21 +1,17 @@
-project(NezukoFont)
+project(nzkfont)
 
 set(NF_SOURCE_FILES
-    NF_Core.c
-    NF_Font.c
-    NF_Glyph.c
-    NF_Atlas.c
-    NF_Renderer.c
+    NF_Impl.c
     NF_RW_Bridge.cpp
 )
 
-add_library(NezukoFont STATIC ${NF_SOURCE_FILES})
+add_library(nzkfont STATIC ${NF_SOURCE_FILES})
 
-target_include_directories(NezukoFont PUBLIC
+target_include_directories(nzkfont PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../../library/freetype/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../NezukoSA-MP
     ${CMAKE_CURRENT_SOURCE_DIR}/../NezukoSA-MP/game/RW
 )
 
-target_link_libraries(NezukoFont freetype log)
+target_link_libraries(nzkfont freetype log)

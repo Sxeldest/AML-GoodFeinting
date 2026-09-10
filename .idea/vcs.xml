@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/app/src/main/cpp/library/freetype" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/blender" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/blender_android" vcs="Git" />
   </component>
 </project>

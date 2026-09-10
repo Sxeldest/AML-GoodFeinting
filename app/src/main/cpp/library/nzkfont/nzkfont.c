@@ -1,5 +1,5 @@
-#include "NezukoFont.h"
-#include "NezukoFont_internal.h"
+#include "nzkfont.h"
+#include "nzkfont_internal.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -19,10 +19,10 @@ void NezukoFont_Exit(void) {
     }
 }
 
-NezukoFont* NezukoFont_Load(const char* filepath) {
+nzkfont* NezukoFont_Load(const char* filepath) {
     if (!g_ft_lib) NezukoFont_Init();
 
-    NezukoFont *font = (NezukoFont*)calloc(1, sizeof(NezukoFont));
+    nzkfont *font = (nzkfont*)calloc(1, sizeof(nzkfont));
     font->filepath = strdup(filepath);
     font->ft_lib = g_ft_lib;
 
@@ -43,10 +43,10 @@ NezukoFont* NezukoFont_Load(const char* filepath) {
     return font;
 }
 
-NezukoFont* NezukoFont_LoadMem(const char* name, const unsigned char* mem, size_t mem_size) {
+nzkfont* NezukoFont_LoadMem(const char* name, const unsigned char* mem, size_t mem_size) {
     if (!g_ft_lib) NezukoFont_Init();
 
-    NezukoFont *font = (NezukoFont*)calloc(1, sizeof(NezukoFont));
+    nzkfont *font = (nzkfont*)calloc(1, sizeof(nzkfont));
     font->mem = (void*)malloc(mem_size);
     memcpy(font->mem, mem, mem_size);
     font->mem_size = mem_size;
@@ -64,7 +64,7 @@ NezukoFont* NezukoFont_LoadMem(const char* name, const unsigned char* mem, size_
     return font;
 }
 
-void NezukoFont_Free(NezukoFont* font) {
+void NezukoFont_Free(nzkfont* font) {
     if (!font) return;
 
     /* Clear glyph caches */
@@ -80,18 +80,18 @@ void NezukoFont_Free(NezukoFont* font) {
     free(font);
 }
 
-void NezukoFont_Size(NezukoFont* font, float size) {
+void NezukoFont_Size(nzkfont* font, float size) {
     font->size = size;
 }
 
-void NezukoFont_Color4ub(NezukoFont* font, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+void NezukoFont_Color4ub(nzkfont* font, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     font->color[0] = r;
     font->color[1] = g;
     font->color[2] = b;
     font->color[3] = a;
 }
 
-void NezukoFont_Position(NezukoFont* font, float x, float y, float z) {
+void NezukoFont_Position(nzkfont* font, float x, float y, float z) {
     font->pos[0] = (int)x;
     font->pos[1] = (int)y;
     font->pos[2] = (int)z;
@@ -120,7 +120,7 @@ static unsigned int utf8_decode(const char *str, size_t str_len, size_t *i) {
     return 0;
 }
 
-static ft_pix nezuko_unscaled_to_pixels(NezukoFont *font, FT_Pos value) {
+static ft_pix nezuko_unscaled_to_pixels(nzkfont *font, FT_Pos value) {
     FT_Long scaled = FT_MulFix(value, font->ft_size->metrics.x_scale);
     if (font->ft_size->metrics.x_ppem < 25) {
         scaled = FT_MulDiv(scaled, font->ft_size->metrics.x_ppem, 25);
@@ -128,7 +128,7 @@ static ft_pix nezuko_unscaled_to_pixels(NezukoFont *font, FT_Pos value) {
     return (ft_pix)scaled;
 }
 
-static ft_pix nezuko_kerning(NezukoFont *font, Glyph *g_prev, Glyph *g) {
+static ft_pix nezuko_kerning(nzkfont *font, Glyph *g_prev, Glyph *g) {
     ft_pix adjustment = g->lsb_delta - (g_prev ? g_prev->rsb_delta : 0);
 
     if (FT_HAS_KERNING(font->face) && g_prev) {
@@ -187,7 +187,7 @@ static void nezuko_glyph_draw_buffer(unsigned char* buf, int buf_w, int buf_h, i
     }
 }
 
-void NezukoFont_DrawBuffer(NezukoFont* font,
+void NezukoFont_DrawBuffer(nzkfont* font,
                            const char* str,
                            size_t str_len,
                            unsigned char* buf,
@@ -219,7 +219,7 @@ void NezukoFont_DrawBuffer(NezukoFont* font,
     nezuko_glyph_cache_release(font);
 }
 
-void NezukoFont_BoundBox(NezukoFont* font, const char* str, size_t str_len, NezukoRect* r_box, NezukoResult* r_info) {
+void NezukoFont_BoundBox(nzkfont* font, const char* str, size_t str_len, NezukoRect* r_box, NezukoResult* r_info) {
     GlyphCache *gc = nezuko_glyph_cache_acquire(font);
     Glyph *g, *g_prev = NULL;
     ft_pix pen_x = 0;
@@ -256,14 +256,14 @@ void NezukoFont_BoundBox(NezukoFont* font, const char* str, size_t str_len, Nezu
     nezuko_glyph_cache_release(font);
 }
 
-float NezukoFont_Width(NezukoFont* font, const char* str, size_t str_len) {
+float NezukoFont_Width(nzkfont* font, const char* str, size_t str_len) {
     NezukoRect box;
     NezukoResult res;
     NezukoFont_BoundBox(font, str, str_len, &box, &res);
     return (float)(box.xmax - box.xmin);
 }
 
-float NezukoFont_Height(NezukoFont* font, const char* str, size_t str_len) {
+float NezukoFont_Height(nzkfont* font, const char* str, size_t str_len) {
     NezukoRect box;
     NezukoResult res;
     NezukoFont_BoundBox(font, str, str_len, &box, &res);

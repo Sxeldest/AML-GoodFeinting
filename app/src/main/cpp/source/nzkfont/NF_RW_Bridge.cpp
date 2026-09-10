@@ -1,7 +1,7 @@
 #include "NF_RW_Bridge.hpp"
 #include "rw.h"
 
-void NezukoFont::UpdateTexture(NF_Font* font) {
+void NF::UpdateTexture(NF_Font* font) {
     if (!font) return;
     for (int i = 0; i < font->cache_count; i++) {
         NF_Cache* cache = font->caches[i];
