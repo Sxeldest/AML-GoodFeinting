@@ -74,7 +74,7 @@ bool ImGuiWrapper::initialize()
 	ImFontConfig weapFontCfg;
 	weapFontCfg.OversampleV = 3;
 	weapFontCfg.OversampleH = 3;
-	weapFontCfg.RasterizerMultiply = 1.5f;
+	weapFontCfg.RasterizerMultiply = 1.8f;
 
 	m_weapFont = io.Fonts->AddFontFromFileTTF(weap_font_path.c_str(), UISettings::fontSize(), &weapFontCfg, ranges->Data);
 
