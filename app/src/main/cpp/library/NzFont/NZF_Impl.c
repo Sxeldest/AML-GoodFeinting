@@ -108,7 +108,7 @@ void NZF_SetSize(FT_Face face, float size) {
     FT_Request_Size(face, &req);
 }
 
-NZF_Cache* NzFont_GetCache(NZF_Font* font, float size, bool bold, bool italic) {
+NZF_Cache* NzFont_GetCache(NZF_Font* font, float size, bool bold, bool italic, int outline) {
     for (int i = 0; i < font->cache_count; i++) {
         if (font->caches[i]->size == size && font->caches[i]->bold == bold && font->caches[i]->italic == italic)
             return font->caches[i];
@@ -124,14 +124,38 @@ NZF_Cache* NzFont_GetCache(NZF_Font* font, float size, bool bold, bool italic) {
     return cache;
 }
 
-NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool bold, bool italic) {
-    NZF_Cache* cache = NzFont_GetCache(font, size, bold, italic);
+static void BakeOutline(const unsigned char* src, int sw, int sh, unsigned char* dst, int dw, int dh, int outline_type) {
+    static int off1[4][2] = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
+    static int off2[8][2] = { {-2, 0}, {2, 0}, {0, -2}, {0, 2}, {-1, -1}, {1, -1}, {-1, 1}, {1, 1} };
+    int count = (outline_type == 2) ? 8 : 4;
+    int (*offs)[2] = (outline_type == 2) ? off2 : off1;
+    int dist = (outline_type == 2) ? 2 : 1;
 
-    if (charcode < 256 && cache->lookup[charcode]) return cache->lookup[charcode];
+    for (int y = 0; y < sh; y++) {
+        for (int x = 0; x < sw; x++) {
+            unsigned char val = src[y * sw + x];
+            if (val == 0) continue;
+            if (dst[(y + dist) * dw + (x + dist)] < val) dst[(y + dist) * dw + (x + dist)] = val;
+            for (int i = 0; i < count; i++) {
+                int nx = x + dist + offs[i][0];
+                int ny = y + dist + offs[i][1];
+                if (nx >= 0 && nx < dw && ny >= 0 && ny < dh) {
+                    if (dst[ny * dw + nx] < val) dst[ny * dw + nx] = val;
+                }
+            }
+        }
+    }
+}
+
+NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool bold, bool italic, int outline) {
+    NZF_Cache* cache = NzFont_GetCache(font, size, bold, italic, 0);
+
+    uint32_t lookup_key = charcode | (outline << 24);
+    if (outline == 0 && charcode < 1024 && cache->lookup[charcode]) return cache->lookup[charcode];
 
     for (int i = 0; i < NZF_MAX_GLYPHS; i++) {
-        if (cache->glyphs[i].charcode == charcode) {
-            if (charcode < 256) cache->lookup[charcode] = &cache->glyphs[i];
+        if (cache->glyphs[i].charcode == lookup_key) {
+            if (outline == 0 && charcode < 1024) cache->lookup[charcode] = &cache->glyphs[i];
             return &cache->glyphs[i];
         }
         if (cache->glyphs[i].charcode == 0) {
@@ -153,25 +177,41 @@ NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool b
             FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
 
             NZF_Glyph* g = &cache->glyphs[i];
-            g->charcode = charcode;
+            g->charcode = lookup_key;
             g->index = FT_Get_Char_Index(AS_FACE(font), charcode);
-            g->width = slot->bitmap.width;
-            g->height = slot->bitmap.rows;
-            g->bearingX = slot->bitmap_left;
-            g->bearingY = slot->bitmap_top;
             g->advance = slot->advance.x;
 
-            int b_size = g->width * g->height;
-            if (b_size > 0) {
-                unsigned char* buf = (unsigned char*)malloc(b_size);
-                for (int j = 0; j < b_size; j++) buf[j] = slot->bitmap.buffer[j];
-                NzFont_Atlas_InsertGlyph(cache, g, buf);
-                free(buf);
+            if (outline > 0) {
+                int dist = outline;
+                bool eight_way = (outline > 1);
+                g->width = slot->bitmap.width + (dist * 2);
+                g->height = slot->bitmap.rows + (dist * 2);
+                g->bearingX = slot->bitmap_left - dist;
+                g->bearingY = slot->bitmap_top + dist;
+
+                int b_size = g->width * g->height;
+                if (b_size > 0) {
+                    unsigned char* buf = (unsigned char*)calloc(1, b_size);
+                    BakeOutline(slot->bitmap.buffer, slot->bitmap.width, slot->bitmap.rows, buf, g->width, g->height, outline);
+                    NzFont_Atlas_InsertGlyph(cache, g, buf);
+                    free(buf);
+                } else g->u0 = g->v0 = g->u1 = g->v1 = 0;
             } else {
-                g->u0 = g->v0 = g->u1 = g->v1 = 0;
+                g->width = slot->bitmap.width;
+                g->height = slot->bitmap.rows;
+                g->bearingX = slot->bitmap_left;
+                g->bearingY = slot->bitmap_top;
+
+                int b_size = g->width * g->height;
+                if (b_size > 0) {
+                    unsigned char* buf = (unsigned char*)malloc(b_size);
+                    memcpy(buf, slot->bitmap.buffer, b_size);
+                    NzFont_Atlas_InsertGlyph(cache, g, buf);
+                    free(buf);
+                } else g->u0 = g->v0 = g->u1 = g->v1 = 0;
             }
 
-            if (charcode < 256) cache->lookup[charcode] = g;
+            if (outline == 0 && charcode < 1024) cache->lookup[charcode] = g;
             return g;
         }
     }
@@ -191,51 +231,80 @@ static uint32_t decode_utf8(const char** s) {
     return c;
 }
 
-int NzFont_DrawText(NZF_Font* font, const char* text, float x, float y, uint32_t color, NZF_Vertex* vbo, int max_verts, float size, bool bold, bool italic) {
+int NzFont_DrawText(NZF_Font* font, const char* text, float x, float y, uint32_t color, NZF_Vertex* vbo, int max_verts, float size, bool bold, bool italic, int outline, uint32_t outline_color) {
     if (!font || !text || !vbo || max_verts < 6) return 0;
 
     float drawSize = GET_SIZE(font, size);
-    NZF_Cache* cache = NzFont_GetCache(font, drawSize, bold, italic);
+    NZF_Cache* cache = NzFont_GetCache(font, drawSize, bold, italic, 0);
     int ascender = cache->ascender;
 
     int v_idx = 0;
-    float pen_x = floorf(x + 0.5f);
+    float start_x = floorf(x + 0.5f);
     float pen_y = floorf(y + (float)ascender + 0.5f);
-    uint32_t current_color = color;
+
+    uint32_t base_alpha = (color & 0xFF000000);
+    if (base_alpha == 0) base_alpha = 0xFF000000;
+
+    uint32_t final_outline_color = (outline_color & 0x00FFFFFF) | base_alpha;
+
+    if (outline > 0) {
+        float pen_x = start_x;
+        uint32_t last_idx = 0;
+        const char* p = text;
+        while (*p && (v_idx + 6) <= max_verts) {
+            if (*p == '{') {
+                const char* end = strchr(p, '}');
+                if (end && (end - p) == 7) { p = end + 1; continue; }
+            }
+            uint32_t charcode = decode_utf8(&p);
+            NZF_Glyph* g = NzFont_GetGlyph(font, charcode, drawSize, bold, italic, outline);
+            if (!g) continue;
+
+            if (last_idx && FT_HAS_KERNING(AS_FACE(font))) {
+                FT_Vector delta; FT_Get_Kerning(AS_FACE(font), last_idx, g->index, FT_KERNING_DEFAULT, &delta);
+                pen_x += (float)delta.x / 64.0f;
+            }
+
+            if (g->width > 0 && g->height > 0) {
+                float x0 = floorf(pen_x + (float)g->bearingX + 0.5f);
+                float y0 = floorf(pen_y - (float)g->bearingY + 0.5f);
+                float x1 = x0 + (float)g->width;
+                float y1 = y0 + (float)g->height;
+
+                vbo[v_idx++] = (NZF_Vertex){x0, y0, 0.0f, 1.0f, final_outline_color, g->u0, g->v0};
+                vbo[v_idx++] = (NZF_Vertex){x1, y0, 0.0f, 1.0f, final_outline_color, g->u1, g->v0};
+                vbo[v_idx++] = (NZF_Vertex){x0, y1, 0.0f, 1.0f, final_outline_color, g->u0, g->v1};
+                vbo[v_idx++] = (NZF_Vertex){x1, y0, 0.0f, 1.0f, final_outline_color, g->u1, g->v0};
+                vbo[v_idx++] = (NZF_Vertex){x1, y1, 0.0f, 1.0f, final_outline_color, g->u1, g->v1};
+                vbo[v_idx++] = (NZF_Vertex){x0, y1, 0.0f, 1.0f, final_outline_color, g->u0, g->v1};
+            }
+            pen_x += (float)g->advance / 64.0f;
+            last_idx = g->index;
+        }
+    }
+
+    float pen_x = start_x;
     uint32_t last_idx = 0;
-
-    uint32_t alpha_mask = (color & 0xFF000000);
-    if (alpha_mask == 0) alpha_mask = 0xFF000000;
-
+    uint32_t current_color = color;
     if ((current_color & 0xFF000000) == 0) current_color |= 0xFF000000;
-
     const char* p = text;
     while (*p && (v_idx + 6) <= max_verts) {
         if (*p == '{') {
             const char* end = strchr(p, '}');
             if (end && (end - p) == 7) {
-                char hex[7];
-                memcpy(hex, p + 1, 6);
-                hex[6] = 0;
+                char hex[7]; memcpy(hex, p + 1, 6); hex[6] = 0;
                 uint32_t rgb = (uint32_t)strtoul(hex, NULL, 16);
-
-                uint32_t r = (rgb >> 16) & 0xFF;
-                uint32_t g = (rgb >> 8) & 0xFF;
-                uint32_t b = rgb & 0xFF;
-                current_color = alpha_mask | (b << 16) | (g << 8) | r;
-
-                p = end + 1;
-                continue;
+                uint32_t r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
+                current_color = base_alpha | (b << 16) | (g << 8) | r;
+                p = end + 1; continue;
             }
         }
-
         uint32_t charcode = decode_utf8(&p);
-        NZF_Glyph* g = NzFont_GetGlyph(font, charcode, drawSize, bold, italic);
+        NZF_Glyph* g = NzFont_GetGlyph(font, charcode, drawSize, bold, italic, 0);
         if (!g) continue;
 
         if (last_idx && FT_HAS_KERNING(AS_FACE(font))) {
-            FT_Vector delta;
-            FT_Get_Kerning(AS_FACE(font), last_idx, g->index, FT_KERNING_DEFAULT, &delta);
+            FT_Vector delta; FT_Get_Kerning(AS_FACE(font), last_idx, g->index, FT_KERNING_DEFAULT, &delta);
             pen_x += (float)delta.x / 64.0f;
         }
 
@@ -244,7 +313,6 @@ int NzFont_DrawText(NZF_Font* font, const char* text, float x, float y, uint32_t
             float y0 = floorf(pen_y - (float)g->bearingY + 0.5f);
             float x1 = x0 + (float)g->width;
             float y1 = y0 + (float)g->height;
-
             vbo[v_idx++] = (NZF_Vertex){x0, y0, 0.0f, 1.0f, current_color, g->u0, g->v0};
             vbo[v_idx++] = (NZF_Vertex){x1, y0, 0.0f, 1.0f, current_color, g->u1, g->v0};
             vbo[v_idx++] = (NZF_Vertex){x0, y1, 0.0f, 1.0f, current_color, g->u0, g->v1};
@@ -252,7 +320,6 @@ int NzFont_DrawText(NZF_Font* font, const char* text, float x, float y, uint32_t
             vbo[v_idx++] = (NZF_Vertex){x1, y1, 0.0f, 1.0f, current_color, g->u1, g->v1};
             vbo[v_idx++] = (NZF_Vertex){x0, y1, 0.0f, 1.0f, current_color, g->u0, g->v1};
         }
-
         pen_x += (float)g->advance / 64.0f;
         last_idx = g->index;
     }
@@ -271,7 +338,7 @@ float NzFont_CalculateWidth(NZF_Font* font, const char* text, float size, bool b
             if (end && end - p == 7) { p = end + 1; continue; }
         }
         uint32_t charcode = decode_utf8(&p);
-        NZF_Glyph* g = NzFont_GetGlyph(font, charcode, drawSize, bold, italic);
+        NZF_Glyph* g = NzFont_GetGlyph(font, charcode, drawSize, bold, italic, 0);
         if (!g) continue;
         if (last_idx && FT_HAS_KERNING(AS_FACE(font))) {
             FT_Vector delta;

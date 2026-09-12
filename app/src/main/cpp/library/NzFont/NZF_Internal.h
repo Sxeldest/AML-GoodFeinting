@@ -23,12 +23,12 @@ static inline ft_pix ft_pix_from_int(int v) { return (ft_pix)v << 6; }
 
 // Internal Cast helpers
 #define AS_FACE(f) ((FT_Face)(f)->face)
-#define GET_SIZE(f, s) ((s) <= 0.0f ? (f ? f->default_size : 16.0f) : (s))
+#define GET_SIZE(f, s) NZF_GET_SIZE(f, s)
 
 // --- Internal Prototypes ---
 FT_Library NzFont_GetFTLib();
 void NzFont_Atlas_InsertGlyph(NZF_Cache* cache, NZF_Glyph* glyph, unsigned char* buffer);
-NZF_Cache* NzFont_GetCache(NZF_Font* font, float size, bool bold, bool italic);
+NZF_Cache* NzFont_GetCache(NZF_Font* font, float size, bool bold, bool italic, int outline);
 
 // --- Gamma Table ---
 static const unsigned char NZF_GammaTable[256] = {
