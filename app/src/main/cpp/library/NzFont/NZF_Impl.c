@@ -139,6 +139,7 @@ NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool b
             NZF_SetSize(AS_FACE(font), size);
 
             if (FT_Load_Char(AS_FACE(font), charcode, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL)) return NULL;
+
             FT_GlyphSlot slot = AS_FACE(font)->glyph;
             if (bold && !(AS_FACE(font)->style_flags & FT_STYLE_FLAG_BOLD)) {
                 FT_Pos strength = (slot->face->size->metrics.y_ppem << 6) / 32;
@@ -146,7 +147,7 @@ NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool b
             }
 
             if (italic && !(AS_FACE(font)->style_flags & FT_STYLE_FLAG_ITALIC)) {
-                FT_Matrix transform = { 0x10000L, 0x04000L, 0, 0x10000L }; // Closer to GDI slant
+                FT_Matrix transform = { 0x10000L, 0x04000L, 0, 0x10000L };
                 FT_Outline_Transform(&slot->outline, &transform);
             }
 
@@ -164,6 +165,7 @@ NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool b
             int b_size = g->width * g->height;
             if (b_size > 0) {
                 unsigned char* buf = (unsigned char*)malloc(b_size);
+                // Standard alpha: No Gamma Table modification
                 for (int j = 0; j < b_size; j++) buf[j] = slot->bitmap.buffer[j];
                 NzFont_Atlas_InsertGlyph(cache, g, buf);
                 free(buf);
@@ -199,14 +201,14 @@ int NzFont_DrawText(NZF_Font* font, const char* text, float x, float y, uint32_t
     int ascender = cache->ascender;
 
     int v_idx = 0;
-    float pen_x = x;
-    float pen_y = y + (float)ascender;
+    float pen_x = floorf(x + 0.5f);
+    float pen_y = floorf(y + (float)ascender + 0.5f);
+    uint32_t current_color = color;
     uint32_t last_idx = 0;
 
     uint32_t alpha_mask = (color & 0xFF000000);
     if (alpha_mask == 0) alpha_mask = 0xFF000000;
 
-    uint32_t current_color = color;
     if ((current_color & 0xFF000000) == 0) current_color |= 0xFF000000;
 
     const char* p = text;
@@ -240,8 +242,8 @@ int NzFont_DrawText(NZF_Font* font, const char* text, float x, float y, uint32_t
         }
 
         if (g->width > 0 && g->height > 0) {
-            float x0 = pen_x + (float)g->bearingX;
-            float y0 = pen_y - (float)g->bearingY;
+            float x0 = floorf(pen_x + (float)g->bearingX + 0.5f);
+            float y0 = floorf(pen_y - (float)g->bearingY + 0.5f);
             float x1 = x0 + (float)g->width;
             float y1 = y0 + (float)g->height;
 
