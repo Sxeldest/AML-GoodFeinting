@@ -3,6 +3,7 @@
 #include "uisettings.h"
 #include "../../../library/NzFont/NZF_Public.h"
 #include "../../../library/NzFont/NZF_RW_Bridge.hpp"
+#include <vector>
 
 ImGuiRenderer::ImGuiRenderer(ImDrawList* draw_list, NZF_Font* font) {
     m_drawList = draw_list;
@@ -36,7 +37,8 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
     NzFont::UpdateTexture(f);
 
     static NZF_Vertex vbo[4096];
-    auto render = [&](float ox, float oy, ImU32 c) {
+    std::vector<NZF_Vertex> allVerts;
+    auto collect = [&](float ox, float oy, ImU32 c) {
         float cx = pos.x + ox, cy = pos.y + oy;
         ImU32 cur_col = c;
         const char* p = begin;
@@ -47,40 +49,83 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
                 if (processInlineHexColor(p + 1, p + 7, nc)) {
                     cur_col = (ox == 0 && oy == 0) ? (ImU32)ImColor(nc) : (ImU32)ImColor(0.0f, 0.0f, 0.0f, nc.w);
                 }
-                p += 8; continue;
+                p += 8;
+                continue;
             }
             const char* bs = p;
             while (p < text_end && *p != '{') p++;
             std::string batch(bs, p - bs);
             int vc = NzFont_DrawText(f, batch.c_str(), cx, cy, cur_col, vbo, 4096, sz, false, false);
             if (vc > 0) {
-                NZF_Cache* cache = f->caches[0];
-                for (int i = 0; i < f->cache_count; i++) if (f->caches[i]->size == sz) { cache = f->caches[i]; break; }
-                m_drawList->PushTextureID((ImTextureID)cache->texture);
-                for (int i = 0; i < vc; i += 3) {
-                    m_drawList->PrimReserve(3, 3);
-                    m_drawList->PrimWriteVtx(ImVec2(vbo[i].x, vbo[i].y), ImVec2(vbo[i].u, vbo[i].v), vbo[i].color);
-                    m_drawList->PrimWriteVtx(ImVec2(vbo[i+1].x, vbo[i+1].y), ImVec2(vbo[i+1].u, vbo[i+1].v), vbo[i+1].color);
-                    m_drawList->PrimWriteVtx(ImVec2(vbo[i+2].x, vbo[i+2].y), ImVec2(vbo[i+2].u, vbo[i+2].v), vbo[i+2].color);
-                    ImDrawIdx idx = (ImDrawIdx)m_drawList->_VtxCurrentIdx;
-                    m_drawList->PrimWriteIdx(idx-3); m_drawList->PrimWriteIdx(idx-2); m_drawList->PrimWriteIdx(idx-1);
+                for (int i = 0; i < vc; ++i) {
+                    allVerts.push_back(vbo[i]);
                 }
-                m_drawList->PopTextureID();
             }
             cx += NzFont_CalculateWidth(f, batch.c_str(), sz, false, false);
         }
     };
 
+    auto drawOutlineBatch = [&](float ox, float oy, ImU32 col) {
+        if (allVerts.empty()) return;
+        NZF_Cache* cache = f->caches[0];
+        for (int i = 0; i < f->cache_count; ++i) {
+            if (f->caches[i]->size == sz) { cache = f->caches[i]; break; }
+        }
+        m_drawList->PushTextureID((ImTextureID)cache->texture);
+        int triCount = (int)allVerts.size() / 3;
+        m_drawList->PrimReserve(triCount * 3, triCount * 3);
+        for (int i = 0; i < triCount; ++i) {
+            int base = i * 3;
+            for (int j = 0; j < 3; ++j) {
+                const NZF_Vertex &v = allVerts[base + j];
+                ImVec2 posV = ImVec2(v.x + ox, v.y + oy);
+                m_drawList->PrimWriteVtx(posV, ImVec2(v.u, v.v), col);
+            }
+            ImDrawIdx idx = (ImDrawIdx)m_drawList->_VtxCurrentIdx;
+            m_drawList->PrimWriteIdx(idx - 3);
+            m_drawList->PrimWriteIdx(idx - 2);
+            m_drawList->PrimWriteIdx(idx - 1);
+        }
+        m_drawList->PopTextureID();
+    };
+
+    auto drawTextBatch = [&](float ox, float oy) {
+        if (allVerts.empty()) return;
+        NZF_Cache* cache = f->caches[0];
+        for (int i = 0; i < f->cache_count; ++i) {
+            if (f->caches[i]->size == sz) { cache = f->caches[i]; break; }
+        }
+        m_drawList->PushTextureID((ImTextureID)cache->texture);
+        int triCount = (int)allVerts.size() / 3;
+        m_drawList->PrimReserve(triCount * 3, triCount * 3);
+        for (int i = 0; i < triCount; ++i) {
+            int base = i * 3;
+            for (int j = 0; j < 3; ++j) {
+                const NZF_Vertex &v = allVerts[base + j];
+                ImVec2 posV = ImVec2(v.x + ox, v.y + oy);
+                m_drawList->PrimWriteVtx(posV, ImVec2(v.u, v.v), v.color);
+            }
+            ImDrawIdx idx = (ImDrawIdx)m_drawList->_VtxCurrentIdx;
+            m_drawList->PrimWriteIdx(idx - 3);
+            m_drawList->PrimWriteIdx(idx - 2);
+            m_drawList->PrimWriteIdx(idx - 1);
+        }
+        m_drawList->PopTextureID();
+    };
+
+    collect(0, 0, color);
+
     if (outline) {
         ImU32 oc = ImColor(0.0f, 0.0f, 0.0f, color.Value.w);
         if (bold_outline) {
-            render(-2, 0, oc); render(2, 0, oc); render(0, -2, oc); render(0, 2, oc);
-            render(-1, -1, oc); render(1, -1, oc); render(-1, 1, oc); render(1, 1, oc);
+            drawOutlineBatch(-2, 0, oc); drawOutlineBatch(2, 0, oc); drawOutlineBatch(0, -2, oc); drawOutlineBatch(0, 2, oc);
+            drawOutlineBatch(-1, -1, oc); drawOutlineBatch(1, -1, oc); drawOutlineBatch(-1, 1, oc); drawOutlineBatch(1, 1, oc);
         } else {
-            render(-1, 0, oc); render(1, 0, oc); render(0, -1, oc); render(0, 1, oc);
+            drawOutlineBatch(-1, 0, oc); drawOutlineBatch(1, 0, oc); drawOutlineBatch(0, -1, oc); drawOutlineBatch(0, 1, oc);
         }
     }
-    render(0, 0, color);
+    drawTextBatch(0, 0);
+
 }
 
 void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const std::string& text, bool outlined, float font_size, NZF_Font* font, bool bold_outline) {

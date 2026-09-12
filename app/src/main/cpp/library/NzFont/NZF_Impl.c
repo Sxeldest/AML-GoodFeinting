@@ -29,7 +29,6 @@ int NzFont_Init() {
     if (g_ftLib) return 0;
     if (FT_Init_FreeType(&g_ftLib)) return -1;
 
-    // Set interpreter version to 35 for best native hinting compatibility
     unsigned int interpreter_version = 35;
     FT_Property_Set(g_ftLib, "truetype", "interpreter-version", &interpreter_version);
 
@@ -165,7 +164,6 @@ NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool b
             int b_size = g->width * g->height;
             if (b_size > 0) {
                 unsigned char* buf = (unsigned char*)malloc(b_size);
-                // Standard alpha: No Gamma Table modification
                 for (int j = 0; j < b_size; j++) buf[j] = slot->bitmap.buffer[j];
                 NzFont_Atlas_InsertGlyph(cache, g, buf);
                 free(buf);
