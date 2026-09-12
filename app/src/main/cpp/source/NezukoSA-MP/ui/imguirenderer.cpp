@@ -70,6 +70,7 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
             cx += NzFont_CalculateWidth(f, batch.c_str(), sz, false, false);
         }
     };
+
     if (outline) {
         ImU32 oc = ImColor(0.0f, 0.0f, 0.0f, color.Value.w);
         if (bold_outline) {

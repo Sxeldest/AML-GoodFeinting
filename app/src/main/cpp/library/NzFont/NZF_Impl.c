@@ -137,28 +137,34 @@ NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool b
         }
         if (cache->glyphs[i].charcode == 0) {
             NZF_SetSize(AS_FACE(font), size);
-            if (FT_Load_Char(AS_FACE(font), charcode, FT_LOAD_TARGET_NORMAL)) return NULL;
-            FT_GlyphSlot slot = AS_FACE(font)->glyph;
 
-            if (bold && !(AS_FACE(font)->style_flags & FT_STYLE_FLAG_BOLD))
-                FT_Outline_Embolden(&slot->outline, (FT_Pos)(slot->face->size->metrics.y_ppem << 6) / 24);
+            if (FT_Load_Char(AS_FACE(font), charcode, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL)) return NULL;
+            FT_GlyphSlot slot = AS_FACE(font)->glyph;
+            if (bold && !(AS_FACE(font)->style_flags & FT_STYLE_FLAG_BOLD)) {
+                FT_Pos strength = (slot->face->size->metrics.y_ppem << 6) / 32;
+                FT_Outline_Embolden(&slot->outline, strength);
+            }
+
             if (italic && !(AS_FACE(font)->style_flags & FT_STYLE_FLAG_ITALIC)) {
-                FT_Matrix transform = { 0x10000L, 0x06000L, 0, 0x10000L };
+                FT_Matrix transform = { 0x10000L, 0x04000L, 0, 0x10000L }; // Closer to GDI slant
                 FT_Outline_Transform(&slot->outline, &transform);
             }
 
             FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
+
             NZF_Glyph* g = &cache->glyphs[i];
             g->charcode = charcode;
             g->index = FT_Get_Char_Index(AS_FACE(font), charcode);
-            g->width = slot->bitmap.width; g->height = slot->bitmap.rows;
-            g->bearingX = slot->bitmap_left; g->bearingY = slot->bitmap_top;
+            g->width = slot->bitmap.width;
+            g->height = slot->bitmap.rows;
+            g->bearingX = slot->bitmap_left;
+            g->bearingY = slot->bitmap_top;
             g->advance = slot->advance.x;
 
             int b_size = g->width * g->height;
             if (b_size > 0) {
                 unsigned char* buf = (unsigned char*)malloc(b_size);
-                for (int j = 0; j < b_size; j++) buf[j] = NZF_GammaTable[slot->bitmap.buffer[j]];
+                for (int j = 0; j < b_size; j++) buf[j] = slot->bitmap.buffer[j];
                 NzFont_Atlas_InsertGlyph(cache, g, buf);
                 free(buf);
             } else {
@@ -186,7 +192,7 @@ static uint32_t decode_utf8(const char** s) {
 }
 
 int NzFont_DrawText(NZF_Font* font, const char* text, float x, float y, uint32_t color, NZF_Vertex* vbo, int max_verts, float size, bool bold, bool italic) {
-    if (!font || !text || !vbo) return 0;
+    if (!font || !text || !vbo || max_verts < 6) return 0;
 
     float drawSize = GET_SIZE(font, size);
     NZF_Cache* cache = NzFont_GetCache(font, drawSize, bold, italic);
@@ -197,8 +203,32 @@ int NzFont_DrawText(NZF_Font* font, const char* text, float x, float y, uint32_t
     float pen_y = y + (float)ascender;
     uint32_t last_idx = 0;
 
+    uint32_t alpha_mask = (color & 0xFF000000);
+    if (alpha_mask == 0) alpha_mask = 0xFF000000;
+
+    uint32_t current_color = color;
+    if ((current_color & 0xFF000000) == 0) current_color |= 0xFF000000;
+
     const char* p = text;
-    while (*p && v_idx + 6 <= max_verts) {
+    while (*p && (v_idx + 6) <= max_verts) {
+        if (*p == '{') {
+            const char* end = strchr(p, '}');
+            if (end && (end - p) == 7) {
+                char hex[7];
+                memcpy(hex, p + 1, 6);
+                hex[6] = 0;
+                uint32_t rgb = (uint32_t)strtoul(hex, NULL, 16);
+
+                uint32_t r = (rgb >> 16) & 0xFF;
+                uint32_t g = (rgb >> 8) & 0xFF;
+                uint32_t b = rgb & 0xFF;
+                current_color = alpha_mask | (b << 16) | (g << 8) | r;
+
+                p = end + 1;
+                continue;
+            }
+        }
+
         uint32_t charcode = decode_utf8(&p);
         NZF_Glyph* g = NzFont_GetGlyph(font, charcode, drawSize, bold, italic);
         if (!g) continue;
@@ -210,18 +240,19 @@ int NzFont_DrawText(NZF_Font* font, const char* text, float x, float y, uint32_t
         }
 
         if (g->width > 0 && g->height > 0) {
-            float x0 = floorf(pen_x + (float)g->bearingX + 0.5f);
-            float y0 = floorf(pen_y - (float)g->bearingY + 0.5f);
+            float x0 = pen_x + (float)g->bearingX;
+            float y0 = pen_y - (float)g->bearingY;
             float x1 = x0 + (float)g->width;
             float y1 = y0 + (float)g->height;
 
-            vbo[v_idx++] = (NZF_Vertex){x0, y0, 0.0f, 1.0f, color, g->u0, g->v0};
-            vbo[v_idx++] = (NZF_Vertex){x1, y0, 0.0f, 1.0f, color, g->u1, g->v0};
-            vbo[v_idx++] = (NZF_Vertex){x0, y1, 0.0f, 1.0f, color, g->u0, g->v1};
-            vbo[v_idx++] = (NZF_Vertex){x1, y0, 0.0f, 1.0f, color, g->u1, g->v0};
-            vbo[v_idx++] = (NZF_Vertex){x1, y1, 0.0f, 1.0f, color, g->u1, g->v1};
-            vbo[v_idx++] = (NZF_Vertex){x0, y1, 0.0f, 1.0f, color, g->u0, g->v1};
+            vbo[v_idx++] = (NZF_Vertex){x0, y0, 0.0f, 1.0f, current_color, g->u0, g->v0};
+            vbo[v_idx++] = (NZF_Vertex){x1, y0, 0.0f, 1.0f, current_color, g->u1, g->v0};
+            vbo[v_idx++] = (NZF_Vertex){x0, y1, 0.0f, 1.0f, current_color, g->u0, g->v1};
+            vbo[v_idx++] = (NZF_Vertex){x1, y0, 0.0f, 1.0f, current_color, g->u1, g->v0};
+            vbo[v_idx++] = (NZF_Vertex){x1, y1, 0.0f, 1.0f, current_color, g->u1, g->v1};
+            vbo[v_idx++] = (NZF_Vertex){x0, y1, 0.0f, 1.0f, current_color, g->u0, g->v1};
         }
+
         pen_x += (float)g->advance / 64.0f;
         last_idx = g->index;
     }
@@ -235,6 +266,10 @@ float NzFont_CalculateWidth(NZF_Font* font, const char* text, float size, bool b
     uint32_t last_idx = 0;
     const char* p = text;
     while (*p) {
+        if (*p == '{') {
+            const char* end = strchr(p, '}');
+            if (end && end - p == 7) { p = end + 1; continue; }
+        }
         uint32_t charcode = decode_utf8(&p);
         NZF_Glyph* g = NzFont_GetGlyph(font, charcode, drawSize, bold, italic);
         if (!g) continue;
