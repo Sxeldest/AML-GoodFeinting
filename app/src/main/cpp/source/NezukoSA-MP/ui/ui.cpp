@@ -50,10 +50,6 @@ void UI::drawList()
 		m_textlabel->render(renderer());
 	}
 
-	if (m_chatbubble) {
-		m_chatbubble->render(renderer());
-	}
-
 	if (m_playertags) {
 		m_playertags->render(renderer());
 	}

@@ -2,6 +2,7 @@
 
 #include "../game/common.h"
 #include <string>
+#include "../../../library/imgui/imgui.h"
 
 typedef unsigned short PLAYERID;
 class ImGuiRenderer;
@@ -22,7 +23,7 @@ public:
     ChatBubble();
     ~ChatBubble();
 
-    void render(ImGuiRenderer* renderer);
+    void draw(ImGuiRenderer* renderer, PLAYERID playerId, ImVec2 pos, float tagHeight, float fDist);
 
 private:
     std::string getString(void* str_obj);

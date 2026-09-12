@@ -65,6 +65,10 @@ void PlayerTags::drawTag(ImGuiRenderer* renderer, PLAYERID playerId, CRemotePlay
 
     renderer->drawText(textPos, UI::fixcolor(pPlayer->getPlayerColor()), szTag, true, fontSize);
 
+    if (pUI->chatbubble()) {
+        pUI->chatbubble()->draw(renderer, playerId, ImVec2(Out.X, Out.Y), textSize.y, fDist);
+    }
+
     uint32_t colorHealthBar    = 0xFF2822B9; // RGB(185, 34, 40)
     uint32_t colorHealthBarBG  = 0xFF140B4B; // RGB(75, 11, 20)
     uint32_t colorArmourBar    = 0xFFC8C8C8; // RGB(200, 200, 200)

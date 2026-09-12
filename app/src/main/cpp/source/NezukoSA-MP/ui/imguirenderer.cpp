@@ -66,8 +66,8 @@ void ImGuiRenderer::drawText(const ImVec2& pos, const ImColor& color, const char
                     m_drawList->PrimWriteIdx(idx-3); m_drawList->PrimWriteIdx(idx-2); m_drawList->PrimWriteIdx(idx-1);
                 }
                 m_drawList->PopTextureID();
-                cx += NzFont_CalculateWidth(f, batch.c_str(), sz, false, false);
             }
+            cx += NzFont_CalculateWidth(f, batch.c_str(), sz, false, false);
         }
     };
     if (outline) {
