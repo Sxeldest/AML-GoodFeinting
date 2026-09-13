@@ -28,7 +28,7 @@ void NzFont_Log(const char* fmt, ...) {
 int NzFont_Init() {
     if (g_ftLib) return 0;
     if (FT_Init_FreeType(&g_ftLib)) return -1;
-    
+
     unsigned int interpreter_version = 35;
     FT_Property_Set(g_ftLib, "truetype", "interpreter-version", &interpreter_version);
 
