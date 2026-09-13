@@ -133,7 +133,7 @@ static void BakeOutline(const unsigned char* src, int sw, int sh, unsigned char*
 
     for (int y = 0; y < sh; y++) {
         for (int x = 0; x < sw; x++) {
-            unsigned char val = src[y * sw + x];
+            unsigned char val = NZF_GammaTable[src[y * sw + x]];
             if (val == 0) continue;
             if (dst[(y + dist) * dw + (x + dist)] < val) dst[(y + dist) * dw + (x + dist)] = val;
             for (int i = 0; i < count; i++) {
@@ -205,7 +205,7 @@ NZF_Glyph* NzFont_GetGlyph(NZF_Font* font, uint32_t charcode, float size, bool b
                 int b_size = g->width * g->height;
                 if (b_size > 0) {
                     unsigned char* buf = (unsigned char*)malloc(b_size);
-                    memcpy(buf, slot->bitmap.buffer, b_size);
+                    for (int j = 0; j < b_size; j++) buf[j] = NZF_GammaTable[slot->bitmap.buffer[j]];
                     NzFont_Atlas_InsertGlyph(cache, g, buf);
                     free(buf);
                 } else g->u0 = g->v0 = g->u1 = g->v1 = 0;
