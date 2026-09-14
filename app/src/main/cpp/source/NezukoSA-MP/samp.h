@@ -29,7 +29,7 @@ public:
 	static void addInfoMessage(const char* message, ...);
 
 	typedef void (*ChatCommand_t)(const char*);
-	static void registerChatCommand(const char* name, ChatCommand_t handler);
+	static void addChatCommand(const char* name, ChatCommand_t handler);
 
 private:
 	static CNetGame* m_netgame;

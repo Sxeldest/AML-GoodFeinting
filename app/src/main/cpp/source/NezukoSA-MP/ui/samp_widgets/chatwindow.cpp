@@ -1,10 +1,13 @@
 #include "../../main.h"
 #include "../../samp.h"
+#include "../../settings.h"
 #include "../../nerosettings.h"
+#include "../../java.h"
 #include "../ui.h"
 #include "chatwindow.h"
 
 extern UI* pUI;
+extern Java* g_java;
 
 ChatWindow::ChatWindow()
 {
@@ -36,8 +39,8 @@ void ChatWindow::render(ImGuiRenderer* renderer)
 	if (m_messages.empty()) return;
 
 	float fontSize = UISettings::fontSize();
-	float x = 45.0f;
-	float y = 10.0f;
+	float x = Settings::chatpos().x;
+	float y = Settings::chatpos().y;
 	float line_height = fontSize + 1.0f;
 
 	int max_messages = NeroSettings::GetPageSize();
@@ -48,5 +51,28 @@ void ChatWindow::render(ImGuiRenderer* renderer)
 		const auto& entry = m_messages[i];
 		renderer->drawText(ImVec2(x, y), entry.color, entry.message, true, fontSize, nullptr, true);
 		y += line_height;
+	}
+}
+
+void ChatWindow::touchEvent(const ImVec2& pos, TouchType type)
+{
+	if (!m_visible) return;
+
+	if (type == TouchType::pop) {
+		float x = Settings::chatpos().x;
+		float y = Settings::chatpos().y;
+		float width = Settings::chatsize().x;
+		float height = Settings::chatsize().y;
+
+		if (pos.x >= x && pos.x <= x + width && pos.y >= y && pos.y <= y + height) {
+			CrackedUI* pUI_internal = SAMP::ui();
+			if (pUI_internal && pUI_internal->m_keyboard) {
+				*(uintptr_t*)(pUI_internal->m_keyboard + 0x88) = pUI_internal->m_chat;
+			}
+
+			if (g_java) {
+				g_java->showKeyboard(true);
+			}
+		}
 	}
 }

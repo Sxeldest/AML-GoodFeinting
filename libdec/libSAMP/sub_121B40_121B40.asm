@@ -1,0 +1,24 @@
+; =========================================================================
+; Full Function Name : sub_121B40
+; Start Address       : 0x121B40
+; End Address         : 0x121B6C
+; =========================================================================
+
+/* 0x121B40 */    PUSH            {R4,R6,R7,LR}
+/* 0x121B42 */    ADD             R7, SP, #8
+/* 0x121B44 */    LDR             R0, =(unk_263954 - 0x121B4E)
+/* 0x121B46 */    MOVS            R1, #0
+/* 0x121B48 */    MOVS            R4, #0
+/* 0x121B4A */    ADD             R0, PC; unk_263954
+/* 0x121B4C */    BL              sub_121274
+/* 0x121B50 */    LDR             R0, =(_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEED2Ev_ptr - 0x121B58)
+/* 0x121B52 */    LDR             R1, =(dword_263960 - 0x121B5C)
+/* 0x121B54 */    ADD             R0, PC; _ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEED2Ev_ptr
+/* 0x121B56 */    LDR             R2, =(off_22A540 - 0x121B5E)
+/* 0x121B58 */    ADD             R1, PC; dword_263960
+/* 0x121B5A */    ADD             R2, PC; off_22A540
+/* 0x121B5C */    LDR             R0, [R0]; std::string::~string()
+/* 0x121B5E */    STRD.W          R4, R4, [R1]
+/* 0x121B62 */    STR             R4, [R1,#(dword_263968 - 0x263960)]
+/* 0x121B64 */    POP.W           {R4,R6,R7,LR}
+/* 0x121B68 */    B.W             sub_224250

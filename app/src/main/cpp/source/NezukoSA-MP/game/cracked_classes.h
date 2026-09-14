@@ -7,8 +7,10 @@
 // ui
 class CrackedUI {
 public:
-	uint8_t m_pad[96];             // 0-96
-	uintptr_t m_chat;              // 96-100
+	uint8_t m_pad[88];             // 0-88
+	uintptr_t m_keyboard;          // 88-92
+	uint8_t m_pad_extra[4];        // 92-96
+	uintptr_t m_chat;          // 96-100
 	char m_pad2[4];                // 100-104
 	uintptr_t m_dialog;            // 104-108
 	uintptr_t m_buttonpanel;       // 108-112

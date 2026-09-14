@@ -1,0 +1,17 @@
+; =========================================================================
+; Full Function Name : sub_11B254
+; Start Address       : 0x11B254
+; End Address         : 0x11B26E
+; =========================================================================
+
+/* 0x11B254 */    PUSH            {R4,R6,R7,LR}
+/* 0x11B256 */    ADD             R7, SP, #8
+/* 0x11B258 */    MOV             R4, R0
+/* 0x11B25A */    MOVS            R0, #8; unsigned int
+/* 0x11B25C */    BLX             j__Znwj; operator new(uint)
+/* 0x11B260 */    LDR             R1, =(_ZTVNSt6__ndk110__function6__funcIZN9modloader6modelsC1EvE3$_6NS_9allocatorIS4_EEFiP16CStreamedScriptsPcEEE - 0x11B268); `vtable for'std::__function::__func<modloader::models::models(void)::$_6,std::allocator<modloader::models::models(void)::$_6>,int ()(CStreamedScripts *,char *)> ...
+/* 0x11B262 */    LDR             R2, [R4,#4]
+/* 0x11B264 */    ADD             R1, PC; `vtable for'std::__function::__func<modloader::models::models(void)::$_6,std::allocator<modloader::models::models(void)::$_6>,int ()(CStreamedScripts *,char *)>
+/* 0x11B266 */    ADDS            R1, #8
+/* 0x11B268 */    STRD.W          R1, R2, [R0]
+/* 0x11B26C */    POP             {R4,R6,R7,PC}

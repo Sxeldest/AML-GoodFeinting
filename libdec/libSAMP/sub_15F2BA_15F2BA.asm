@@ -1,0 +1,30 @@
+; =========================================================================
+; Full Function Name : sub_15F2BA
+; Start Address       : 0x15F2BA
+; End Address         : 0x15F2EE
+; =========================================================================
+
+/* 0x15F2BA */    PUSH            {R4,R5,R7,LR}
+/* 0x15F2BC */    ADD             R7, SP, #8
+/* 0x15F2BE */    MOV             R4, R0
+/* 0x15F2C0 */    LDR             R0, [R0,#0xC]
+/* 0x15F2C2 */    CBZ             R0, locret_15F2EC
+/* 0x15F2C4 */    LDR             R0, [R4,#8]; void *
+/* 0x15F2C6 */    CBZ             R0, loc_15F2D4
+/* 0x15F2C8 */    LDR             R5, [R0]
+/* 0x15F2CA */    BLX             j__ZdlPv; operator delete(void *)
+/* 0x15F2CE */    CMP             R5, #0
+/* 0x15F2D0 */    MOV             R0, R5
+/* 0x15F2D2 */    BNE             loc_15F2C8
+/* 0x15F2D4 */    LDR             R1, [R4,#4]
+/* 0x15F2D6 */    MOVS            R0, #0
+/* 0x15F2D8 */    STR             R0, [R4,#8]
+/* 0x15F2DA */    CBZ             R1, loc_15F2EA
+/* 0x15F2DC */    MOVS            R2, #0
+/* 0x15F2DE */    LDR             R3, [R4]
+/* 0x15F2E0 */    STR.W           R0, [R3,R2,LSL#2]
+/* 0x15F2E4 */    ADDS            R2, #1
+/* 0x15F2E6 */    CMP             R1, R2
+/* 0x15F2E8 */    BNE             loc_15F2DE
+/* 0x15F2EA */    STR             R0, [R4,#0xC]
+/* 0x15F2EC */    POP             {R4,R5,R7,PC}

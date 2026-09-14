@@ -102,7 +102,10 @@ void SAMP::process()
 		addDebugMessage("{FFFFFF}Client commands: {0b5394}/q /dl /odl /togdw /headmove /timestamp /pagesize<5-20> /fontsize<0.1-2.0> /btn");
 		addDebugMessage(" ");
 
-		registerChatCommand("btn", CMD_HideButtons);
+		addChatCommand("btn", CMD_HideButtons);
+
+		if(pUI && ui()->m_chat) {
+			setWidgetVisible(ui()->m_chat, false);		}
 
 		g_netgameInited = true;
 	}
@@ -204,15 +207,15 @@ void SAMP::addInfoMessage(const char* message, ...)
 	Memory::callFunction(SAMP_Addr(0x12D490 + 1), ui()->m_chat, tmp_buf); // Chat::addInfoMessage
 }
 
-void SAMP::registerChatCommand(const char* name, ChatCommand_t handler)
+void SAMP::addChatCommand(const char* name, ChatCommand_t handler)
 {
 	CrackedUI* pUI = ui();
 	if (!pUI || !pUI->m_chat) {
-		LOGE("SAMP::registerChatCommand: Chat object not found!");
+		LOGE("SAMP::addChatCommand: Chat object not found!");
 		return;
 	}
 
-	LOGI("SAMP::registerChatCommand: %s", name);
+	LOGI("SAMP::addChatCommand: %s", name);
 
 	static std::map<std::string, std::function<void(std::string_view)>> s_commands;
 
@@ -225,7 +228,7 @@ void SAMP::registerChatCommand(const char* name, ChatCommand_t handler)
 	};
 
 	// sub_12CD48 signature:
-	// void RegisterChatCommand(void* pRet, void* pChat, const char* szName, int nLen, std::function<void(std::string_view)> const* pHandler)
+	// void addChatCommand(void* pRet, void* pChat, const char* szName, int nLen, std::function<void(std::string_view)> const* pHandler)
 
 	uint8_t dummy_connection[64];
 	Memory::callFunction<void>(SAMP_Addr(0x12CD48 + 1), dummy_connection, pUI->m_chat, name, (int)strlen(name), &s_commands[name]);

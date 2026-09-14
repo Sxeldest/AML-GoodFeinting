@@ -221,44 +221,43 @@ bool g_scoreboardVisible = false;
 
 extern "C"
 {
-JNIEXPORT void JNICALL Java_com_nezukosamp_game_SAMP_initializeSAMP(JNIEnv* env,
-		jobject sampObj, jobject uiObj, jobject asset_manager)
-{
-	LOGI("Java_com_nezukosamp_game_SAMP_initializeSAMP");
-	g_java = new Java(env, sampObj, uiObj, asset_manager);
+JNIEXPORT void JNICALL Java_com_nezukosamp_game_SAMP_initializeSAMP(JNIEnv *env,
+                                                                    jobject sampObj, jobject uiObj,
+                                                                    jobject asset_manager) {
+    LOGI("Java_com_nezukosamp_game_SAMP_initializeSAMP");
+    g_java = new Java(env, sampObj, uiObj, asset_manager);
 }
 
-JNIEXPORT void JNICALL Java_com_nezukosamp_game_ui_UI_sendButtonPanelKey(JNIEnv* env,
-		jobject obj, jint id)
-{
-	LOGI("Java_com_nezukosamp_game_ui_UI_sendButtonPanelKey");
+JNIEXPORT void JNICALL Java_com_nezukosamp_game_ui_UI_sendButtonPanelKey(JNIEnv *env,
+                                                                         jobject obj, jint id) {
+    LOGI("Java_com_nezukosamp_game_ui_UI_sendButtonPanelKey");
 }
 
-JNIEXPORT void JNICALL Java_com_nezukosamp_game_ui_UI_sendDialogResponse(JNIEnv* env,
-		jobject obj, jint dialog_id, jint button_id, jint list_item, jbyteArray str)
-{
-	LOGI("Java_com_nezukosamp_game_ui_UI_sendDialogResponse");
+JNIEXPORT void JNICALL Java_com_nezukosamp_game_ui_UI_sendDialogResponse(JNIEnv *env,
+                                                                         jobject obj,
+                                                                         jint dialog_id,
+                                                                         jint button_id,
+                                                                         jint list_item,
+                                                                         jbyteArray str) {
+    LOGI("Java_com_nezukosamp_game_ui_UI_sendDialogResponse");
 }
 
-JNIEXPORT void JNICALL Java_com_nezukosamp_game_ui_UI_sendScoreboardClick(JNIEnv* env,
-		jobject obj, jint player_id)
-{
-	LOGI("Java_com_nezukosamp_game_ui_UI_sendScoreboardClick");
+JNIEXPORT void JNICALL Java_com_nezukosamp_game_ui_UI_sendScoreboardClick(JNIEnv *env,
+                                                                          jobject obj,
+                                                                          jint player_id) {
+    LOGI("Java_com_nezukosamp_game_ui_UI_sendScoreboardClick");
 }
 
-JNIEXPORT void JNICALL Java_com_nezukosamp_game_ui_UI_keyboardSend(JNIEnv* env, jobject obj,
-		jbyteArray str)
-{
-	LOGI("Java_com_nezukosamp_ui_UI_SAMP_keyboardSend");
+JNIEXPORT void JNICALL Java_com_nezukosamp_game_ui_UI_keyboardSend(JNIEnv *env, jobject obj,
+                                                                   jbyteArray str) {
+    LOGI("Java_com_nezukosamp_ui_UI_SAMP_keyboardSend");
 }
 
-JNIEXPORT void JNICALL
-Java_com_nezukosamp_game_ui_UI_voicePressed(JNIEnv* env, jobject obj)
-{
-	LOGI("Java_com_nezukosamp_game_ui_UI_voicePressed");
+JNIEXPORT void JNICALL Java_com_nezukosamp_game_ui_UI_voicePressed(JNIEnv *env, jobject obj) {
+    LOGI("Java_com_nezukosamp_game_ui_UI_voicePressed");
 
-	if (pUI) {
-		pUI->voicebutton()->setRecording(!pUI->voicebutton()->recording());
-	}
+    if (pUI) {
+        pUI->voicebutton()->setRecording(!pUI->voicebutton()->recording());
+    }
 }
 }

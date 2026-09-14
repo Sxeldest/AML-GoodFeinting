@@ -5,6 +5,7 @@
 #include <deque>
 #include <mutex>
 #include "../imguirenderer.h"
+#include "../widget.h"
 
 #define MAX_MESSAGES 100
 
@@ -18,6 +19,7 @@ public:
 	ChatWindow();
 	void addMessage(const char* message, ImColor color);
 	void render(ImGuiRenderer* renderer);
+	void touchEvent(const ImVec2& pos, TouchType type);
 
 private:
 	std::deque<ChatEntry> m_messages;

@@ -67,5 +67,9 @@ void UI::drawList()
 
 void UI::touchEvent(const ImVec2& pos, TouchType type)
 {
+	if (m_chatwindow) {
+		m_chatwindow->touchEvent(pos, type);
+	}
+
 	Widget::touchEvent(pos, type);
 }
