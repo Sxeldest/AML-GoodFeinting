@@ -13,6 +13,10 @@ ChatWindow::ChatWindow()
 {
 	m_messages.clear();
 	m_visible = true;
+	m_scrollOffset = 0;
+	m_lastTouchY = 0.0f;
+	m_scrollAccumulator = 0.0f;
+	m_keyboardActive = false;
 }
 
 void ChatWindow::addMessage(const char* message, ImColor color)
@@ -45,9 +49,20 @@ void ChatWindow::render(ImGuiRenderer* renderer)
 
 	int max_messages = NeroSettings::GetPageSize();
 
-	int start = (m_messages.size() > (size_t)max_messages) ? (int)(m_messages.size() - max_messages) : 0;
+	int totalMessages = (int)m_messages.size();
+	int scrollLimit = (totalMessages > max_messages) ? (totalMessages - max_messages) : 0;
 
-	for (size_t i = start; i < m_messages.size(); ++i) {
+	if (m_scrollOffset > scrollLimit) m_scrollOffset = scrollLimit;
+	if (m_scrollOffset < 0) m_scrollOffset = 0;
+
+	int start = (totalMessages > max_messages) ? (totalMessages - max_messages) : 0;
+	start -= m_scrollOffset;
+	if (start < 0) start = 0;
+
+	int end = start + max_messages;
+	if (end > totalMessages) end = totalMessages;
+
+	for (int i = start; i < end; ++i) {
 		const auto& entry = m_messages[i];
 		renderer->drawText(ImVec2(x, y), entry.color, entry.message, true, fontSize, nullptr, true);
 		y += line_height;
@@ -58,20 +73,48 @@ void ChatWindow::touchEvent(const ImVec2& pos, TouchType type)
 {
 	if (!m_visible) return;
 
-	if (type == TouchType::pop) {
-		float x = Settings::chatpos().x;
-		float y = Settings::chatpos().y;
-		float width = Settings::chatsize().x;
-		float height = Settings::chatsize().y;
+	float x = Settings::chatpos().x;
+	float y = Settings::chatpos().y;
+	float width = Settings::chatsize().x;
+	float height = Settings::chatsize().y;
 
-		if (pos.x >= x && pos.x <= x + width && pos.y >= y && pos.y <= y + height) {
-			CrackedUI* pUI_internal = SAMP::ui();
-			if (pUI_internal && pUI_internal->m_keyboard) {
-				*(uintptr_t*)(pUI_internal->m_keyboard + 0x88) = pUI_internal->m_chat;
+	bool inArea = (pos.x >= x && pos.x <= x + width && pos.y >= y && pos.y <= y + height);
+
+	if (type == TouchType::push) {
+		if (inArea) {
+			m_lastTouchY = pos.y;
+			m_scrollAccumulator = 0.0f;
+		}
+	}
+	else if (type == TouchType::move) {
+		if (inArea) {
+			float deltaY = pos.y - m_lastTouchY;
+			m_lastTouchY = pos.y;
+			m_scrollAccumulator += deltaY;
+
+			float step = UISettings::fontSize() + 1.0f;
+
+			while (m_scrollAccumulator >= step) {
+				m_scrollOffset++;
+				m_scrollAccumulator -= step;
 			}
+			while (m_scrollAccumulator <= -step) {
+				m_scrollOffset--;
+				m_scrollAccumulator += step;
+			}
+		}
+	}
+	else if (type == TouchType::pop) {
+		if (inArea && std::abs(m_scrollAccumulator) < 10.0f) {
+			m_keyboardActive = !m_keyboardActive;
 
-			if (g_java) {
-				g_java->showKeyboard(true);
+			if (g_java) g_java->showKeyboard(m_keyboardActive);
+
+			if (m_keyboardActive) {
+				CrackedUI* pUI_internal = SAMP::ui();
+				if (pUI_internal && pUI_internal->m_keyboard) {
+					*(uintptr_t*)(pUI_internal->m_keyboard + 0x88) = pUI_internal->m_chat;
+				}
 			}
 		}
 	}

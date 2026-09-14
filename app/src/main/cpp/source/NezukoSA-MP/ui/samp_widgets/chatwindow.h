@@ -25,4 +25,9 @@ private:
 	std::deque<ChatEntry> m_messages;
 	std::mutex m_mutex;
 	bool m_visible;
+	bool m_keyboardActive;
+
+	int m_scrollOffset;
+	float m_lastTouchY;
+	float m_scrollAccumulator;
 };
