@@ -5,6 +5,7 @@
 #include "game/audiostream.h"
 #include "voice/Plugin.h"
 #include "voice/Network.h"
+#include "game/Camera.h"
 #include <functional>
 #include <string_view>
 #include <map>
@@ -108,6 +109,21 @@ void SAMP::process()
 			setWidgetVisible(ui()->m_chat, false);		}
 
 		g_netgameInited = true;
+	}
+
+	static bool s_wasDialogOrChatVisible = false;
+	CrackedUI* pCrackedUI = SAMP::ui();
+	if (pCrackedUI && pUI && pUI->chatwindow()) {
+		bool bDialog = SAMP::isWidgetVisible(pCrackedUI->m_dialog);
+		bool bChat = pUI->chatwindow()->isKeyboardActive();
+		bool bShouldShowCursor = (bDialog || bChat);
+
+		if (bShouldShowCursor != s_wasDialogOrChatVisible) {
+			s_wasDialogOrChatVisible = bShouldShowCursor;
+			if (g_java) {
+				g_java->setPointerCapture(!bShouldShowCursor);
+			}
+		}
 	}
 
 	if (pUI) {

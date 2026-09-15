@@ -23,6 +23,8 @@ public:
 	void setScoreboardStats(char* server, int players);
 	void addScoreboardPlayer(int id, char* name, int score, int ping, char* color);
 
+	void setPointerCapture(bool capture);
+
 private:
 	jobject m_sampActivity;
 	jobject m_uiActivity;
@@ -41,6 +43,8 @@ private:
 	jmethodID m_showScoreboard;
 	jmethodID m_setScoreboardStats;
 	jmethodID m_addScoreboardPlayer;
+	
+	jmethodID m_setPointerCapture;
 };
 
 extern Java* g_java;

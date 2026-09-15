@@ -37,6 +37,8 @@ bool CCamera::IsMouseButtonDown(int button) {
 
 void CCamera::SetCaptureStatus(bool captured) {
     s_bCaptured = captured;
+    s_MouseDeltaX = 0.0f;
+    s_MouseDeltaY = 0.0f;
 }
 
 void CCamera::GetDeltas(float* x, float* y) {

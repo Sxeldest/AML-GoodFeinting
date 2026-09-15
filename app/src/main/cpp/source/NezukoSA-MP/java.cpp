@@ -48,6 +48,8 @@ Java::Java(JNIEnv* env, jobject sampObj, jobject uiObj, jobject assetMgr)
 	m_setScoreboardStats = env->GetMethodID(uiClass, "setScoreboardStats", "(Ljava/lang/String;I)V");
 	m_addScoreboardPlayer = env->GetMethodID(uiClass, "addScoreboardPlayer", "(ILjava/lang/String;IILjava/lang/String;)V");
 
+	m_setPointerCapture = env->GetMethodID(sampClass, "setPointerCapture", "(Z)V");
+
 	env->DeleteLocalRef(sampClass);
 	env->DeleteLocalRef(uiClass);
 }
@@ -87,6 +89,18 @@ void Java::showVoice(bool show)
 	}
 
 	env->CallVoidMethod(m_uiActivity, m_showVoice, show);
+}
+
+void Java::setPointerCapture(bool capture)
+{
+	JNIEnv* env = getEnv();
+
+	if (!env) {
+		LOGI("No env");
+		return;
+	}
+
+	env->CallVoidMethod(m_sampActivity, m_setPointerCapture, capture);
 }
 
 jstring createJString(JNIEnv* env, jclass strClass, jmethodID ctorID, const char* text,

@@ -249,6 +249,23 @@ public abstract class NvEventQueueActivity
         return view;
     }
 
+    public void setPointerCapture(final boolean capture) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && view != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (capture && !view.hasPointerCapture()) {
+                        view.requestPointerCapture();
+                        onCaptureStatusChanged(true);
+                    } else if (!capture && view.hasPointerCapture()) {
+                        view.releasePointerCapture();
+                        onCaptureStatusChanged(false);
+                    }
+                }
+            });
+        }
+    }
+
     @SuppressWarnings("unused")
     public void nativeCrashed() {
         System.err.println("nativeCrashed");
