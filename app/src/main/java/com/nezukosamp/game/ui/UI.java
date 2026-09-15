@@ -85,6 +85,10 @@ public class UI implements ButtonPanel.Listener, Voice.Listener, Dialog.Listener
         samp.runOnUiThread(() -> dialog.showWithoutReset(z));
     }
 
+    public boolean isDialogVisible() {
+        return dialog != null && dialog.isVisible();
+    }
+
     private void showScoreboard(boolean z) {
         Log.i(TAG, "**** showScoreboard " + z);
         samp.runOnUiThread(() -> scoreboard.show(z));

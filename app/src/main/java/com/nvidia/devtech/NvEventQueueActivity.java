@@ -409,6 +409,10 @@ public abstract class NvEventQueueActivity
 
     public native void onCaptureStatusChanged(boolean captured);
 
+    public native boolean onNativeKeyEvent(int keyCode, boolean isDown);
+
+    public native void onNativeKeyboardStatus(boolean visible);
+
     public native boolean multiTouchEvent(int action, int count,
                                           int x0, int y0, int x1, int y1, MotionEvent event);
 
@@ -624,6 +628,25 @@ public abstract class NvEventQueueActivity
             }
         }
         return ret;
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        int action = event.getAction();
+        if (action == KeyEvent.ACTION_DOWN || action == KeyEvent.ACTION_UP) {
+            boolean isDown = (action == KeyEvent.ACTION_DOWN);
+            if (isDown && event.getRepeatCount() > 0) {
+                return super.dispatchKeyEvent(event);
+            }
+            try {
+                if (onNativeKeyEvent(event.getKeyCode(), isDown)) {
+                    return true;
+                }
+            } catch (UnsatisfiedLinkError e) {
+                // Native library might not be initialized yet
+            }
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     /**

@@ -1,3 +1,5 @@
+#include <jni.h>
+#include <android/keycodes.h>
 #include "../../main.h"
 #include "../../samp.h"
 #include "../../settings.h"
@@ -5,6 +7,10 @@
 #include "../../java.h"
 #include "../ui.h"
 #include "chatwindow.h"
+
+#ifndef KEYCODE_T
+#define KEYCODE_T AKEYCODE_T
+#endif
 
 extern UI* pUI;
 extern Java* g_java;
@@ -106,16 +112,116 @@ void ChatWindow::touchEvent(const ImVec2& pos, TouchType type)
 	}
 	else if (type == TouchType::pop) {
 		if (inArea && std::abs(m_scrollAccumulator) < 10.0f) {
-			m_keyboardActive = !m_keyboardActive;
-
-			if (g_java) g_java->showKeyboard(m_keyboardActive);
-
-			if (m_keyboardActive) {
-				CrackedUI* pUI_internal = SAMP::ui();
-				if (pUI_internal && pUI_internal->m_keyboard) {
-					*(uintptr_t*)(pUI_internal->m_keyboard + 0x88) = pUI_internal->m_chat;
-				}
-			}
+			toggleKeyboard();
 		}
 	}
 }
+
+void ChatWindow::showKeyboard(bool show)
+{
+	m_keyboardActive = show;
+
+	if (g_java) g_java->showKeyboard(m_keyboardActive);
+
+	if (m_keyboardActive) {
+		CrackedUI* pUI_internal = SAMP::ui();
+		if (pUI_internal && pUI_internal->m_keyboard) {
+			*(uintptr_t*)(pUI_internal->m_keyboard + 0x88) = pUI_internal->m_chat;
+		}
+	}
+}
+
+void ChatWindow::toggleKeyboard()
+{
+	showKeyboard(!m_keyboardActive);
+}
+
+extern bool g_gameInited;
+
+static bool CanOpenChatKeyboard()
+{
+	if (!g_saAddr || !g_gameInited) {
+		return false;
+	}
+
+	if (SAMP::paused()) {
+		return false;
+	}
+
+	if (!SAMP::netgame() || !utils::GamePool_FindPlayerPed()) {
+		return false;
+	}
+
+	return true;
+}
+
+bool ChatWindow::onKeyEvent(int keyCode, bool isDown)
+{
+	if (isDown) {
+		switch (keyCode) {
+			case KEYCODE_T:
+			case AKEYCODE_F6:
+				if (!CanOpenChatKeyboard()) {
+					return false;
+				}
+
+				if (!m_keyboardActive) {
+					showKeyboard(true);
+					return true;
+				}
+				break;
+
+			case AKEYCODE_ESCAPE:
+				if (m_keyboardActive) {
+					showKeyboard(false);
+					return true;
+				}
+
+				return false;
+
+			default:
+				break;
+		}
+	}
+	return false;
+}
+
+static bool s_ConsumedKeys[512] = {false};
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_nvidia_devtech_NvEventQueueActivity_onNativeKeyEvent(JNIEnv* env, jobject thiz, jint keyCode, jboolean isDown)
+{
+	if (isDown) {
+		bool handled = false;
+		if (pUI && pUI->chatwindow()) {
+			handled = pUI->chatwindow()->onKeyEvent(keyCode, isDown);
+		}
+
+		if (keyCode >= 0 && keyCode < 512) {
+			s_ConsumedKeys[keyCode] = handled;
+		}
+
+		return handled ? JNI_TRUE : JNI_FALSE;
+	} else {
+		if (keyCode >= 0 && keyCode < 512 && s_ConsumedKeys[keyCode]) {
+			s_ConsumedKeys[keyCode] = false;
+			if (pUI && pUI->chatwindow()) {
+				pUI->chatwindow()->onKeyEvent(keyCode, isDown);
+			}
+			return JNI_TRUE;
+		}
+	}
+
+	return JNI_FALSE;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_nvidia_devtech_NvEventQueueActivity_onNativeKeyboardStatus(JNIEnv* env, jobject thiz, jboolean visible)
+{
+	if (pUI && pUI->chatwindow()) {
+		pUI->chatwindow()->setKeyboardActive(visible);
+	}
+}
+

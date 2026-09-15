@@ -130,6 +130,10 @@ public class Dialog {
         return newList;
     }
 
+    public boolean isVisible() {
+        return dialog_layout != null && dialog_layout.getVisibility() == View.VISIBLE;
+    }
+
     public void show(int dialog_id, int dialog_style, String title, String message, String button1, String button2) {
         clearDialog();
 

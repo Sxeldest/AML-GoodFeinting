@@ -147,6 +147,13 @@ public class Keyboard {
         } else {
             imm.hideSoftInputFromWindow(keyboard_input.getWindowToken(), 0);
         }
+
+        if (activity instanceof com.nvidia.devtech.NvEventQueueActivity) {
+            try {
+                ((com.nvidia.devtech.NvEventQueueActivity) activity).onNativeKeyboardStatus(z);
+            } catch (UnsatisfiedLinkError ignored) {
+            }
+        }
     }
 
     private void send(String str) {
